@@ -11,6 +11,46 @@
  *  Returns:
  *      
  */
+time_t get_access_time(const char *filename, int *errnum);
+
+/*
+ *  Description:
+ *      
+ *  Args:
+ *      
+ *  Returns:
+ *      
+ */
+blkcnt_t get_block_count(const char *filename, int *errnum);
+
+/*
+ *  Description:
+ *      
+ *  Args:
+ *      
+ *  Returns:
+ *      
+ */
+blksize_t get_block_size(const char *filename, int *errnum);
+
+/*
+ *  Description:
+ *      
+ *  Args:
+ *      
+ *  Returns:
+ *      
+ */
+time_t get_change_time(const char *filename, int *errnum);
+
+/*
+ *  Description:
+ *      
+ *  Args:
+ *      
+ *  Returns:
+ *      
+ */
 dev_t get_container_device_id(const char *filename, int *errnum);
 
 /*
@@ -21,7 +61,7 @@ dev_t get_container_device_id(const char *filename, int *errnum);
  *  Returns:
  *      
  */
-ino_t get_serial_num(const char *filename, int *errnum);
+dev_t get_file_device_id(const char *filename, int *errnum);
 
 /*
  *  Description:
@@ -51,26 +91,6 @@ mode_t get_file_type(const char *filename, int *errnum);
  *  Returns:
  *      
  */
-nlink_t get_hard_link_num(const char *filename, int *errnum);
-
-/*
- *  Description:
- *      
- *  Args:
- *      
- *  Returns:
- *      
- */
-uid_t get_owner(const char *filename, int *errnum);
-
-/*
- *  Description:
- *      
- *  Args:
- *      
- *  Returns:
- *      
- */
 gid_t get_group(const char *filename, int *errnum);
 
 /*
@@ -81,27 +101,7 @@ gid_t get_group(const char *filename, int *errnum);
  *  Returns:
  *      
  */
-dev_t get_file_device_id(const char *filename, int *errnum);
-
-/*
- *  Description:
- *      
- *  Args:
- *      
- *  Returns:
- *      
- */
-off_t get_size(const char *filename, int *errnum);
-
-/*
- *  Description:
- *      
- *  Args:
- *      
- *  Returns:
- *      
- */
-time_t get_access_time(const char *filename, int *errnum);
+nlink_t get_hard_link_num(const char *filename, int *errnum);
 
 /*
  *  Description:
@@ -121,7 +121,7 @@ time_t get_mod_time(const char *filename, int *errnum);
  *  Returns:
  *      
  */
-time_t get_change_time(const char *filename, int *errnum);
+uid_t get_owner(const char *filename, int *errnum);
 
 /*
  *  Description:
@@ -131,7 +131,7 @@ time_t get_change_time(const char *filename, int *errnum);
  *  Returns:
  *      
  */
-blksize_t get_block_size(const char *filename, int *errnum);
+ino_t get_serial_num(const char *filename, int *errnum);
 
 /*
  *  Description:
@@ -141,7 +141,7 @@ blksize_t get_block_size(const char *filename, int *errnum);
  *  Returns:
  *      
  */
-blkcnt_t get_block_count(const char *filename, int *errnum);
+off_t get_size(const char *filename, int *errnum);
 
 /*
  *  Description:
