@@ -1,0 +1,19 @@
+Tester's Creed
+
+
+This is my test input. There are many like it, but this one is mine.
+
+My test input is my best friend. It is my life. I must master it as I must master my life.
+
+Without me, my test input is useless. Without my test input, I am useless. I must test my production code true. I must test my production code better than my adversary who is trying to reverse engineer my code. I must fix my code before they exploit it.
+
+I will ...
+
+My test input and I know that what counts in testing is not the number of test cases, the number of statements we test, nor our code coverage. We know that it is the requirements that count. We will trace ...
+
+My test code is human, even as I am human, because it is my life. Thus, I will learn my test code as a brother. I will learn its weaknesses, its strength, its classes, its functions, its decorators, its execution, and its flow control. I will keep my test code clean and DRY, even as I like to be clean and dry. We will become part of each other. We will ...
+
+Before Guido, I swear this creed. My test code and I are the defenders of my production code. We are the masters of our adversaries. We are the saviors of my career.
+
+So be it, until delivery is ours and there are no bugs, but operationally accepted capabilities!
+
