@@ -1,5 +1,5 @@
-#ifndef SKIP_FILE_METADATA_READ
-#define SKIP_FILE_METADATA_READ
+#ifndef __SKIP_FILE_METADATA_READ__
+#define __SKIP_FILE_METADATA_READ__
 
 #include <errno.h>      // errno
 #include <stdbool.h>    // bool, false, true
@@ -175,7 +175,7 @@ bool is_character_device(const char *filename, int *errnum);
  *  Description:
  *      Answers the question, "Is pathname a directory?".  Updates errnum with errno values.
  *  Args:
- *      filename: Absolute or relative filename to check.
+ *      pathname: Absolute or relative pathname to check.
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *  Returns:
  *      True if pathname is a directory.  False otherwise.  Also, returns False if an error
@@ -198,6 +198,9 @@ bool is_named_pipe(const char *filename, int *errnum);
 /*
  *  Description:
  *      Answers the question, "Is filename a regular file?".  Updates errnum with errno values.
+ *		Calls stat(filename), reads the mode field from the stat struct, and checks it against
+ *		the "regular file" macro.  This function may return true for symbolic links because
+ *		stat() follows symbolic links.  If that is a problem, also call is_sym_link().
  *  Args:
  *      filename: Absolute or relative filename to check.
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
@@ -222,6 +225,8 @@ bool is_socket(const char *filename, int *errnum);
 /*
  *  Description:
  *      Answers the question, "Is filename a symbolic link?".  Updates errnum with errno values.
+ *		Calls lstat(filename), reads the mode field from the stat struct, and checks it against
+ *		the "symbolic link" macro.
  *  Args:
  *      filename: Absolute or relative filename to check.
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
@@ -231,4 +236,4 @@ bool is_socket(const char *filename, int *errnum);
  */
 bool is_sym_link(const char *filename, int *errnum);
 
-#endif  /* SKIP_FILE_METADATA_READ */
+#endif  /* __SKIP_FILE_METADATA_READ__ */
