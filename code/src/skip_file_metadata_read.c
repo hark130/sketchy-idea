@@ -2,6 +2,7 @@
  *	This library defines functionality to read, parse, and report on Linux file metadata.
  */
 
+#include "skip_debug.h"				  // PRINT_ERRNO()
 #include "skip_file_metadata_read.h"
 #ifndef ENOERR
 #define ENOERR ((int)0)
@@ -13,13 +14,52 @@
 /**************************************************************************************************/
 /*
  *  Description:
+ *      Calls lstat(pathname) and updates statbuf.  Standardizes basic error handling.  Updates
+ *		errnum with any errno values encountered, 0 on success.
+ *  Args:
+ *      pathname: Absolute or relative pathname to check with lstat().
+ *		statbuf: [Out] Pointer to a stat struct to update with the results of the call to stat().
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *  Returns:
+ *      An errno value indicating the results of validation.  0 on successful validation.
+ */
+int call_lstat(const char *pathname, struct stat *statbuf, int *errnum);
+
+/*
+ *  Description:
+ *      Calls stat(pathname) and updates statbuf.  Standardizes basic error handling.  Updates
+ *		errnum with any errno values encountered, 0 on success.
+ *  Args:
+ *      pathname: Absolute or relative pathname to check with stat().
+ *		statbuf: [Out] Pointer to a stat struct to update with the results of the call to stat().
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *  Returns:
+ *      An errno value indicating the results of validation.  0 on successful validation.
+ */
+int call_stat(const char *pathname, struct stat *statbuf, int *errnum);
+
+/*
+ *  Description:
  *      Validates the input arguments and updates errnum accordingly.  Will update errnum unless
  *		errnum is the cause of the problem.
  *  Args:
- *      filename: Absolute or relative filename to check.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      filename: Must be non-NULL and also can't be empty.
+ *		statbuf: Must be a non-NULL pointer.
+ *      errnum: Must be a non-NULL pointer.  Set to 0 on success.
  *  Returns:
- *      An errnor value indicating the results of validation.  0 on successful validation.
+ *      An errno value indicating the results of validation.  0 on successful validation.
+ */
+int validate_call_input(const char *pathname, struct stat *statbuf, int *errnum);
+
+/*
+ *  Description:
+ *      Validates the input arguments and updates errnum accordingly.  Will update errnum unless
+ *		errnum is the cause of the problem.
+ *  Args:
+ *      filename: Must be non-NULL and also can't be empty.
+ *      errnum: Must be a non-NULL pointer.  Set to 0 on success.
+ *  Returns:
+ *      An errno value indicating the results of validation.  0 on successful validation.
  */
 int validate_input(const char *filename, int *errnum);
 
@@ -35,7 +75,7 @@ time_t get_access_time(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -51,7 +91,7 @@ blkcnt_t get_block_count(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -67,7 +107,7 @@ blksize_t get_block_size(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -83,7 +123,7 @@ time_t get_change_time(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -99,7 +139,7 @@ dev_t get_container_device_id(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -115,7 +155,7 @@ dev_t get_file_device_id(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -131,7 +171,7 @@ mode_t get_file_perms(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -147,7 +187,7 @@ mode_t get_file_type(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -163,7 +203,7 @@ gid_t get_group(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -179,7 +219,7 @@ nlink_t get_hard_link_num(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -195,7 +235,7 @@ time_t get_mod_time(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -211,7 +251,7 @@ uid_t get_owner(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -227,7 +267,7 @@ ino_t get_serial_num(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -243,7 +283,7 @@ off_t get_size(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -259,7 +299,7 @@ bool is_block_device(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -275,7 +315,7 @@ bool is_character_device(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -291,7 +331,7 @@ bool is_directory(const char *pathname, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -307,7 +347,7 @@ bool is_named_pipe(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -320,10 +360,21 @@ bool is_regular_file(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	bool retval = false;                         // Is it?
 	int err = validate_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// IS IT?
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		err = call_stat(filename, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		if (S_IFREG == (stat_struct.st_mode & S_IFMT))
+		{
+			retval = true;
+		}
 	}
 
 	// DONE
@@ -339,7 +390,7 @@ bool is_socket(const char *filename, int *errnum)
 
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		/* CODE GOES HERE */
 	}
 
 	// DONE
@@ -352,10 +403,21 @@ bool is_sym_link(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	bool retval = false;                         // Is it?
 	int err = validate_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// IS IT?
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */	
+		err = call_lstat(filename, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		if (S_IFLNK == (stat_struct.st_mode & S_IFMT))
+		{
+			retval = true;
+		}
 	}
 
 	// DONE
@@ -366,25 +428,106 @@ bool is_sym_link(const char *filename, int *errnum)
 /**************************************************************************************************/
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
-/*
- *  Description:
- *      Validates the input arguments and updates errnum accordingly.  Will update errnum unless
- *		errnum is the cause of the problem.
- *  Args:
- *      filename: Absolute or relative filename to check.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
- *  Returns:
- *      An errnor value indicating the results of validation.  0 on successful validation.
- */
-int validate_input(const char *filename, int *errnum)
+int call_lstat(const char *pathname, struct stat *statbuf, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = validate_call_input(pathname, statbuf, errnum);  // Errno value
+
+	// CALL LSTAT
+	if (ENOERR == result)
+	{
+		if (lstat(pathname, statbuf))
+		{
+			result = errno;
+			PRINT_ERROR(The call to lstat() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return result;
+}
+
+
+int call_stat(const char *pathname, struct stat *statbuf, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = validate_call_input(pathname, statbuf, errnum);  // Errno value
+
+	// CALL STAT
+	if (ENOERR == result)
+	{
+		if (stat(pathname, statbuf))
+		{
+			result = errno;
+			PRINT_ERROR(The call to stat() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return result;
+}
+
+
+int validate_call_input(const char *pathname, struct stat *statbuf, int *errnum)
 {
 	// LOCAL VARIABLES
 	int retval = ENOERR;  // The results of validation
 
 	// VALIDATE IT
-	if (!filename || !(*filename) || !errnum)
+	// pathname
+	// errnum
+	retval = validate_input(pathname, errnum);
+	// statbuf
+	if (ENOERR == retval)
+	{
+		if (!statbuf)
+		{
+			retval = EINVAL;  // Invalid argument
+			PRINT_ERROR(Invalid Argument - Received a null statbuf pointer);
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = retval;
+	}
+	return retval;
+}
+
+
+int validate_input(const char *pathname, int *errnum)
+{
+	// LOCAL VARIABLES
+	int retval = ENOERR;  // The results of validation
+
+	// VALIDATE IT
+	// pathname
+	if (!pathname)
 	{
 		retval = EINVAL;  // Invalid argument
+		PRINT_ERROR(Invalid Argument - Received a null pathname pointer);
+	}
+	else if (!(*pathname))
+	{
+		retval = EINVAL;  // Invalid argument
+		PRINT_ERROR(Invalid Argument - Received an empty pathname);
+	}
+	// errnum
+	if (!errnum)
+	{
+		retval = EINVAL;  // Invalid argument
+		PRINT_ERROR(Invalid Argument - Received a null errnum pointer);
 	}
 
 	// DONE
