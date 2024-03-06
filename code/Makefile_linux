@@ -49,7 +49,8 @@ RAW_OBJ_FILES := $(addsuffix $(OBJ_FILE_EXT),$(BASE_SRC_NAMES))
 
 # A space-separated list of all the test binaries
 BIN_LIST := $(DIST_DIR)test_is_regular_file$(BIN_FILE_EXT) $(DIST_DIR)test_is_symbolic_link$(BIN_FILE_EXT) \
-            $(DIST_DIR)test_is_named_pipe$(BIN_FILE_EXT)
+            $(DIST_DIR)test_is_named_pipe$(BIN_FILE_EXT) $(DIST_DIR)test_is_block_device$(BIN_FILE_EXT) \
+            $(DIST_DIR)test_is_character_device$(BIN_FILE_EXT)
 
 ##################################
 ###### LINUX MAKEFILE RULES ######
@@ -83,6 +84,14 @@ _validate_gcc:
 	@echo "    Validating "$(CC)""
 	@$(CC) --version > $(NULL)
 	@echo "        $(CHECK) $(shell $(CC) --version | head -n 1)"
+
+$(DIST_DIR)test_is_block_device$(BIN_FILE_EXT): $(TEST_DIR)test_is_block_device$(SRC_FILE_EXT) $(DIST_DIR)skip_file_metadata_read$(OBJ_FILE_EXT)
+	@echo "    Linking: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+$(DIST_DIR)test_is_character_device$(BIN_FILE_EXT): $(TEST_DIR)test_is_character_device$(SRC_FILE_EXT) $(DIST_DIR)skip_file_metadata_read$(OBJ_FILE_EXT)
+	@echo "    Linking: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
 $(DIST_DIR)test_is_named_pipe$(BIN_FILE_EXT): $(TEST_DIR)test_is_named_pipe$(SRC_FILE_EXT) $(DIST_DIR)skip_file_metadata_read$(OBJ_FILE_EXT)
 	@echo "    Linking: $@"

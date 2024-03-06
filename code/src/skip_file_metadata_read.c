@@ -296,10 +296,21 @@ bool is_block_device(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	bool retval = false;                         // Is it?
 	int err = validate_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// IS IT?
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(filename, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		if (S_IFBLK == (stat_struct.st_mode & S_IFMT))
+		{
+			retval = true;
+		}
 	}
 
 	// DONE
@@ -312,10 +323,21 @@ bool is_character_device(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	bool retval = false;                         // Is it?
 	int err = validate_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// IS IT?
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(filename, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		if (S_IFCHR == (stat_struct.st_mode & S_IFMT))
+		{
+			retval = true;
+		}
 	}
 
 	// DONE
