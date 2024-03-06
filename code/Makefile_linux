@@ -1,0 +1,86 @@
+##########################
+###### INSTRUCTIONS ######
+##########################
+#
+# 1. Stop reading this
+# 2. Read Makefile instead
+# 3. Thank Linus for this wonderful kernel!
+#
+
+
+##################################
+#### LINUX MAKEFILE VARIABLES ####
+##################################
+
+### CONSTANT VARIABLES ###
+# This was made to avoid circular dependencies and redundancies
+include Makefile_constants
+
+### COMPILER VARIABLES ###
+CC = gcc
+CFLAGS =
+AFLAGS = -fsanitize=address -g
+
+### OS-DYNAMIC VARIABLES ###
+# $(CHECK) - Checkmark
+CHECK :=
+ifneq ($(OS),Windows_NT)
+	CHECK = [✓]
+else
+$(error Wrong operating system.  This is $(OS).)
+endif
+
+# $(NULL) - Shunt output here to silence it
+NULL :=
+ifneq ($(OS),Windows_NT)
+	NULL = /dev/null
+else
+$(error Wrong operating system.  This is $(OS).)
+endif
+
+### DYNAMIC VARIABLES ###
+# All .c filenames found in SRC_DIR
+RAW_SRC_FILES := $(shell cd $(SRC_DIR); ls *$(SRC_FILE_EXT))
+# All RAW_SRC_FILES with the file extension stripped
+BASE_SRC_NAMES := $(basename $(RAW_SRC_FILES))
+# Convert base filenames to object code filenames
+RAW_OBJ_FILES := $(addsuffix $(OBJ_FILE_EXT),$(BASE_SRC_NAMES))
+
+
+##################################
+###### LINUX MAKEFILE RULES ######
+##################################
+_all:
+	$(CALL_MAKE) validate
+	$(CALL_MAKE) clean
+	$(CALL_MAKE) compile
+
+.PHONY: _all _compile _clean _clean_dist _validate _validate_gcc
+
+_compile:
+	$(CALL_MAKE) _compilation
+	# ADDITIONAL BUILD-SPECIFIC RULES GO HERE
+
+_compilation: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(RAW_OBJ_FILES))
+
+_clean:
+	$(CALL_MAKE) _clean_dist
+
+_clean_dist:
+	@echo "    Cleaning "$(DIST_DIR)" directory"
+	@rm -f $(DIST_DIR)*.o $(DIST_DIR)*.exe $(DIST_DIR)*.bin $(DIST_DIR)*.lib $(DIST_DIR)*.so $(DIST_DIR)*.egg
+
+_validate:
+	$(CALL_MAKE) _validate_gcc
+
+_validate_gcc:
+	@echo "    Validating "$(CC)""
+	@$(CC) --version > $(NULL)
+	@echo "        $(CHECK) $(shell $(CC) --version | head -n 1)"
+
+%$(OBJ_FILE_EXT): %$(SRC_FILE_EXT)
+	$(CC) $(CFLAGS) -c $(SRC_DIR)$^ -o $(DIST_DIR)$@ -I $(INCLUDE_DIR)
+
+%$(SRC_FILE_EXT):
+	@echo "    Verifying $(SRC_DIR)/$@"
+	@if ! [ -f $(SRC_DIR)/$@ ] ; then echo "Unable to locate the $(SRC_DIR)/$@ file" >&2 && exit 2 ; fi
