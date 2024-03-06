@@ -1,7 +1,11 @@
 #ifndef SKIP_FILE_METADATA_READ
 #define SKIP_FILE_METADATA_READ
 
-#include <stdbool.h>  // bool, false, true
+#include <errno.h>      // errno
+#include <stdbool.h>    // bool, false, true
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 /*
  *  Description:
