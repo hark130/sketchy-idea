@@ -3,9 +3,9 @@
 ##########################
 #
 # 1. Write your code
-# 2. make
+# 2. make -C code/
 # 3. Watch for errors
-# 4. Check $(DIST_DIR) for your binaries
+# 4. Check code/$(DIST_DIR) for your binaries
 # 5. Modifiy Makefile_linux with special rules
 #
 # Global "constants" are defined in Makefile_constants
@@ -34,15 +34,15 @@ all:
 	$(CALL_MAKE) clean
 	$(CALL_MAKE) compile
 
-compile:
-	@echo ""
-	@echo "COMPILING"
-	$(CALL_MAKE) _compile
-
 clean:
 	@echo ""
 	@echo "CLEANING"
 	$(CALL_MAKE) _clean
+
+compile:
+	@echo ""
+	@echo "COMPILING"
+	$(CALL_MAKE) _compile
 
 validate:
 	@echo ""
