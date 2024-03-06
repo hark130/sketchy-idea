@@ -55,13 +55,7 @@ _all:
 	$(CALL_MAKE) clean
 	$(CALL_MAKE) compile
 
-.PHONY: _all _compile _clean _clean_dist _validate _validate_gcc
-
-_compile:
-	$(CALL_MAKE) _compilation
-	# ADDITIONAL BUILD-SPECIFIC RULES GO HERE
-
-_compilation: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(RAW_OBJ_FILES))
+.PHONY: _all _clean _clean_dist _compile _compilation _validate _validate_gcc
 
 _clean:
 	$(CALL_MAKE) _clean_dist
@@ -69,6 +63,12 @@ _clean:
 _clean_dist:
 	@echo "    Cleaning "$(DIST_DIR)" directory"
 	@rm -f $(DIST_DIR)*.o $(DIST_DIR)*.exe $(DIST_DIR)*.bin $(DIST_DIR)*.lib $(DIST_DIR)*.so $(DIST_DIR)*.egg
+
+_compile:
+	$(CALL_MAKE) _compilation
+	# ADDITIONAL BUILD-SPECIFIC RULES GO HERE
+
+_compilation: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(RAW_OBJ_FILES))
 
 _validate:
 	$(CALL_MAKE) _validate_gcc
