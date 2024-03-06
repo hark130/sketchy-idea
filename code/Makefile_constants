@@ -19,6 +19,8 @@ SRC_DIR = src/
 DIST_DIR = dist/
 # Relative path to the directory to store the zip-formatted HTML archives
 INCLUDE_DIR = include/
+# Relative path to the directory storing the test code
+TEST_DIR = test/
 
 ### FILE EXTENSIONS ###
 HDR_FILE_EXT = .h
