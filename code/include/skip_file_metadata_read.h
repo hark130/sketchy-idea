@@ -145,27 +145,15 @@ off_t get_size(const char *filename, int *errnum);
 
 /*
  *  Description:
- *      Answers the question, "Is filename a regular file?".  Updates errnum with errno values.
+ *      Answers the question, "Is filename a block device?".  Updates errnum with errno values.
  *  Args:
  *      filename: Absolute or relative filename to check.
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *  Returns:
- *      True if filename is a regular file.  False otherwise.  Also, returns False if an error
+ *      True if filename is a block device.  False otherwise.  Also, returns False if an error
  *      occurred (bad input or otherwise).
  */
-bool is_regular_file(const char *filename, int *errnum);
-
-/*
- *  Description:
- *      Answers the question, "Is pathname a directory?".  Updates errnum with errno values.
- *  Args:
- *      filename: Absolute or relative filename to check.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
- *  Returns:
- *      True if pathname is a directory.  False otherwise.  Also, returns False if an error
- *      occurred (bad input or otherwise).
- */
-bool is_directory(const char *pathname, int *errnum);
+bool is_block_device(const char *filename, int *errnum);
 
 /*
  *  Description:
@@ -181,15 +169,15 @@ bool is_character_device(const char *filename, int *errnum);
 
 /*
  *  Description:
- *      Answers the question, "Is filename a block device?".  Updates errnum with errno values.
+ *      Answers the question, "Is pathname a directory?".  Updates errnum with errno values.
  *  Args:
  *      filename: Absolute or relative filename to check.
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *  Returns:
- *      True if filename is a block device.  False otherwise.  Also, returns False if an error
+ *      True if pathname is a directory.  False otherwise.  Also, returns False if an error
  *      occurred (bad input or otherwise).
  */
-bool is_block_device(const char *filename, int *errnum);
+bool is_directory(const char *pathname, int *errnum);
 
 /*
  *  Description:
@@ -205,15 +193,15 @@ bool is_named_pipe(const char *filename, int *errnum);
 
 /*
  *  Description:
- *      Answers the question, "Is filename a symbolic link?".  Updates errnum with errno values.
+ *      Answers the question, "Is filename a regular file?".  Updates errnum with errno values.
  *  Args:
  *      filename: Absolute or relative filename to check.
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *  Returns:
- *      True if filename is a symbolic link.  False otherwise.  Also, returns False if an error
+ *      True if filename is a regular file.  False otherwise.  Also, returns False if an error
  *      occurred (bad input or otherwise).
  */
-bool is_sym_link(const char *filename, int *errnum);
+bool is_regular_file(const char *filename, int *errnum);
 
 /*
  *  Description:
@@ -226,5 +214,17 @@ bool is_sym_link(const char *filename, int *errnum);
  *      occurred (bad input or otherwise).
  */
 bool is_socket(const char *filename, int *errnum);
+
+/*
+ *  Description:
+ *      Answers the question, "Is filename a symbolic link?".  Updates errnum with errno values.
+ *  Args:
+ *      filename: Absolute or relative filename to check.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *  Returns:
+ *      True if filename is a symbolic link.  False otherwise.  Also, returns False if an error
+ *      occurred (bad input or otherwise).
+ */
+bool is_sym_link(const char *filename, int *errnum);
 
 #endif  /* SKIP_FILE_METADATA_READ */
