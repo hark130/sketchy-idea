@@ -15,6 +15,7 @@
 ### CONSTANT VARIABLES ###
 # This was made to avoid circular dependencies and redundancies
 include Makefile_constants
+BIN_FILE_EXT = .bin
 
 ### COMPILER VARIABLES ###
 CC = gcc
@@ -46,6 +47,8 @@ BASE_SRC_NAMES := $(basename $(RAW_SRC_FILES))
 # Convert base filenames to object code filenames
 RAW_OBJ_FILES := $(addsuffix $(OBJ_FILE_EXT),$(BASE_SRC_NAMES))
 
+# A space-separated list of all the test binaries
+BIN_LIST := $(DIST_DIR)test_is_regular_file$(BIN_FILE_EXT) $(DIST_DIR)test_is_symbolic_link$(BIN_FILE_EXT)
 
 ##################################
 ###### LINUX MAKEFILE RULES ######
@@ -55,7 +58,7 @@ _all:
 	$(CALL_MAKE) clean
 	$(CALL_MAKE) compile
 
-.PHONY: _all _clean _clean_dist _compile _compilation _validate _validate_gcc
+.PHONY: _all _clean _clean_dist _compile _compilation _test_link _validate _validate_gcc
 
 _clean:
 	$(CALL_MAKE) _clean_dist
@@ -66,9 +69,11 @@ _clean_dist:
 
 _compile:
 	$(CALL_MAKE) _compilation
-	# ADDITIONAL BUILD-SPECIFIC RULES GO HERE
+	$(CALL_MAKE) _test_link
 
 _compilation: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(RAW_OBJ_FILES))
+
+_test_link: $(foreach BIN_FILE, $(BIN_LIST), $(BIN_FILE))
 
 _validate:
 	$(CALL_MAKE) _validate_gcc
@@ -78,9 +83,22 @@ _validate_gcc:
 	@$(CC) --version > $(NULL)
 	@echo "        $(CHECK) $(shell $(CC) --version | head -n 1)"
 
-%$(OBJ_FILE_EXT): %$(SRC_FILE_EXT)
-	$(CC) $(CFLAGS) -c $(SRC_DIR)$^ -o $(DIST_DIR)$@ -I $(INCLUDE_DIR)
+$(DIST_DIR)test_is_regular_file$(BIN_FILE_EXT): $(TEST_DIR)test_is_regular_file$(SRC_FILE_EXT) $(DIST_DIR)skip_file_metadata_read$(OBJ_FILE_EXT)
+	@echo "    Linking: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+$(DIST_DIR)test_is_symbolic_link$(BIN_FILE_EXT): $(TEST_DIR)test_is_symbolic_link$(SRC_FILE_EXT) $(DIST_DIR)skip_file_metadata_read$(OBJ_FILE_EXT)
+	@echo "    Linking: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+%$(BIN_FILE_EXT): $(DIST_DIR)%$(OBJ_FILE_EXT)
+	@echo "    Linking: $@"
+	@$(CC) $(CFLAGS) -o $(DIST_DIR)$@ $^
+
+%$(OBJ_FILE_EXT): $(SRC_DIR)%$(SRC_FILE_EXT)
+	@echo "    Compiling: $^"
+	@$(CC) $(CFLAGS) -c $^ -o $(DIST_DIR)$@ -I $(INCLUDE_DIR)
 
 %$(SRC_FILE_EXT):
-	@echo "    Verifying $(SRC_DIR)/$@"
-	@if ! [ -f $(SRC_DIR)/$@ ] ; then echo "Unable to locate the $(SRC_DIR)/$@ file" >&2 && exit 2 ; fi
+	@echo "    Verifying $@"
+	@if ! [ -f $@ ] ; then echo "Unable to locate the $@ file" >&2 && exit 2 ; fi
