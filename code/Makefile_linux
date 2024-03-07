@@ -60,7 +60,7 @@ _all:
 	$(CALL_MAKE) clean
 	$(CALL_MAKE) compile
 
-.PHONY: _all _clean _clean_dist _compile _compilation _test_link _validate _validate_gcc
+.PHONY: _all _clean _clean_dist _compile _compilation _test_link _validate _validate_check _validate_gcc
 
 _clean:
 	$(CALL_MAKE) _clean_dist
@@ -79,6 +79,12 @@ _test_link: $(foreach BIN_FILE, $(BIN_LIST), $(BIN_FILE))
 
 _validate:
 	$(CALL_MAKE) _validate_gcc
+	$(CALL_MAKE) _validate_check
+
+_validate_check:
+	@echo "    Validating Check"
+	@grep "Check" /usr/include/check.h > $(NULL)
+	@echo "        $(CHECK) $(shell echo -n "Check unit test version: "; printf "%s %s %s\n" CHECK_MAJOR_VERSION CHECK_MINOR_VERSION CHECK_MICRO_VERSION | gcc -include check.h -E - | tail -n 1)"
 
 _validate_gcc:
 	@echo "    Validating "$(CC)""
