@@ -23,7 +23,7 @@ else
 include Makefile_linux
 endif
 
-.PHONY: all compile clean validate
+.PHONY: all compile clean test validate
 
 
 ##########################
@@ -33,6 +33,7 @@ all:
 	$(CALL_MAKE) validate
 	$(CALL_MAKE) clean
 	$(CALL_MAKE) compile
+	$(CALL_MAKE) test
 
 clean:
 	@echo ""
@@ -43,6 +44,11 @@ compile:
 	@echo ""
 	@echo "COMPILING"
 	$(CALL_MAKE) _compile
+
+test:
+	@echo ""
+	@echo "RUNNING TEST CASES"
+	$(CALL_MAKE) _test
 
 validate:
 	@echo ""
