@@ -9,7 +9,7 @@
 
 
 // Use this to help highlight an errnum that wasn't updated
-#define CANARY_INT (int)0xBADC0DE
+#define CANARY_INT (int)0xBADC0DE  // Actually, a reverse canary value
 
 
 START_TEST(test_n01_regular_file)
@@ -33,6 +33,39 @@ START_TEST(test_n02_directory)
 }
 END_TEST
 
+
+START_TEST(test_n03_symbolic_link)
+{
+    bool result = false;      // Return value from function call
+    int errnum = CANARY_INT;  // Errno from the function call
+    result = is_regular_file("./code/test/test_input/sym_link.txt", &errnum);
+    ck_assert(true == result);  // This may not be a regular file but stat() follows links
+    ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
+}
+END_TEST
+
+
+START_TEST(test_n04_block_device)
+{
+    bool result = false;      // Return value from function call
+    int errnum = CANARY_INT;  // Errno from the function call
+    result = is_regular_file("/dev/loop0", &errnum);
+    ck_assert(false == result);  // This input is *NOT* a regular file
+    ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
+}
+END_TEST
+
+
+START_TEST(test_n05_character_device)
+{
+    bool result = false;      // Return value from function call
+    int errnum = CANARY_INT;  // Errno from the function call
+    result = is_regular_file("/dev/null", &errnum);
+    ck_assert(false == result);  // This input is *NOT* a regular file
+    ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
+}
+END_TEST
+
  
 Suite *is_regular_file_suite(void)
 {
@@ -46,6 +79,9 @@ Suite *is_regular_file_suite(void)
 
     tcase_add_test(tc_core, test_n01_regular_file);
     tcase_add_test(tc_core, test_n02_directory);
+    tcase_add_test(tc_core, test_n03_symbolic_link);
+    tcase_add_test(tc_core, test_n04_block_device);
+    tcase_add_test(tc_core, test_n05_character_device);
     suite_add_tcase(suite, tc_core);
 
     return suite;
