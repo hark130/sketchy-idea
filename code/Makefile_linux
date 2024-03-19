@@ -78,8 +78,8 @@ CHECK_BIN_LIST = $(shell ls $(DIST_DIR)$(CHECK_PREFIX)*$(BIN_FILE_EXT))
 .PHONY: _all _check_link _clean _clean_dist _compile _compilation _test _test_link _validate _validate_check _validate_gcc
 
 # Don't auto-remove my object code
-.PRECIOUS: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FILES)) \
-           $(foreach CHECK_OBJ_FILE, $(CHECK_OBJ_FILES), $(DIST_DIR)$(CHECK_OBJ_FILES))
+.PRECIOUS: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FILE)) \
+           $(foreach CHECK_OBJ_FILE, $(CHECK_OBJ_FILES), $(DIST_DIR)$(CHECK_OBJ_FILE))
 
 ##################################
 ###### LINUX MAKEFILE RULES ######
@@ -91,7 +91,7 @@ _all:
 	$(CALL_MAKE) test
 
 # Link all of the Check unit test binaries
-_check_link: $(foreach CHECK_BIN_FILE, $(CHECK_BIN_FILES), $(DIST_DIR)$(CHECK_BIN_FILES))
+_check_link: $(foreach CHECK_BIN_FILE, $(CHECK_BIN_FILES), $(DIST_DIR)$(CHECK_BIN_FILE))
 	@#echo "$@ needs $^"  # DEBUGGING
 
 _clean:
@@ -106,7 +106,7 @@ _compile:
 	$(CALL_MAKE) _test_link
 	$(CALL_MAKE) _check_link
 
-_compilation: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FILES))
+_compilation: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FILE))
 	@#echo "$@ needs $^"  # DEBUGGING
 
 _test:
@@ -158,7 +158,7 @@ $(DIST_DIR)$(CHECK_PREFIX)%$(OBJ_FILE_EXT): $(TEST_DIR)$(CHECK_PREFIX)%$(SRC_FIL
 	@$(CC) $(CFLAGS) -c $^ -o $@ -I $(INCLUDE_DIR)
 
 # CHECK: Linking skip_file_metadata_read library unit test binaries
-$(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skip_file_metadata_read$(OBJ_FILE_EXT)
+$(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skip_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Linking: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
