@@ -229,7 +229,7 @@ Suite *is_regular_file_suite(void)
     Suite *suite = NULL;
     TCase *tc_core = NULL;
 
-    suite = suite_create("Is_Regular_File");
+    suite = suite_create("SFMR_Is_Regular_File");
 
     /* Core test case */
     tc_core = tcase_create("Core");

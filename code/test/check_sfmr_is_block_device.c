@@ -229,7 +229,7 @@ Suite *is_block_device_suite(void)
     Suite *suite = NULL;
     TCase *tc_core = NULL;
 
-    suite = suite_create("Is_Block_Device");
+    suite = suite_create("SFMR_Is_Block_Device");
 
     /* Core test case */
     tc_core = tcase_create("Core");
