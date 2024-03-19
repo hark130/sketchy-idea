@@ -21,9 +21,9 @@ My opportunity to write some clean Linux code that is tested and releasable.
 
 `make validate`
 
-### Are all the Check unit tests *really* passing
+### Are all the Check unit tests *really* passing?
 
 ```
-make
+make && \
 for check_bin in $(ls code/dist/check_*.bin); do $check_bin && CK_FORK=no valgrind --leak-check=full --show-leak-kinds=all $check_bin; done
 ```
