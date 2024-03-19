@@ -351,10 +351,21 @@ bool is_directory(const char *pathname, int *errnum)
 	// LOCAL VARIABLES
 	bool retval = false;                         // Is it?
 	int err = validate_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// IS IT?
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(pathname, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		if (S_IFDIR == (stat_struct.st_mode & S_IFMT))
+		{
+			retval = true;
+		}
 	}
 
 	// DONE
