@@ -3,7 +3,7 @@
 ##########################
 #
 # 1. Write your code
-# 2. make -C code/
+# 2. make (or make -C code/)
 # 3. Watch for errors
 # 4. Check code/$(DIST_DIR) for your binaries
 # 5. Modifiy Makefile_linux with special rules
