@@ -432,10 +432,21 @@ bool is_socket(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	bool retval = false;                         // Is it?
 	int err = validate_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// IS IT?
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(filename, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		if (S_IFSOCK == (stat_struct.st_mode & S_IFMT))
+		{
+			retval = true;
+		}
 	}
 
 	// DONE
