@@ -1,5 +1,12 @@
 /*
  *  Check unit test suit for skip_file_metadata_read.h's is_regular_file() function.
+ *
+ *  Copy/paste the following from the repo's top-level directory...
+
+make -C code dist/check_sfmr_is_regular_file.bin
+code/dist/check_sfmr_is_regular_file.bin && CK_FORK=no valgrind --leak-check=full --show-leak-kinds=all code/dist/check_sfmr_is_regular_file.bin
+
+ *
  */
 
 #include <check.h>                    // START_TEST(), END_TEST
@@ -8,6 +15,7 @@
 #include <stdlib.h>
 #include <unistd.h>                   // get_current_dir_name()
 // Local includes
+#include "devops_code.h"              // resolve_to_repo(), SKIP_REPO_NAME
 #include "skip_file_metadata_read.h"  // is_character_device()
 
 
@@ -39,34 +47,84 @@ END_TEST
 
 START_TEST(test_n03_directory)
 {
-    get_cwd();
-    bool result = false;      // Return value from function call
-    int errnum = CANARY_INT;  // Errno from the function call
-    result = is_regular_file("./code/test/test_input/", &errnum);
+    // LOCAL VARIABLES
+    const char *repo_name = SKIP_REPO_NAME;  // Repo name
+    bool result = false;                     // Return value from function call
+    int errnum = CANARY_INT;                 // Errno from the function calls
+    // Relative path for this test case's input
+    char input_rel_path[] = { "./code/test/test_input/" };
+    // Absolute path for input_rel_path as resolved against the repo name
+    char *input_abs_path = resolve_to_repo(repo_name, input_rel_path, true, &errnum);
+
+    // VALIDATION
+    // It is important resolve_to_repo() succeeds
+    ck_assert_msg(0 == errnum, "resolve_to_repo(%s, %s) failed with [%d] %s", repo_name,
+                  input_rel_path, errnum, strerror(errnum));
+    errnum = CANARY_INT;  // Reset this temp var
+
+    // TEST START
+    result = is_regular_file(input_abs_path, &errnum);
     ck_assert(false == result);  // This input is *NOT* a regular file
     ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
+
+    // CLEANUP
+    free_devops_mem(&input_abs_path);
 }
 END_TEST
 
 
 START_TEST(test_n04_regular_file)
 {
-    bool result = false;      // Return value from function call
-    int errnum = CANARY_INT;  // Errno from the function call
-    result = is_regular_file("./code/test/test_input/regular_file.txt", &errnum);
+    // LOCAL VARIABLES
+    const char *repo_name = SKIP_REPO_NAME;  // Repo name
+    bool result = false;                     // Return value from function call
+    int errnum = CANARY_INT;                 // Errno from the function calls
+    // Relative path for this test case's input
+    char input_rel_path[] = { "./code/test/test_input/regular_file.txt" };
+    // Absolute path for input_rel_path as resolved against the repo name
+    char *input_abs_path = resolve_to_repo(repo_name, input_rel_path, true, &errnum);
+
+    // VALIDATION
+    // It is important resolve_to_repo() succeeds
+    ck_assert_msg(0 == errnum, "resolve_to_repo(%s, %s) failed with [%d] %s", repo_name,
+                  input_rel_path, errnum, strerror(errnum));
+    errnum = CANARY_INT;  // Reset this temp var
+
+    // TEST START
+    result = is_regular_file(input_abs_path, &errnum);
     ck_assert(true == result);  // This input is a regular file
     ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
+
+    // CLEANUP
+    free_devops_mem(&input_abs_path);
 }
 END_TEST
 
 
 START_TEST(test_n05_symbolic_link)
 {
-    bool result = false;      // Return value from function call
-    int errnum = CANARY_INT;  // Errno from the function call
-    result = is_regular_file("./code/test/test_input/sym_link.txt", &errnum);
+    // LOCAL VARIABLES
+    const char *repo_name = SKIP_REPO_NAME;  // Repo name
+    bool result = false;                     // Return value from function call
+    int errnum = CANARY_INT;                 // Errno from the function calls
+    // Relative path for this test case's input
+    char input_rel_path[] = { "./code/test/test_input/sym_link.txt" };
+    // Absolute path for input_rel_path as resolved against the repo name
+    char *input_abs_path = resolve_to_repo(repo_name, input_rel_path, true, &errnum);
+
+    // VALIDATION
+    // It is important resolve_to_repo() succeeds
+    ck_assert_msg(0 == errnum, "resolve_to_repo(%s, %s) failed with [%d] %s", repo_name,
+                  input_rel_path, errnum, strerror(errnum));
+    errnum = CANARY_INT;  // Reset this temp var
+
+    // TEST START
+    result = is_regular_file(input_abs_path, &errnum);
     ck_assert(true == result);  // This may not be a regular file but stat() follows links
     ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
+
+    // CLEANUP
+    free_devops_mem(&input_abs_path);
 }
 END_TEST
 
