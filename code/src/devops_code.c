@@ -4,6 +4,7 @@
 
 #include <errno.h>      	// errno
 #include <limits.h>			// PATH_MAX
+#include <stdio.h>			// remove()
 #include <stdlib.h>			// calloc(), free()
 #include <string.h>			// strstr()
 #include <sys/stat.h>		// stat()
@@ -90,6 +91,57 @@ int free_devops_mem(char **old_array)
 	else
 	{
 		result = EINVAL;  // NULL pointer
+	}
+
+	// DONE
+	return result;
+}
+
+
+int make_a_pipe(const char *pathname)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // Errno value
+
+	// INPUT VALIDATION
+	if (!pathname || !(*pathname))
+	{
+		result = EINVAL;  // Invalid input
+	}
+	else if (mknod(pathname, S_IFIFO | 640, 0))
+	{
+		result = errno;
+		PRINT_ERROR(The call to mknod() failed);
+		PRINT_ERRNO(result);
+	}
+
+	// DONE
+	return result;
+}
+
+
+int remove_a_file(const char *filename, bool ignore_missing)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // Errno value
+
+	// INPUT VALIDATION
+	if (!filename || !(*filename))
+	{
+		result = EINVAL;  // Invalid input
+	}
+	else if (remove(filename))
+	{
+		result = errno;
+		if (ENOENT == result && true == ignore_missing)
+		{
+			result = ENOERR;
+		}
+		else
+		{
+			PRINT_ERROR(The call to remove() failed);
+			PRINT_ERRNO(result);
+		}
 	}
 
 	// DONE

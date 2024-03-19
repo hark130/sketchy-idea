@@ -42,6 +42,31 @@ int free_devops_mem(char **old_array);
 
 /*
  *  Description:
+ *      Use mknod() to create a named pipe.
+ *
+ *  Args:
+ *      pathname: The filename, relative or absolute, for the named pipe.
+ *
+ *  Returns:
+ *      0 on success, errno on error.
+ */
+int make_a_pipe(const char *pathname);
+
+/*
+ *  Description:
+ *      Use remove() to delete a file.
+ *
+ *  Args:
+ *      filename: The filename, relative or absolute, to delete.
+ *      ignore_missing: Treat a missing filename as success.
+ *
+ *  Returns:
+ *      0 on success, errno on error.
+ */
+int remove_a_file(const char *filename, bool ignore_missing);
+
+/*
+ *  Description:
  *      Translate rel_filename into an absolute filename resolved to the repo_name, as extracted
  *		from the current working directory.  Caller is responsible for calling devops_free().
  *
