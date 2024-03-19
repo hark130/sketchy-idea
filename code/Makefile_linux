@@ -16,6 +16,11 @@
 # This was made to avoid circular dependencies and redundancies
 include Makefile_constants
 BIN_FILE_EXT = .bin
+# Defined this to aid in the proper exeuction of a list of commands
+define execute-command
+$(1)
+
+endef
 
 ### COMPILER VARIABLES ###
 CC = gcc
@@ -112,7 +117,7 @@ _compilation: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FIL
 _test:
 	@#echo "$@ needs $^"  # DEBUGGING
 	@#echo $(CHECK_BIN_LIST)  # DEBUGGING
-	@$(foreach CHECK_BIN_FILE, $(CHECK_BIN_LIST), ./$(CHECK_BIN_FILE))
+	$(foreach CHECK_BIN_FILE, $(CHECK_BIN_LIST), $(call execute-command,./$(CHECK_BIN_FILE)))
 
 _test_link: $(foreach BIN_FILE, $(BIN_LIST), $(BIN_FILE))
 	@#echo "$@ needs $^"  # DEBUGGING
