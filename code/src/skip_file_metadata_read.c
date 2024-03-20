@@ -183,12 +183,21 @@ mode_t get_file_perms(const char *filename, int *errnum)
 mode_t get_file_type(const char *filename, int *errnum)
 {
 	// LOCAL VARIABLES
-	time_t retval = 0;                           // File type
+	mode_t retval = 0;                           // File type
 	int err = validate_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// GET IT
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(filename, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		// S_IFMT is the bit mask for the file type bit field
+		retval = stat_struct.st_mode & S_IFMT;
 	}
 
 	// DONE
@@ -297,18 +306,11 @@ bool is_block_device(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	bool retval = false;                         // Is it?
 	int err = validate_input(filename, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
 
 	// IS IT?
-	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(filename, &stat_struct, errnum);
-	}
-	// Check it
-	if (!err)
-	{
-		if (S_IFBLK == (stat_struct.st_mode & S_IFMT))
+		if (S_IFBLK == get_file_type(filename, errnum))
 		{
 			retval = true;
 		}
@@ -324,18 +326,11 @@ bool is_character_device(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	bool retval = false;                         // Is it?
 	int err = validate_input(filename, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
 
 	// IS IT?
-	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(filename, &stat_struct, errnum);
-	}
-	// Check it
-	if (!err)
-	{
-		if (S_IFCHR == (stat_struct.st_mode & S_IFMT))
+		if (S_IFCHR == get_file_type(filename, errnum))
 		{
 			retval = true;
 		}
@@ -351,18 +346,11 @@ bool is_directory(const char *pathname, int *errnum)
 	// LOCAL VARIABLES
 	bool retval = false;                         // Is it?
 	int err = validate_input(pathname, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
 
 	// IS IT?
-	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(pathname, &stat_struct, errnum);
-	}
-	// Check it
-	if (!err)
-	{
-		if (S_IFDIR == (stat_struct.st_mode & S_IFMT))
+		if (S_IFDIR == get_file_type(pathname, errnum))
 		{
 			retval = true;
 		}
@@ -378,18 +366,11 @@ bool is_named_pipe(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	bool retval = false;                         // Is it?
 	int err = validate_input(filename, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
 
 	// IS IT?
-	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(filename, &stat_struct, errnum);
-	}
-	// Check it
-	if (!err)
-	{
-		if (S_IFIFO == (stat_struct.st_mode & S_IFMT))
+		if (S_IFIFO == get_file_type(filename, errnum))
 		{
 			retval = true;
 		}
@@ -405,18 +386,11 @@ bool is_regular_file(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	bool retval = false;                         // Is it?
 	int err = validate_input(filename, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
 
 	// IS IT?
-	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(filename, &stat_struct, errnum);
-	}
-	// Check it
-	if (!err)
-	{
-		if (S_IFREG == (stat_struct.st_mode & S_IFMT))
+		if (S_IFREG == get_file_type(filename, errnum))
 		{
 			retval = true;
 		}
@@ -432,18 +406,11 @@ bool is_socket(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	bool retval = false;                         // Is it?
 	int err = validate_input(filename, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
 
 	// IS IT?
-	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(filename, &stat_struct, errnum);
-	}
-	// Check it
-	if (!err)
-	{
-		if (S_IFSOCK == (stat_struct.st_mode & S_IFMT))
+		if (S_IFSOCK == get_file_type(filename, errnum))
 		{
 			retval = true;
 		}
