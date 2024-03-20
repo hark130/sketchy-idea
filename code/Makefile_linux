@@ -74,7 +74,7 @@ CHECK_CC_ARGS = -lcheck -lm -lsubunit
 # A space-separated list of all the test binaries
 BIN_LIST := $(DIST_DIR)test_is_regular_file$(BIN_FILE_EXT) $(DIST_DIR)test_is_symbolic_link$(BIN_FILE_EXT) \
             $(DIST_DIR)test_is_named_pipe$(BIN_FILE_EXT) $(DIST_DIR)test_is_block_device$(BIN_FILE_EXT) \
-            $(DIST_DIR)test_is_character_device$(BIN_FILE_EXT)
+            $(DIST_DIR)test_is_character_device$(BIN_FILE_EXT) $(DIST_DIR)test_get_block_size$(BIN_FILE_EXT)
 CHECK_BIN_LIST = $(shell ls $(DIST_DIR)$(CHECK_PREFIX)*$(BIN_FILE_EXT))
 
 ### SPECIAL BUILT-IN TARGET NAMES ###
@@ -137,6 +137,10 @@ _validate_gcc:
 	@echo "        $(CHECK) $(shell $(CC) --version | head -n 1)"
 
 $(DIST_DIR)test_is_block_device$(BIN_FILE_EXT): $(TEST_DIR)test_is_block_device$(SRC_FILE_EXT) $(DIST_DIR)skip_file_metadata_read$(OBJ_FILE_EXT)
+	@echo "    Linking: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+$(DIST_DIR)test_get_block_size$(BIN_FILE_EXT): $(TEST_DIR)test_get_block_size$(SRC_FILE_EXT) $(DIST_DIR)skip_file_metadata_read$(OBJ_FILE_EXT)
 	@echo "    Linking: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
