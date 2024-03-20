@@ -98,6 +98,41 @@ int free_devops_mem(char **old_array)
 }
 
 
+long get_sys_block_size(int *errnum)
+{
+	// LOCAL VARIABLES
+	long result = -1;                      // -1 on error, block size on success
+	int err_num = ENOERR;                  // Local errno value
+	char command[] = { "stat -fc %s ." };  // The command
+	char output[512] = { 0 };              // Output from the command
+
+	// INPUT VALIDATION
+	if (errnum)
+	{
+		// GET IT
+		// Read command results
+		err_num = run_command(command, output, sizeof(output) * sizeof(*output));
+		// Convert string to int
+		if (!err_num)
+		{
+			result = atoi(output);
+		}
+		else
+		{
+			PRINT_ERROR(The call to run_command() failed);
+			PRINT_ERRNO(err_num);
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = err_num;
+	}
+	return result;
+}
+
+
 int make_a_pipe(const char *pathname)
 {
 	// LOCAL VARIABLES
@@ -231,6 +266,75 @@ char *resolve_to_repo(const char *repo_name, const char *rel_filename, bool must
 		*errnum = result;
 	}
 	return abs_file;
+}
+
+
+int run_command(const char *command, char *output, size_t output_len)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;     // Errno value
+	int exit_status = 0;     // Exit status of the process
+	char data[512] = { 0 };  // Temp storage for process data
+	FILE *process = NULL;    // popen() stream
+
+	// INPUT VALIDATION
+	if (!command)
+	{
+		result = EINVAL;  // NULL pointer
+	}
+	else if (output && output_len <= 0)
+	{
+		result = EINVAL;  // Can't read into an empty buffer
+	}
+
+	// RUN IT
+	// Setup read-only pipe
+	if (ENOERR == result)
+	{
+		process = popen(command, "r");
+		if (!process)
+		{
+			result = errno;
+		}
+		PRINT_ERROR(The call to popen() did not succeed);
+		PRINT_ERRNO(result);
+	}
+	// Get the data
+	if (ENOERR == result)
+	{
+		if (output && output_len > 0)
+		{
+			fgets(output, sizeof(output_len), process);
+		}
+		else
+		{
+			fgets(data, sizeof(data), process);
+		}
+	}
+
+	// CLEANUP
+	if (process)
+	{
+		exit_status = pclose(process);
+		if (-1 == exit_status)
+		{
+			exit_status = errno;
+			if (ENOERR == result)
+			{
+				exit_status;
+			}
+			PRINT_ERROR(The call to pclose() encountered an error);
+			PRINT_ERRNO(exit_status);
+		}
+		else if (exit_status)
+		{
+			PRINT_WARNG(Command exited with a non-zero value)
+		}
+		process = NULL;
+	}
+
+	// DONE
+	return result;
 }
 
 
