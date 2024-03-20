@@ -16,7 +16,7 @@ code/dist/check_sfmr_get_file_type.bin && CK_FORK=no valgrind --leak-check=full 
 #include <unistd.h>                   // get_current_dir_name()
 // Local includes
 #include "devops_code.h"              // resolve_to_repo(), SKIP_REPO_NAME
-#include "skip_file_metadata_read.h"  // is_character_device()
+#include "skip_file_metadata_read.h"  // get_file_type()
 
 
 // Use this to help highlight an errnum that wasn't updated
