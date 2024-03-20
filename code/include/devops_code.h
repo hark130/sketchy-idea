@@ -42,6 +42,21 @@ int free_devops_mem(char **old_array);
 
 /*
  *  Description:
+ *      Get the actual block size of the filesystem mounted in current directory by executing:
+ *          stat -fc %s .
+ *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      get_block_size() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      Filesystem block size on success, -1 on error.  Check errnum for actual errno value.
+ */
+long get_sys_block_size(int *errnum);
+
+/*
+ *  Description:
  *      Use mknod() to create a named pipe.
  *
  *  Args:
@@ -86,5 +101,20 @@ int remove_a_file(const char *filename, bool ignore_missing);
  */
 char *resolve_to_repo(const char *repo_name, const char *rel_filename, bool must_exist,
                       int *errnum);
+
+/*
+ *  Description:
+ *      Uses popen to execute command in a read-only process and read the results into output.
+ *
+ *  Args:
+ *      command: The command to execute.
+ *      output: Optional; [Out] The output from command will be read into this buffer, if a valid
+ *          pointer.
+ *      output_len: Optional; If output is to be used, this value indicates the size of output.
+ *
+ *  Returns:
+ *      0 on success, errno on error.
+ */
+int run_command(const char *command, char *output, size_t output_len);
 
 #endif  /* __SKIP_DEVOPS__ */
