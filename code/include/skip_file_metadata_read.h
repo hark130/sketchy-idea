@@ -79,11 +79,17 @@ mode_t get_file_perms(const char *filename, int *errnum);
 
 /*
  *  Description:
- *      
+ *		Uses the file type bit field mask to extract the file type bits from the stat struct
+ *		st_mode member.  This function uses stat() so the file type of a symbolic link will
+ *		report back as the file it is linked to.  If positively identifying symbolic links is
+ *		important, use is_sym_link().
  *  Args:
- *      
+ *      filename: Absolute or relative filename to check.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *  Returns:
- *      
+ *      On success, a value comparable to any of the file type mask values:
+ *		S_IFBLK, S_IFCHR, S_IFDIR, S_IFIFO, S_IFREG, S_IFSOCK, S_IFLNK.  On failure, this function
+ *		returns 0 and sets errnum with an errno value.
  */
 mode_t get_file_type(const char *filename, int *errnum);
 
