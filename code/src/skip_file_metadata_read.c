@@ -105,10 +105,19 @@ blksize_t get_block_size(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	blksize_t retval = 0;                        // Block size
 	int err = validate_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// GET IT
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(filename, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		// The st_blksize field gives the "preferred" blocksize for efficient file system I/O.
+		retval = stat_struct.st_blksize;
 	}
 
 	// DONE
