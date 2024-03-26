@@ -3,9 +3,9 @@
  *
  *	Copy/paste the following...
 
-./code/dist/test_get_block_size.bin ./code/test/test_input/regular_file.txt  # Yes
-./code/dist/test_get_block_size.bin ./code/test/test_input/                  # No
-./code/dist/test_get_block_size.bin ./code/test/test_input/sym_link.txt      # Yes, for reasons
+./code/dist/test_get_block_size.bin ./code/test/test_input/regular_file.txt
+./code/dist/test_get_block_size.bin ./code/test/test_input/
+./code/dist/test_get_block_size.bin ./code/test/test_input/sym_link.txt
 
  *	NOTE: A symbolic link identifies as a regular file here because stat() follows symbolic links.
  *		Use lstat() to positively identify symbolic links.
@@ -19,9 +19,6 @@
 #define SKIP_DEBUG                    // The DEBUG output is doing double duty as test output
 #include "skip_debug.h"               // PRINT_ERRNO(), PRINT_ERROR()
 #include "skip_file_metadata_read.h"  // get_block_size()
-
-
-#define TEST_FILE_TYPE (const char *)"regular file"  // Use this in copy/paste test cases
 
 
 int main(int argc, char *argv[])
@@ -53,7 +50,7 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			printf("%s shows a block count of %ld.\n", pathname, (long)answer);
+			printf("%s shows a block size of %ld.\n", pathname, (long)answer);
 		}
 	}
 
