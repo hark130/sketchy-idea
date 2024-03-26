@@ -74,11 +74,18 @@ dev_t get_file_device_id(const char *filename, int *errnum);
 
 /*
  *  Description:
- *      
+ *		Use library macros to extract just the permission values from the stat struct
+ *		st_mode member.  This function uses stat() so the file type of a symbolic link will
+ *		report back as the file it is linked to.  If positively identifying symbolic links is
+ *		important, use is_sym_link() and lstat() instead.
+ *
  *  Args:
+ *      filename: Absolute or relative filename to check.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *      
  *  Returns:
- *      
+ *		Just the file permission bits from filename's mode on success.  Returns 0 on failure
+ *		and updates errnum.
  */
 mode_t get_file_perms(const char *filename, int *errnum);
 
