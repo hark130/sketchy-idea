@@ -23,6 +23,18 @@
 /**************************************************************************************************/
 /*
  *  Description:
+ *      Convert octal_value to decimal.
+ *
+ *  Args:
+ *      octal_value: Integer representation of an octal value to convert to decimal.
+ *
+ *  Returns:
+ *      Decimal value of octal_value.
+ */
+int convert_octal_to_decimal(int octal_value);
+
+/*
+ *  Description:
  *      Find needle in haystack.  Truncate the rest of hastack with a trailing "/\0".
  *
  *  Args:
@@ -95,6 +107,46 @@ int free_devops_mem(char **old_array)
 
 	// DONE
 	return result;
+}
+
+
+mode_t get_shell_file_perms(const char *pathname, int *errnum)
+{
+	// LOCAL VARIABLES
+	mode_t retval = 0;                                 // Shell command results, converted
+	int err_num = ENOERR;                              // Local errno value
+	char base_cmd[PATH_MAX + 20] = { "stat -c %a " };  // The base command
+	char output[512] = { 0 };                          // Output from the command
+
+	// INPUT VALIDATION
+	if (!pathname || !(*pathname) || !errnum)
+	{
+		err_num = EINVAL;  // Bad input
+	}
+
+	// GET IT
+	// 1. Add pathname to base_cmd
+	if (!err_num)
+	{
+		strncat(base_cmd, pathname, (sizeof(base_cmd) - strlen(base_cmd) - 1) * sizeof(*base_cmd));
+	}
+	// 2. Execute command
+	if (!err_num)
+	{
+		err_num = run_command(base_cmd, output, sizeof(output));
+	}
+	// 3. Convert results to mode_t
+	if (!err_num)
+	{
+		retval = convert_octal_to_decimal(atoi(output));
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = err_num;
+	}
+	return retval;
 }
 
 
@@ -304,7 +356,7 @@ int run_command(const char *command, char *output, size_t output_len)
 	{
 		if (output && output_len > 0)
 		{
-			fgets(output, sizeof(output_len), process);
+			fgets(output, output_len, process);
 		}
 		else
 		{
@@ -341,6 +393,33 @@ int run_command(const char *command, char *output, size_t output_len)
 /**************************************************************************************************/
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
+int convert_octal_to_decimal(int octal_value)
+{
+	// LOCAL VARIABLES
+	int decimal_value = 0;   // Return value
+	int base = 1;            // Exponential base value to 1, i.e 8^0
+	int temp = octal_value;  // Temp copy of input value
+
+	// while loop executes the statements until the
+	// condition is false
+	while (temp)
+	{
+		// Finding the last digit
+		int lastdigit = temp % 10;
+		temp = temp / 10;
+
+		// Multiplying last digit with appropriate
+		// base value and adding it to decimal_value
+		decimal_value += lastdigit * base;
+
+		// Increase it
+		base = base * 8;
+	}
+
+	return decimal_value;
+}
+
+
 int truncate_dir(char *haystack, const char *needle, size_t hay_len)
 {
 	// LOCAL VARIABLES
