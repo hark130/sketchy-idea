@@ -42,6 +42,22 @@ int free_devops_mem(char **old_array);
 
 /*
  *  Description:
+ *      Get the actual file permissions for pathname by executing the following command in a shell:
+ *          stat -c %a <filename>
+ *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      get_file_perms() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      pathname: The filename, relative or absolute, to fetch permissions for.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      File permissions on success, 0 on error.  Check errnum for actual errno value.
+ */
+mode_t get_shell_file_perms(const char *pathname, int *errnum);
+
+/*
+ *  Description:
  *      Get the actual block size of the filesystem mounted in current directory by executing:
  *          stat -fc %s .
  *      This is intended as a double-do to validate the results of skip_file_metadata_read's
