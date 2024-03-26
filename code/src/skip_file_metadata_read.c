@@ -176,12 +176,21 @@ dev_t get_file_device_id(const char *filename, int *errnum)
 mode_t get_file_perms(const char *filename, int *errnum)
 {
 	// LOCAL VARIABLES
-	mode_t retval = 0;                           // File permissions
-	int err = validate_input(filename, errnum);  // Errno value
+	mode_t perm_mask = S_ISUID | S_ISGID | S_ISVTX | S_IRWXU | S_IRWXG | S_IRWXO;  // Perm bitmask
+	mode_t retval = 0;                                                             // File perms
+	int err = validate_input(filename, errnum);                                    // Errno value
+	struct stat stat_struct;                                                       // stat struct
 
+	// GET IT
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(filename, &stat_struct, errnum);
+	}
+	// Get it
+	if (!err)
+	{
+		retval = stat_struct.st_mode & perm_mask;
 	}
 
 	// DONE
