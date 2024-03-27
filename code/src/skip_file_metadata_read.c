@@ -149,11 +149,11 @@ time_t get_change_time(const char *filename, int *errnum)
 }
 
 
-dev_t get_container_device_id(const char *filename, int *errnum)
+dev_t get_container_device_id(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
 	dev_t retval = 0;                            // Container device id
-	int err = validate_input(filename, errnum);  // Errno value
+	int err = validate_input(pathname, errnum);  // Errno value
 
 	if (!err)
 	{
@@ -165,15 +165,23 @@ dev_t get_container_device_id(const char *filename, int *errnum)
 }
 
 
-dev_t get_file_device_id(const char *filename, int *errnum)
+dev_t get_file_device_id(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
 	dev_t retval = 0;                            // File device id
-	int err = validate_input(filename, errnum);  // Errno value
+	int err = validate_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// GET IT
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(pathname, &stat_struct, errnum);
+	}
+	// Get it
+	if (!err)
+	{
+		retval = stat_struct.st_dev;
 	}
 
 	// DONE
