@@ -1,5 +1,5 @@
 # sketchy-idea
-Reusable, stand-alone, Linux code
+Reusable, stand-alone, Linux code.
 
 ## SKETCHY IDEA (SKID)
 
