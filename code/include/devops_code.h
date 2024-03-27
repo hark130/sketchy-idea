@@ -42,12 +42,12 @@ int free_devops_mem(char **old_array);
 /*
  *  Description:
  *      Get the actual file permissions for pathname by executing the following command in a shell:
- *          stat -c %b <filename>
+ *          stat -c %b <pathname>
  *      This is intended as a double-do to validate the results of skip_file_metadata_read's
  *      get_block_count() without having to hard-code brittle expected return values.
  *
  *  Args:
- *      pathname: The filename, relative or absolute, to fetch permissions for.
+ *      pathname: The pathname, relative or absolute, to fetch permissions for.
  *      errnum: [Out] Storage location for errno values encountered.  Set to zero on success.
  *
  *  Returns:
@@ -58,13 +58,29 @@ blkcnt_t get_shell_block_count(const char *pathname, int *errnum);
 
 /*
  *  Description:
+ *      Get the pathnames device ID by executing the following command in a shell:
+ *          stat -c %d <pathname>
+ *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      get_file_device_id() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      pathname: The pathname, relative or absolute, to fetch permissions for.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      File permissions on success, 0 on error.  Check errnum for actual errno value.
+ */
+dev_t get_shell_device_id(const char *pathname, int *errnum);
+
+/*
+ *  Description:
  *      Get the actual file permissions for pathname by executing the following command in a shell:
- *          stat -c %a <filename>
+ *          stat -c %a <pathname>
  *      This is intended as a double-do to validate the results of skip_file_metadata_read's
  *      get_file_perms() without having to hard-code brittle expected return values.
  *
  *  Args:
- *      pathname: The filename, relative or absolute, to fetch permissions for.
+ *      pathname: The pathname, relative or absolute, to fetch permissions for.
  *      errnum: [Out] Storage location for errno values encountered.
  *
  *  Returns:
@@ -92,7 +108,7 @@ long get_sys_block_size(int *errnum);
  *      Use mknod() to create a named pipe.
  *
  *  Args:
- *      pathname: The filename, relative or absolute, for the named pipe.
+ *      pathname: The pathname, relative or absolute, for the named pipe.
  *
  *  Returns:
  *      0 on success, errno on error.
