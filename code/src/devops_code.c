@@ -110,6 +110,46 @@ int free_devops_mem(char **old_array)
 }
 
 
+blkcnt_t get_shell_block_count(const char *pathname, int *errnum)
+{
+	// LOCAL VARIABLES
+	blkcnt_t retval = 0;                               // Shell command results, converted
+	int err_num = ENOERR;                              // Local errno value
+	char base_cmd[PATH_MAX + 20] = { "stat -c %b " };  // The base command
+	char output[512] = { 0 };                          // Output from the command
+
+	// INPUT VALIDATION
+	if (!pathname || !(*pathname) || !errnum)
+	{
+		err_num = EINVAL;  // Bad input
+	}
+
+	// GET IT
+	// 1. Add pathname to base_cmd
+	if (!err_num)
+	{
+		strncat(base_cmd, pathname, (sizeof(base_cmd) - strlen(base_cmd) - 1) * sizeof(*base_cmd));
+	}
+	// 2. Execute command
+	if (!err_num)
+	{
+		err_num = run_command(base_cmd, output, sizeof(output));
+	}
+	// 3. Convert results to mode_t
+	if (!err_num)
+	{
+		retval = atoi(output);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = err_num;
+	}
+	return retval;
+}
+
+
 mode_t get_shell_file_perms(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
