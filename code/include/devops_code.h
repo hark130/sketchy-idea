@@ -43,6 +43,23 @@ int free_devops_mem(char **old_array);
 /*
  *  Description:
  *      Get the actual file permissions for pathname by executing the following command in a shell:
+ *          stat -c %b <filename>
+ *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      get_block_count() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      pathname: The filename, relative or absolute, to fetch permissions for.
+ *      errnum: [Out] Storage location for errno values encountered.  Set to zero on success.
+ *
+ *  Returns:
+ *      Block count on success, which is legitimately 0 in some cases.
+ *      The only way to detect errors in execution is to check errnum an errno value (non-zero).
+ */
+blkcnt_t get_shell_block_count(const char *pathname, int *errnum);
+
+/*
+ *  Description:
+ *      Get the actual file permissions for pathname by executing the following command in a shell:
  *          stat -c %a <filename>
  *      This is intended as a double-do to validate the results of skip_file_metadata_read's
  *      get_file_perms() without having to hard-code brittle expected return values.
