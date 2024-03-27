@@ -113,10 +113,10 @@ int free_devops_mem(char **old_array)
 blkcnt_t get_shell_block_count(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
-	blkcnt_t retval = 0;                               // Shell command results, converted
-	int err_num = ENOERR;                              // Local errno value
-	char base_cmd[PATH_MAX + 20] = { "stat -c %b " };  // The base command
-	char output[512] = { 0 };                          // Output from the command
+	blkcnt_t retval = 0;                  // Shell command results, converted
+	int err_num = ENOERR;                 // Local errno value
+	char base_cmd[] = { "stat -c %b " };  // The base command
+	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION
 	if (!pathname || !(*pathname) || !errnum)
@@ -125,17 +125,12 @@ blkcnt_t get_shell_block_count(const char *pathname, int *errnum)
 	}
 
 	// GET IT
-	// 1. Add pathname to base_cmd
+	// Execute command
 	if (!err_num)
 	{
-		strncat(base_cmd, pathname, (sizeof(base_cmd) - strlen(base_cmd) - 1) * sizeof(*base_cmd));
+		err_num = run_path_command(base_cmd, pathname, output, sizeof(output));
 	}
-	// 2. Execute command
-	if (!err_num)
-	{
-		err_num = run_command(base_cmd, output, sizeof(output));
-	}
-	// 3. Convert results to mode_t
+	// Convert results to mode_t
 	if (!err_num)
 	{
 		retval = atoi(output);
@@ -153,10 +148,10 @@ blkcnt_t get_shell_block_count(const char *pathname, int *errnum)
 mode_t get_shell_file_perms(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
-	mode_t retval = 0;                                 // Shell command results, converted
-	int err_num = ENOERR;                              // Local errno value
-	char base_cmd[PATH_MAX + 20] = { "stat -c %a " };  // The base command
-	char output[512] = { 0 };                          // Output from the command
+	mode_t retval = 0;                    // Shell command results, converted
+	int err_num = ENOERR;                 // Local errno value
+	char base_cmd[] = { "stat -c %a " };  // The base command
+	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION
 	if (!pathname || !(*pathname) || !errnum)
@@ -165,17 +160,12 @@ mode_t get_shell_file_perms(const char *pathname, int *errnum)
 	}
 
 	// GET IT
-	// 1. Add pathname to base_cmd
+	// Execute command
 	if (!err_num)
 	{
-		strncat(base_cmd, pathname, (sizeof(base_cmd) - strlen(base_cmd) - 1) * sizeof(*base_cmd));
+		err_num = run_path_command(base_cmd, pathname, output, sizeof(output));
 	}
-	// 2. Execute command
-	if (!err_num)
-	{
-		err_num = run_command(base_cmd, output, sizeof(output));
-	}
-	// 3. Convert results to mode_t
+	// Convert results to mode_t
 	if (!err_num)
 	{
 		retval = convert_octal_to_decimal(atoi(output));
@@ -413,7 +403,7 @@ int run_command(const char *command, char *output, size_t output_len)
 			exit_status = errno;
 			if (ENOERR == result)
 			{
-				exit_status;
+				exit_status = 1;  // What else can we do?
 			}
 			PRINT_ERROR(The call to pclose() encountered an error);
 			PRINT_ERRNO(exit_status);
@@ -423,6 +413,62 @@ int run_command(const char *command, char *output, size_t output_len)
 			PRINT_WARNG(Command exited with a non-zero value)
 		}
 		process = NULL;
+	}
+
+	// DONE
+	return result;
+}
+
+
+int run_path_command(const char *command, const char *pathname, char *output, size_t output_len)
+{
+	// LOCAL VARIABLES
+	char *full_cmd = NULL;     // command + pathname in a heap-allocated buffer
+	size_t full_cmd_size = 0;  // Size of full_cmd buffer
+	int result = ENOERR;       // Errno value
+
+	// INPUT VALIDATION
+	if (!command || !pathname || !(*pathname))
+	{
+		result = EINVAL;  // Invalid pathname
+		// NOTE: The remaining arguments will be exhaustively validated by run_command()
+	}
+
+	// SETUP
+	// 1. Allocate
+	if (ENOERR == result)
+	{
+		full_cmd_size = strlen(command) + strlen(pathname);
+		full_cmd = alloc_devops_mem(full_cmd_size + 1, sizeof(char), &result);
+		if (!full_cmd)
+		{
+			PRINT_ERROR(The call to alloc_devops_mem() encountered an error);
+			if (ENOERR != result)
+			{
+				PRINT_ERRNO(result);	
+			}
+			else
+			{
+				result = EINVAL;  // What else can we do?
+			}
+		}
+	}
+	// 2. Copy & Concatenate
+	if (ENOERR == result)
+	{
+		strncpy(full_cmd, command, strlen(command));
+		strncat(full_cmd, pathname, strlen(pathname));
+	}
+	// 3. Run it
+	if (ENOERR == result)
+	{
+		result = run_command(full_cmd, output, output_len);
+	}
+
+	// CLEANUP
+	if (full_cmd)
+	{
+		free_devops_mem(&full_cmd);
 	}
 
 	// DONE

@@ -33,7 +33,6 @@ char *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum);
  *
  *  Args:
  *      old_array: Pointer to the heap-allocated array to free storage location.
- *		errnum: [Out] Storage location for errno values encountered.
  *
  *  Returns:
  *      0 on success, errno on error.
@@ -149,5 +148,23 @@ char *resolve_to_repo(const char *repo_name, const char *rel_filename, bool must
  *      0 on success, errno on error.
  */
 int run_command(const char *command, char *output, size_t output_len);
+
+/*
+ *  Description:
+ *      Uses popen to execute command + pathname in a read-only process and read the results
+ *      into output.  If there needs to be a space between command and pathname, ensure
+ *      command has a trailing space.
+ *
+ *  Args:
+ *      command: The preface command to execute.
+ *      pathname: The pathname, relative or absolute, to append to command prior to execution.
+ *      output: Optional; [Out] The output from command will be read into this buffer, if a valid
+ *          pointer.
+ *      output_len: Optional; If output is to be used, this value indicates the size of output.
+ *
+ *  Returns:
+ *      0 on success, errno on error.
+ */
+int run_path_command(const char *command, const char *pathname, char *output, size_t output_len);
 
 #endif  /* __SKIP_DEVOPS__ */
