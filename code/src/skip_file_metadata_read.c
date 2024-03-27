@@ -89,10 +89,18 @@ blkcnt_t get_block_count(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	blkcnt_t retval = 0;                         // Block count
 	int err = validate_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// GET IT
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(filename, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		retval = stat_struct.st_blocks;
 	}
 
 	// DONE
