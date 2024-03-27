@@ -19,10 +19,18 @@ time_t get_access_time(const char *filename, int *errnum);
 
 /*
  *  Description:
+ *		Extracts the st_blocks field from the stat struct which indicates the number of blocks
+ *		allocated to filename, in 512-byte units.  (This may be smaller than st_size/512 when
+ *		the file has holes.)
  *      
  *  Args:
+ *      filename: Absolute or relative filename to check.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *      
  *  Returns:
+ *      On success, the st_blksize value for filename.  On failure, this function
+ *		returns 0 and sets errnum with an errno value.  Some filenames legitimately have a block
+ *		count of zero so the only indication of error is a non-zero value in errnum.
  *      
  */
 blkcnt_t get_block_count(const char *filename, int *errnum);
