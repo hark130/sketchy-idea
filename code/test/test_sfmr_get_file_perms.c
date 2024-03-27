@@ -3,9 +3,9 @@
  *
  *	Copy/paste the following...
 
-./code/dist/test_get_file_perms.bin ./code/test/test_input/regular_file.txt
-./code/dist/test_get_file_perms.bin ./code/test/test_input/
-./code/dist/test_get_file_perms.bin ./code/test/test_input/sym_link.txt
+./code/dist/test_sfmr_get_file_perms.bin ./code/test/test_input/regular_file.txt
+./code/dist/test_sfmr_get_file_perms.bin ./code/test/test_input/
+./code/dist/test_sfmr_get_file_perms.bin ./code/test/test_input/sym_link.txt
 
  *	NOTE: A symbolic link identifies as a regular file here because stat() follows symbolic links.
  *		Use lstat() to positively identify symbolic links.

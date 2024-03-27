@@ -4,10 +4,10 @@
  *	Copy/paste the following...
 
 mkfifo ./code/test/test_input/named_pipe
-./code/dist/test_is_named_pipe.bin ./code/test/test_input/regular_file.txt  # No
-./code/dist/test_is_named_pipe.bin ./code/test/test_input/                  # No
-./code/dist/test_is_named_pipe.bin ./code/test/test_input/sym_link.txt      # No
-./code/dist/test_is_named_pipe.bin ./code/test/test_input/named_pipe        # Yes
+./code/dist/test_sfmr_is_named_pipe.bin ./code/test/test_input/regular_file.txt  # No
+./code/dist/test_sfmr_is_named_pipe.bin ./code/test/test_input/                  # No
+./code/dist/test_sfmr_is_named_pipe.bin ./code/test/test_input/sym_link.txt      # No
+./code/dist/test_sfmr_is_named_pipe.bin ./code/test/test_input/named_pipe        # Yes
 rm ./code/test/test_input/named_pipe
 
  *
