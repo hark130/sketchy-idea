@@ -295,15 +295,23 @@ time_t get_mod_time(const char *filename, int *errnum)
 }
 
 
-uid_t get_owner(const char *filename, int *errnum)
+uid_t get_owner(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
 	uid_t retval = 0;                            // UID
-	int err = validate_input(filename, errnum);  // Errno value
+	int err = validate_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// GET IT
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(pathname, &stat_struct, errnum);
+	}
+	// Get it
+	if (!err)
+	{
+		retval = stat_struct.st_uid;
 	}
 
 	// DONE

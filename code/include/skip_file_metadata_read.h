@@ -85,11 +85,11 @@ dev_t get_container_device_id(const char *pathname, int *errnum);
  *		from the stat struct.  This function uses stat() so the file type of a symbolic link
  *		will report back as the file it is linked to.  If positively identifying symbolic
  *		links is important, use is_sym_link() and lstat() instead.
- *      
+ *
  *  Args:
  *      pathname: Absolute or relative pathname to fetch device ID for.
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
- *      
+ *
  *  Returns:
  *		Returns the st_dev value on success.  Error conditions are indicated by non-zero values
  *		in errnum.  Use major(3) and minor(3) to decompose the return value into major and
@@ -164,13 +164,20 @@ time_t get_mod_time(const char *filename, int *errnum);
 
 /*
  *  Description:
- *      
+ *		Fetches the user ID of pathname's owner by reading the st_uid member from the stat struct.
+ *		This function uses stat() so the file type of a symbolic link will report back as the
+ *		file it is linked to.  If positively identifying symbolic links is important,
+ *		use is_sym_link() and lstat() instead.
+ *
  *  Args:
- *      
+ *      pathname: Absolute or relative pathname to the owner's user ID for.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
  *  Returns:
- *      
+ *		Returns the owner's UID on success.  Error conditions are indicated by non-zero values
+ *		in errnum.
  */
-uid_t get_owner(const char *filename, int *errnum);
+uid_t get_owner(const char *pathname, int *errnum);
 
 /*
  *  Description:
