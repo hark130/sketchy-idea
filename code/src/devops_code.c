@@ -294,7 +294,6 @@ int make_a_socket(const char *filename)
 		memset(&local_addr, 0, sizeof(local_addr));  // Because the bind() man page told me to
 		local_addr.sun_family = AF_UNIX;
 		strncpy(local_addr.sun_path, filename, sizeof(local_addr.sun_path) - 1);
-		printf("FILENAME: %s\nSUN PATH: %s\n", filename, local_addr.sun_path);  // DEBUGGING
 	}
 
 	// MAKE IT
