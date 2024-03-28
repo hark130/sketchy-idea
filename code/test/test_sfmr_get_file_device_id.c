@@ -52,8 +52,8 @@ int main(int argc, char *argv[])
 		else
 		{
 			printf("%s has a raw device ID of: %d.\n", pathname, (int)answer);
-			printf("Major device ID: %d\n", major(answer));
-			printf("Minor device ID: %d\n", minor(answer));
+			printf("\tMajor device ID: %d\n", major(answer));
+			printf("\tMinor device ID: %d\n", minor(answer));
 		}
 	}
 
