@@ -252,6 +252,41 @@ gid_t get_shell_group(const char *pathname, int *errnum)
 }
 
 
+ino_t get_shell_inode(const char *pathname, int *errnum)
+{
+	// LOCAL VARIABLES
+	ino_t result = 0;                     // Owner's ID on success
+	int err_num = ENOERR;                 // Local errno value
+	char base_cmd[] = { "stat -c %i " };  // The command
+	char output[512] = { 0 };             // Output from the command
+
+	// INPUT VALIDATION
+	if (!pathname || !(*pathname) || !errnum)
+	{
+		err_num = EINVAL;  // Bad input
+	}
+
+	// GET IT
+	// Execute command
+	if (!err_num)
+	{
+		err_num = run_path_command(base_cmd, pathname, output, sizeof(output));
+	}
+	// Convert results
+	if (!err_num)
+	{
+		result = atoi(output);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = err_num;
+	}
+	return result;
+}
+
+
 uid_t get_shell_owner(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES

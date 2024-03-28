@@ -188,13 +188,20 @@ uid_t get_owner(const char *pathname, int *errnum);
 
 /*
  *  Description:
- *      
+ *		Fetches the pathname's inode number by reading the st_ino member from the stat struct.
+ *		This function uses stat() so the file type of a symbolic link will report back as the
+ *		file it is linked to.  If positively identifying symbolic links is important,
+ *		use is_sym_link() and lstat() instead.
+ *
  *  Args:
- *      
+ *      pathname: Absolute or relative pathname to read the inode number of.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
  *  Returns:
- *      
+ *		Pathname's inode number on success.  Error conditions are indicated by non-zero values
+ *		in errnum.
  */
-ino_t get_serial_num(const char *filename, int *errnum);
+ino_t get_serial_num(const char *pathname, int *errnum);
 
 /*
  *  Description:

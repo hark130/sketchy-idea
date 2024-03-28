@@ -327,15 +327,23 @@ uid_t get_owner(const char *pathname, int *errnum)
 }
 
 
-ino_t get_serial_num(const char *filename, int *errnum)
+ino_t get_serial_num(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
 	ino_t retval = 0;                            // Inode number
-	int err = validate_input(filename, errnum);  // Errno value
+	int err = validate_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// GET IT
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(pathname, &stat_struct, errnum);
+	}
+	// Get it
+	if (!err)
+	{
+		retval = stat_struct.st_ino;
 	}
 
 	// DONE

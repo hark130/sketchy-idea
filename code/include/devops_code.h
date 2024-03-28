@@ -107,6 +107,23 @@ gid_t get_shell_group(const char *pathname, int *errnum);
 
 /*
  *  Description:
+ *      Get pathname's inode number by executing the following command in a shell:
+ *          stat -c %i <pathname>
+ *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      get_serial_number() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      pathname: The pathname, relative or absolute, to fetch the inode number for.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      Inode number on success.  If there's an error, errnum will be set with the actual errno
+ *      value.  On success, errnum will be zeroized.
+ */
+ino_t get_shell_inode(const char *pathname, int *errnum);
+
+/*
+ *  Description:
  *      Get the ID of pathname's owner by executing the following command in a shell:
  *          stat -c %u <pathname>
  *      This is intended as a double-do to validate the results of skip_file_metadata_read's
