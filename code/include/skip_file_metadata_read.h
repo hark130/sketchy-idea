@@ -63,7 +63,8 @@ time_t get_change_time(const char *filename, int *errnum);
 /*
  *  Description:
  *		Fetches the device ID of the device denoted by a character or block special file by
- *		reading the st_rdev member from the stat struct.  This function uses stat() so the file
+ *		reading the st_rdev member from the stat struct.  This means that non-character and
+ *		non-block files will likely return 0.  This function uses stat() so the file
  *		type of a symbolic link will report back as the file it is linked to.  If positively
  *		identifying symbolic links is important, use is_sym_link() and lstat() instead.
  *      
