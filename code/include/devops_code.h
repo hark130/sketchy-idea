@@ -107,6 +107,23 @@ gid_t get_shell_group(const char *pathname, int *errnum);
 
 /*
  *  Description:
+ *      Get the number of hard links to pathname by executing the following command in a shell:
+ *          stat -c %h <pathname>
+ *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      get_get_hard_link_num() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      pathname: The pathname, relative or absolute, to get the number of hard links for.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      Number of hard links to pathname on success.  If there's an error, errnum will be set
+ *      with the actual errno value.  On success, errnum will be zeroized.
+ */
+nlink_t get_shell_hard_links(const char *pathname, int *errnum);
+
+/*
+ *  Description:
  *      Get pathname's inode number by executing the following command in a shell:
  *          stat -c %i <pathname>
  *      This is intended as a double-do to validate the results of skip_file_metadata_read's

@@ -220,9 +220,44 @@ mode_t get_shell_file_perms(const char *pathname, int *errnum)
 gid_t get_shell_group(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
-	gid_t result = 0;                     // Owner's ID on success
+	gid_t result = 0;                     // Group ID on success
 	int err_num = ENOERR;                 // Local errno value
 	char base_cmd[] = { "stat -c %g " };  // The command
+	char output[512] = { 0 };             // Output from the command
+
+	// INPUT VALIDATION
+	if (!pathname || !(*pathname) || !errnum)
+	{
+		err_num = EINVAL;  // Bad input
+	}
+
+	// GET IT
+	// Execute command
+	if (!err_num)
+	{
+		err_num = run_path_command(base_cmd, pathname, output, sizeof(output));
+	}
+	// Convert results
+	if (!err_num)
+	{
+		result = atoi(output);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = err_num;
+	}
+	return result;
+}
+
+
+nlink_t get_shell_hard_links(const char *pathname, int *errnum)
+{
+	// LOCAL VARIABLES
+	nlink_t result = 0;                   // Number of hard links
+	int err_num = ENOERR;                 // Local errno value
+	char base_cmd[] = { "stat -c %h " };  // The command
 	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION

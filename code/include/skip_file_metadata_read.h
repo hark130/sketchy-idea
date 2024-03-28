@@ -151,13 +151,20 @@ gid_t get_group(const char *pathname, int *errnum);
 
 /*
  *  Description:
- *      
+ *		Gets the number of pathname's hard links by reading the stat struct's st_nlink member.
+ *		This function uses stat() so the file type of a symbolic link will report back as the
+ *		file it is linked to.  If positively identifying symbolic links is important,
+ *		use is_sym_link() and lstat() instead.
+ *
  *  Args:
- *      
+ *      pathname: Absolute or relative pathname to count the hard links of.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
  *  Returns:
- *      
+ *		Number of hard links to pathname on success.  Error conditions are indicated by non-zero
+ *		values in errnum.
  */
-nlink_t get_hard_link_num(const char *filename, int *errnum);
+nlink_t get_hard_link_num(const char *pathname, int *errnum);
 
 /*
  *  Description:

@@ -271,15 +271,23 @@ gid_t get_group(const char *pathname, int *errnum)
 }
 
 
-nlink_t get_hard_link_num(const char *filename, int *errnum)
+nlink_t get_hard_link_num(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
 	nlink_t retval = 0;                          // Number of hard links
-	int err = validate_input(filename, errnum);  // Errno value
+	int err = validate_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// GET IT
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(pathname, &stat_struct, errnum);
+	}
+	// Get it
+	if (!err)
+	{
+		retval = stat_struct.st_nlink;
 	}
 
 	// DONE
