@@ -7,7 +7,9 @@
 #include <stdio.h>			// remove()
 #include <stdlib.h>			// calloc(), free()
 #include <string.h>			// strstr()
+#include <sys/socket.h>		// AF_UNIX, socket()
 #include <sys/stat.h>		// stat()
+#include <sys/un.h>			// struct sockaddr_un
 #include <unistd.h>			// getcwd()
 // Local includes
 #include "devops_code.h"	// Headers
@@ -265,6 +267,64 @@ int make_a_pipe(const char *pathname)
 		result = errno;
 		PRINT_ERROR(The call to mknod() failed);
 		PRINT_ERRNO(result);
+	}
+
+	// DONE
+	return result;
+}
+
+
+int make_a_socket(const char *filename)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;            // Errno value
+	int sock_fd = -1;               // Socket file descriptor
+	struct sockaddr_un local_addr;  // Struct to communicate with bind()
+
+	// INPUT VALIDATION
+	if (!filename || !(*filename))
+	{
+		result = EINVAL;  // Bad filename
+	}
+
+	// SETUP
+	if (ENOERR == result)
+	{
+		unlink(filename);  // Remove the socket in case it already exists
+		memset(&local_addr, 0, sizeof(local_addr));  // Because the bind() man page told me to
+		local_addr.sun_family = AF_UNIX;
+		strncpy(local_addr.sun_path, filename, sizeof(local_addr.sun_path) - 1);
+		printf("FILENAME: %s\nSUN PATH: %s\n", filename, local_addr.sun_path);  // DEBUGGING
+	}
+
+	// MAKE IT
+	// Open the raw local socket
+	if (ENOERR == result)
+	{
+		sock_fd = socket(AF_UNIX, SOCK_RAW, 0);
+		if (sock_fd < 0)
+		{
+			result = errno;
+			PRINT_ERROR(The call to socket() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+	// Bind it to filename (AKA "Assigning a name to a socket")
+	if (ENOERR == result)
+	{
+		if(bind(sock_fd, (struct sockaddr *)&local_addr, sizeof(local_addr)))
+		{
+			result = errno;
+			PRINT_ERROR(The call to bind() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+
+	// CLEAN UP
+	if (sock_fd >= 0)
+	{
+		close(sock_fd);
+		sock_fd = -1;
 	}
 
 	// DONE

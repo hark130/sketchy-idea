@@ -117,6 +117,21 @@ int make_a_pipe(const char *pathname);
 
 /*
  *  Description:
+ *      Use socket() to create a raw socket for local communication and bind it to filename.
+ *      When no longer required, the socket filename should be deleted using unlink(2) or remove(3).
+ *      It is the caller's responsibility to delete the socket filename by manually deleting it
+ *      or calling remove_a_file() (since that function utilizes remove()).
+ *
+ *  Args:
+ *      filename: The filename, relative or absolute, for the raw local socket.
+ *
+ *  Returns:
+ *      0 on success, errno on error.
+ */
+int make_a_socket(const char *filename);
+
+/*
+ *  Description:
  *      Use remove() to delete a file.
  *
  *  Args:
