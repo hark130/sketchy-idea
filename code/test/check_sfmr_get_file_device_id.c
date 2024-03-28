@@ -199,10 +199,10 @@ END_TEST
 START_TEST(test_n06_socket)
 {
     // LOCAL VARIABLES
-    dev_t result = 0;                     // Return value from function call
-    int errnum = CANARY_INT;              // Errno from the function call
-    dev_t exp_result = 0;                 // Expected results
-    char input_path[] = { "/dev/null" };  // Test case input
+    dev_t result = 0;                                           // Return value from function call
+    int errnum = CANARY_INT;                                    // Errno from the function call
+    dev_t exp_result = 0;                                       // Expected results
+    char input_path[] = { "/var/run/dbus/system_bus_socket" };  // Test case input
 
     // SETUP
     exp_result = get_shell_device_id(input_path, &errnum);

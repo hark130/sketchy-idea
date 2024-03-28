@@ -199,13 +199,25 @@ END_TEST
 START_TEST(test_n06_socket)
 {
     // LOCAL VARIABLES
-    blkcnt_t result = 0;                  // Return value from function call
-    int errnum = CANARY_INT;              // Errno from the function call
-    blkcnt_t exp_result = 0;              // Expected results
-    char input_path[] = { "/dev/null" };  // Test case input
+    const char *repo_name = SKIP_REPO_NAME;  // Repo name
+    blkcnt_t result = 0;                     // Return value from function call
+    int errnum = CANARY_INT;                 // Errno from the function call
+    blkcnt_t exp_result = 0;                 // Expected results
+    // Relative path for this test case's input
+    char input_rel_path[] = { "./code/test/test_input/raw_socket" };
+    // Absolute path for input_rel_path as resolved against the repo name
+    char *input_abs_path = resolve_to_repo(repo_name, input_rel_path, false, &errnum);
 
     // SETUP
-    exp_result = get_shell_block_count(input_path, &errnum);
+    // It is important resolve_to_repo() succeeds
+    ck_assert_msg(0 == errnum, "resolve_to_repo(%s, %s) failed with [%d] %s", repo_name,
+                  input_rel_path, errnum, strerror(errnum));
+    remove_a_file(input_abs_path, true);  // Remove leftovers and ignore errors
+    // It is important make_a_socket() succeeds
+    errnum = make_a_socket(input_abs_path);
+    ck_assert_msg(0 == errnum, "make_a_socket(%s) failed with [%d] %s", input_abs_path,
+                  errnum, strerror(errnum));
+    exp_result = get_shell_block_count(input_abs_path, &errnum);
 
     // VALIDATION
     // It is important get_shell_block_count() succeeds
@@ -216,10 +228,14 @@ START_TEST(test_n06_socket)
     errnum = CANARY_INT;  // Reset this temp var
 
     // TEST START
-    result = get_block_count(input_path, &errnum);
+    result = get_block_count(input_abs_path, &errnum);
     ck_assert_msg(exp_result == result, "get_block_count() returned %ld instead of %ld",
                   result, exp_result);
     ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
+
+    // CLEANUP
+    remove_a_file(input_abs_path, true);
+    free_devops_mem(&input_abs_path);
 }
 END_TEST
 
