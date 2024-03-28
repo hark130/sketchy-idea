@@ -247,15 +247,23 @@ mode_t get_file_type(const char *filename, int *errnum)
 }
 
 
-gid_t get_group(const char *filename, int *errnum)
+gid_t get_group(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
 	gid_t retval = 0;                            // GUID
-	int err = validate_input(filename, errnum);  // Errno value
+	int err = validate_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// GET IT
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(pathname, &stat_struct, errnum);
+	}
+	// Get it
+	if (!err)
+	{
+		retval = stat_struct.st_gid;
 	}
 
 	// DONE

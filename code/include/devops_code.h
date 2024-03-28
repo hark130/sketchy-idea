@@ -90,6 +90,23 @@ mode_t get_shell_file_perms(const char *pathname, int *errnum);
 
 /*
  *  Description:
+ *      Get the ID of pathname's group by executing the following command in a shell:
+ *          stat -c %g <pathname>
+ *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      get_group() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      pathname: The pathname, relative or absolute, to fetch the group ID for.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      Group ID on success.  If there's an error, errnum will be set with the actual errno value.
+ *      On success, errnum will be zeroized.
+ */
+gid_t get_shell_group(const char *pathname, int *errnum);
+
+/*
+ *  Description:
  *      Get the ID of pathname's owner by executing the following command in a shell:
  *          stat -c %u <pathname>
  *      This is intended as a double-do to validate the results of skip_file_metadata_read's
