@@ -343,15 +343,23 @@ ino_t get_serial_num(const char *filename, int *errnum)
 }
 
 
-off_t get_size(const char *filename, int *errnum)
+off_t get_size(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
 	off_t retval = 0;                            // Size
-	int err = validate_input(filename, errnum);  // Errno value
+	int err = validate_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// GET IT
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(pathname, &stat_struct, errnum);
+	}
+	// Get it
+	if (!err)
+	{
+		retval = stat_struct.st_size;
 	}
 
 	// DONE

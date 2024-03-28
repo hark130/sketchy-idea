@@ -198,13 +198,20 @@ ino_t get_serial_num(const char *filename, int *errnum);
 
 /*
  *  Description:
- *      
+ *		Fetches pathname's size, in bytes, by reading the st_size member from the stat struct.
+ *		This function uses stat() so the file type of a symbolic link will report back as the
+ *		file it is linked to.  If positively identifying symbolic links is important,
+ *		use is_sym_link() and lstat() instead.
+ *
  *  Args:
- *      
+ *      pathname: Absolute or relative pathname to the fetch the size of.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
  *  Returns:
- *      
+ *		Pathname's size, in bytes, on success.  Error conditions are indicated by non-zero values
+ *		in errnum.
  */
-off_t get_size(const char *filename, int *errnum);
+off_t get_size(const char *pathname, int *errnum);
 
 /*
  *  Description:

@@ -124,6 +124,23 @@ uid_t get_shell_owner(const char *pathname, int *errnum);
 
 /*
  *  Description:
+ *      Get the size, in bytes, of pathname by executing the following command in a shell:
+ *          stat -c %s <pathname>
+ *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      get_owner() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      pathname: The pathname, relative or absolute, to fetch the owner ID for.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      Owner ID on success.  If there's an error, errnum will be set with the actual errno value.
+ *      On success, errnum will be zeroized.
+ */
+off_t get_shell_size(const char *pathname, int *errnum);
+
+/*
+ *  Description:
  *      Get the actual block size of the filesystem mounted in current directory by executing:
  *          stat -fc %s .
  *      This is intended as a double-do to validate the results of skip_file_metadata_read's
