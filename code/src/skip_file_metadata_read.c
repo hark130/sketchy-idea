@@ -154,10 +154,18 @@ dev_t get_container_device_id(const char *pathname, int *errnum)
 	// LOCAL VARIABLES
 	dev_t retval = 0;                            // Container device id
 	int err = validate_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// GET IT
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(pathname, &stat_struct, errnum);
+	}
+	// Get it
+	if (!err)
+	{
+		retval = stat_struct.st_rdev;
 	}
 
 	// DONE
