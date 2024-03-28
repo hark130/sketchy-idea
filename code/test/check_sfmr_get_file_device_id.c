@@ -29,9 +29,9 @@ code/dist/check_sfmr_get_file_device_id.bin && CK_FORK=no valgrind --leak-check=
 START_TEST(test_n01_block_device)
 {
     // LOCAL VARIABLES
-    dev_t result = 0;                   // Return value from function call
+    dev_t result = 0;                      // Return value from function call
     int errnum = CANARY_INT;               // Errno from the function call
-    dev_t exp_result = 0;               // Expected results
+    dev_t exp_result = 0;                  // Expected results
     char input_path[] = { "/dev/loop0" };  // Test case input
 
     // SETUP

@@ -267,7 +267,7 @@ END_TEST
 /**************************************************************************************************/
 START_TEST(test_s01_missing_filename)
 {
-    blksize_t result = 0;     // Return value from function call
+    dev_t result = 0;         // Return value from function call
     int errnum = CANARY_INT;  // Errno from the function call
     result = get_container_device_id("/does/not/exist.txt", &errnum);
     ck_assert(0 == result);
