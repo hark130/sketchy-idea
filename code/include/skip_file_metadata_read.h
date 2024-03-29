@@ -1,5 +1,5 @@
-#ifndef __SKIP_FILE_METADATA_READ__
-#define __SKIP_FILE_METADATA_READ__
+#ifndef __SKID_FILE_METADATA_READ__
+#define __SKID_FILE_METADATA_READ__
 
 #include <errno.h>      // errno
 #include <stdbool.h>    // bool, false, true
@@ -368,4 +368,4 @@ bool is_socket(const char *filename, int *errnum);
  */
 bool is_sym_link(const char *filename, int *errnum);
 
-#endif  /* __SKIP_FILE_METADATA_READ__ */
+#endif  /* __SKID_FILE_METADATA_READ__ */

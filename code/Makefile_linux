@@ -57,7 +57,7 @@ RAW_OBJ_FILES := $(addsuffix $(OBJ_FILE_EXT),$(BASE_SRC_NAMES))
 # CHECK UNIT TEST VARIABLES
 # Prefix for *all* Check unit test files
 CHECK_PREFIX = check_
-# Prefix for all skip_file_metadata_read library unit tests
+# Prefix for all skid_file_metadata_read library unit tests
 CHECK_SFMR_PREFIX = $(CHECK_PREFIX)sfmr_
 # All check*.c filenames found in TEST_DIR
 CHECK_SRC_FILES := $(shell cd $(TEST_DIR); ls $(CHECK_PREFIX)*$(SRC_FILE_EXT))
@@ -73,7 +73,7 @@ CHECK_CC_ARGS = -lcheck -lm -lsubunit
 # MANUAL TEST VARIABLES
 # Prefix for *all* manual test_* files
 MAN_TEST_PREFIX = test_
-# Prefix for all skip_file_metadata_read library manual tests
+# Prefix for all skid_file_metadata_read library manual tests
 MAN_TEST_SFMR_PREFIX = $(MAN_TEST_PREFIX)sfmr_
 # All test_*.c filenames found in TEST_DIR
 MAN_TEST_SRC_FILES := $(shell cd $(TEST_DIR); ls $(MAN_TEST_PREFIX)*$(SRC_FILE_EXT))
@@ -150,8 +150,8 @@ _validate_gcc:
 	@$(CC) --version > $(NULL)
 	@echo "        $(CHECK) $(shell $(CC) --version | head -n 1)"
 
-# CHECK: Linking skip_file_metadata_read library unit test binaries
-$(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skip_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
+# CHECK: Linking skid_file_metadata_read library unit test binaries
+$(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Linking Check unit test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
@@ -162,8 +162,8 @@ $(DIST_DIR)$(CHECK_PREFIX)%$(OBJ_FILE_EXT): $(TEST_DIR)$(CHECK_PREFIX)%$(SRC_FIL
 	@echo "    Compiling Check unit test code: $^"
 	@$(CC) $(CFLAGS) -c $^ -o $@ -I $(INCLUDE_DIR)
 
-# MANUAL TEST: Linking skip_file_metadata_read library manual test binaries
-$(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skip_file_metadata_read$(OBJ_FILE_EXT)
+# MANUAL TEST: Linking skid_file_metadata_read library manual test binaries
+$(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
