@@ -51,6 +51,43 @@ int convert_octal_to_decimal(int octal_value);
  */
 int truncate_dir(char *haystack, const char *needle, size_t hay_len);
 
+/*
+ *  Description:
+ *      Validate standard errno [Out] args on behalf of the library.  No values are changed.
+ *
+ *  Args:
+ *		err: This must be a valid pointer.
+ *
+ *  Returns:
+ *      0 on success, EINVAL for bad input.
+ */
+int validate_err(int *err);
+
+/*
+ *  Description:
+ *      Validate standard path names on behalf of the library.  No values are changed.
+ *
+ *  Args:
+ *      name: This must be a valid pointer to a string that is not empty.
+ *
+ *  Returns:
+ *      0 on success, EINVAL for bad input.
+ */
+int validate_name(const char *name);
+
+/*
+ *  Description:
+ *      Validate standard arguments on behalf of the library.  No values are changed.
+ *
+ *  Args:
+ *      name: This must be a valid pointer to a string that is not empty.
+ *		err: This must be a valid pointer.
+ *
+ *  Returns:
+ *      0 on success, EINVAL for bad input.
+ */
+int validate_standard_args(const char *name, int *err);
+
 
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
@@ -121,10 +158,7 @@ time_t get_shell_atime(const char *pathname, int *errnum)
 	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION
-	if (!pathname || !(*pathname) || !errnum)
-	{
-		err_num = EINVAL;  // Bad input
-	}
+	err_num = validate_standard_args(pathname, errnum);
 
 	// GET IT
 	// Execute command
@@ -156,10 +190,7 @@ blkcnt_t get_shell_block_count(const char *pathname, int *errnum)
 	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION
-	if (!pathname || !(*pathname) || !errnum)
-	{
-		err_num = EINVAL;  // Bad input
-	}
+	err_num = validate_standard_args(pathname, errnum);
 
 	// GET IT
 	// Execute command
@@ -191,10 +222,7 @@ time_t get_shell_ctime(const char *pathname, int *errnum)
 	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION
-	if (!pathname || !(*pathname) || !errnum)
-	{
-		err_num = EINVAL;  // Bad input
-	}
+	err_num = validate_standard_args(pathname, errnum);
 
 	// GET IT
 	// Execute command
@@ -226,10 +254,7 @@ dev_t get_shell_device_id(const char *pathname, int *errnum)
 	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION
-	if (!pathname || !(*pathname) || !errnum)
-	{
-		err_num = EINVAL;  // Bad input
-	}
+	err_num = validate_standard_args(pathname, errnum);
 
 	// GET IT
 	// Execute command
@@ -261,10 +286,7 @@ mode_t get_shell_file_perms(const char *pathname, int *errnum)
 	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION
-	if (!pathname || !(*pathname) || !errnum)
-	{
-		err_num = EINVAL;  // Bad input
-	}
+	err_num = validate_standard_args(pathname, errnum);
 
 	// GET IT
 	// Execute command
@@ -296,10 +318,7 @@ gid_t get_shell_group(const char *pathname, int *errnum)
 	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION
-	if (!pathname || !(*pathname) || !errnum)
-	{
-		err_num = EINVAL;  // Bad input
-	}
+	err_num = validate_standard_args(pathname, errnum);
 
 	// GET IT
 	// Execute command
@@ -331,10 +350,7 @@ nlink_t get_shell_hard_links(const char *pathname, int *errnum)
 	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION
-	if (!pathname || !(*pathname) || !errnum)
-	{
-		err_num = EINVAL;  // Bad input
-	}
+	err_num = validate_standard_args(pathname, errnum);
 
 	// GET IT
 	// Execute command
@@ -366,10 +382,7 @@ ino_t get_shell_inode(const char *pathname, int *errnum)
 	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION
-	if (!pathname || !(*pathname) || !errnum)
-	{
-		err_num = EINVAL;  // Bad input
-	}
+	err_num = validate_standard_args(pathname, errnum);
 
 	// GET IT
 	// Execute command
@@ -401,10 +414,7 @@ time_t get_shell_mtime(const char *pathname, int *errnum)
 	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION
-	if (!pathname || !(*pathname) || !errnum)
-	{
-		err_num = EINVAL;  // Bad input
-	}
+	err_num = validate_standard_args(pathname, errnum);
 
 	// GET IT
 	// Execute command
@@ -436,11 +446,7 @@ uid_t get_shell_owner(const char *pathname, int *errnum)
 	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION
-	if (!pathname || !(*pathname) || !errnum)
-	{
-		err_num = EINVAL;  // Bad input
-	}
-
+	err_num = validate_standard_args(pathname, errnum);
 	// GET IT
 	// Execute command
 	if (!err_num)
@@ -471,10 +477,7 @@ off_t get_shell_size(const char *pathname, int *errnum)
 	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION
-	if (!pathname || !(*pathname) || !errnum)
-	{
-		err_num = EINVAL;  // Bad input
-	}
+	err_num = validate_standard_args(pathname, errnum);
 
 	// GET IT
 	// Execute command
@@ -535,14 +538,10 @@ long get_sys_block_size(int *errnum)
 int make_a_pipe(const char *pathname)
 {
 	// LOCAL VARIABLES
-	int result = ENOERR;  // Errno value
+	int result = validate_name(pathname);  // Errno value
 
 	// INPUT VALIDATION
-	if (!pathname || !(*pathname))
-	{
-		result = EINVAL;  // Invalid input
-	}
-	else if (mknod(pathname, S_IFIFO | 640, 0))
+	if (ENOERR == result && mknod(pathname, S_IFIFO | 640, 0))
 	{
 		result = errno;
 		PRINT_ERROR(The call to mknod() failed);
@@ -562,10 +561,7 @@ int make_a_socket(const char *filename)
 	struct sockaddr_un local_addr;  // Struct to communicate with bind()
 
 	// INPUT VALIDATION
-	if (!filename || !(*filename))
-	{
-		result = EINVAL;  // Bad filename
-	}
+	result = validate_name(filename);
 
 	// SETUP
 	if (ENOERR == result)
@@ -617,11 +613,8 @@ int remove_a_file(const char *filename, bool ignore_missing)
 	int result = ENOERR;  // Errno value
 
 	// INPUT VALIDATION
-	if (!filename || !(*filename))
-	{
-		result = EINVAL;  // Invalid input
-	}
-	else if (remove(filename))
+	result = validate_name(filename);
+	if (ENOERR == result && remove(filename))
 	{
 		result = errno;
 		if (ENOENT == result && true == ignore_missing)
@@ -651,14 +644,7 @@ char *resolve_to_repo(const char *repo_name, const char *rel_filename, bool must
 
 
 	// INPUT VALIDATION
-	if (!repo_name || !(*repo_name))
-	{
-		result = EINVAL;  // Bad repo_name
-	}
-	else if (!errnum)
-	{
-		result = EINVAL;  // Bad errnum
-	}
+	result = validate_standard_args(repo_name, errnum);
 
 	// 1. Get current working directory
 	if (ENOERR == result)
@@ -802,9 +788,10 @@ int run_path_command(const char *command, const char *pathname, char *output, si
 	int result = ENOERR;       // Errno value
 
 	// INPUT VALIDATION
-	if (!command || !pathname || !(*pathname))
+	result = validate_name(command);
+	if (ENOERR == result)
 	{
-		result = EINVAL;  // Invalid pathname
+		result = validate_name(pathname);
 		// NOTE: The remaining arguments will be exhaustively validated by run_command()
 	}
 
@@ -887,9 +874,14 @@ int truncate_dir(char *haystack, const char *needle, size_t hay_len)
 	char *temp = NULL;    // Temp pointer
 
 	// INPUT VALIDATION
-	if (!haystack || !(*haystack) || !needle || !(*needle) || hay_len <= 0)
+	result = validate_name(haystack);
+	if (ENOERR == result)
 	{
-		result = EINVAL;  // Invalid argument
+		result = validate_name(needle);
+	}
+	if (ENOERR == result && hay_len <= 0)
+	{
+		result = EINVAL;  // Invalid hay_len
 	}
 
 	// TRUNCATE IT
@@ -927,6 +919,54 @@ int truncate_dir(char *haystack, const char *needle, size_t hay_len)
 		*temp = '/';
 		temp++;
 		*temp = '\0';
+	}
+
+	// DONE
+	return result;
+}
+
+
+int validate_err(int *err)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // Errno value
+
+	// INPUT VALIDATION
+	if (!err)
+	{
+		result = EINVAL;  // Bad input
+	}
+
+	// DONE
+	return result;
+}
+
+
+int validate_name(const char *name)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // Errno value
+
+	// INPUT VALIDATION
+	if (!name || !(*name))
+	{
+		result = EINVAL;  // Bad input
+	}
+
+	// DONE
+	return result;
+}
+
+
+int validate_standard_args(const char *name, int *err)
+{
+	// LOCAL VARIABLES
+	int result = validate_name(name);  // Errno value
+
+	// INPUT VALIDATION
+	if (ENOERR == result)
+	{
+		result = validate_err(err);
 	}
 
 	// DONE
