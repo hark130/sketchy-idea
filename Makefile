@@ -24,7 +24,7 @@ CODE_DIR = ./code/
 include $(CODE_DIR)Makefile_constants
 
 ### MAKEFILE ARGUMENTS ###
-SKIP_MF_ARGS = --directory=$(CODE_DIR)
+SKID_MF_ARGS = --directory=$(CODE_DIR)
 
 .PHONY: all clean compile test validate
 
@@ -34,20 +34,20 @@ SKIP_MF_ARGS = --directory=$(CODE_DIR)
 ##########################
 all:
 	@clear
-	$(CALL_MAKE) $(SKIP_MF_ARGS)
+	$(CALL_MAKE) $(SKID_MF_ARGS)
 
 clean:
 	@clear
-	$(CALL_MAKE) $(SKIP_MF_ARGS) clean
+	$(CALL_MAKE) $(SKID_MF_ARGS) clean
 
 compile:
 	@clear
-	$(CALL_MAKE) $(SKIP_MF_ARGS) compile
+	$(CALL_MAKE) $(SKID_MF_ARGS) compile
 
 test:
 	@clear
-	$(CALL_MAKE) $(SKIP_MF_ARGS) test
+	$(CALL_MAKE) $(SKID_MF_ARGS) test
 
 validate:
 	@clear
-	$(CALL_MAKE) $(SKIP_MF_ARGS) validate
+	$(CALL_MAKE) $(SKID_MF_ARGS) validate

@@ -2,14 +2,14 @@
  *	This library contains non-releasable, unit-test-specific, miscellaneous helper code.
  */
 
-#ifndef __SKIP_DEVOPS__
-#define __SKIP_DEVOPS__
+#ifndef __SKID_DEVOPS__
+#define __SKID_DEVOPS__
 
 #include <stdbool.h>    // bool, false, true
 #include <stddef.h>		// size_t
 
 // Baseline dir level to standardize file-based test input paths
-#define SKIP_REPO_NAME (const char *)"sketchy-idea"  // The name of this repo
+#define SKID_REPO_NAME (const char *)"sketchy-idea"  // The name of this repo
 
 /*
  *  Description:
@@ -43,7 +43,7 @@ int free_devops_mem(char **old_array);
  *  Description:
  *      Get the pathname's raw access time by executing the following command in a shell:
  *          stat -c %X <pathname>
- *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_access_time() without having to hard-code brittle expected return values.
  *
  *  Args:
@@ -59,7 +59,7 @@ time_t get_shell_atime(const char *pathname, int *errnum);
  *  Description:
  *      Get the actual file permissions for pathname by executing the following command in a shell:
  *          stat -c %b <pathname>
- *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_block_count() without having to hard-code brittle expected return values.
  *
  *  Args:
@@ -76,7 +76,7 @@ blkcnt_t get_shell_block_count(const char *pathname, int *errnum);
  *  Description:
  *      Get the pathname's raw status change time by executing the following command in a shell:
  *          stat -c %Z <pathname>
- *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_change_time() without having to hard-code brittle expected return values.
  *
  *  Args:
@@ -92,7 +92,7 @@ time_t get_shell_ctime(const char *pathname, int *errnum);
  *  Description:
  *      Get the pathnames device ID by executing the following command in a shell:
  *          stat -c %d <pathname>
- *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_file_device_id() without having to hard-code brittle expected return values.
  *
  *  Args:
@@ -108,7 +108,7 @@ dev_t get_shell_device_id(const char *pathname, int *errnum);
  *  Description:
  *      Get the actual file permissions for pathname by executing the following command in a shell:
  *          stat -c %a <pathname>
- *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_file_perms() without having to hard-code brittle expected return values.
  *
  *  Args:
@@ -124,7 +124,7 @@ mode_t get_shell_file_perms(const char *pathname, int *errnum);
  *  Description:
  *      Get the ID of pathname's group by executing the following command in a shell:
  *          stat -c %g <pathname>
- *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_group() without having to hard-code brittle expected return values.
  *
  *  Args:
@@ -141,7 +141,7 @@ gid_t get_shell_group(const char *pathname, int *errnum);
  *  Description:
  *      Get the number of hard links to pathname by executing the following command in a shell:
  *          stat -c %h <pathname>
- *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_get_hard_link_num() without having to hard-code brittle expected return values.
  *
  *  Args:
@@ -158,7 +158,7 @@ nlink_t get_shell_hard_links(const char *pathname, int *errnum);
  *  Description:
  *      Get pathname's inode number by executing the following command in a shell:
  *          stat -c %i <pathname>
- *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_serial_number() without having to hard-code brittle expected return values.
  *
  *  Args:
@@ -175,7 +175,7 @@ ino_t get_shell_inode(const char *pathname, int *errnum);
  *  Description:
  *      Get the pathname's raw modification time by executing the following command in a shell:
  *          stat -c %Y <pathname>
- *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_mod_time() without having to hard-code brittle expected return values.
  *
  *  Args:
@@ -191,7 +191,7 @@ time_t get_shell_mtime(const char *pathname, int *errnum);
  *  Description:
  *      Get the ID of pathname's owner by executing the following command in a shell:
  *          stat -c %u <pathname>
- *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_owner() without having to hard-code brittle expected return values.
  *
  *  Args:
@@ -208,7 +208,7 @@ uid_t get_shell_owner(const char *pathname, int *errnum);
  *  Description:
  *      Get the size, in bytes, of pathname by executing the following command in a shell:
  *          stat -c %s <pathname>
- *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_owner() without having to hard-code brittle expected return values.
  *
  *  Args:
@@ -225,7 +225,7 @@ off_t get_shell_size(const char *pathname, int *errnum);
  *  Description:
  *      Get the actual block size of the filesystem mounted in current directory by executing:
  *          stat -fc %s .
- *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_block_size() without having to hard-code brittle expected return values.
  *
  *  Args:
@@ -283,7 +283,7 @@ int remove_a_file(const char *filename, bool ignore_missing);
  *
  *  Args:
  *      repo_name: Root-level directory name to find in the current working directory
- *			(e.g., SKIP_REPO_NAME).
+ *			(e.g., SKID_REPO_NAME).
  *      rel_filename: Optional; The relative filename to resolve to repo_name's absolute path.
  *			If this argument is NULL, only the repo_dir will be returned.
  *		must_exist: If true, the resulting repo_dir/rel_filename must exist or errnum will
@@ -331,4 +331,4 @@ int run_command(const char *command, char *output, size_t output_len);
  */
 int run_path_command(const char *command, const char *pathname, char *output, size_t output_len);
 
-#endif  /* __SKIP_DEVOPS__ */
+#endif  /* __SKID_DEVOPS__ */

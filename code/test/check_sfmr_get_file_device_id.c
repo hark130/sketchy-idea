@@ -1,5 +1,5 @@
 /*
- *  Check unit test suit for skip_file_metadata_read.h's get_file_device_id() function.
+ *  Check unit test suit for skid_file_metadata_read.h's get_file_device_id() function.
  *
  *  Copy/paste the following from the repo's top-level directory...
 
@@ -15,8 +15,8 @@ code/dist/check_sfmr_get_file_device_id.bin && CK_FORK=no valgrind --leak-check=
 #include <stdlib.h>
 #include <unistd.h>                   // get_current_dir_name()
 // Local includes
-#include "devops_code.h"              // resolve_to_repo(), SKIP_REPO_NAME
-#include "skip_file_metadata_read.h"  // get_file_device_id()
+#include "devops_code.h"              // resolve_to_repo(), SKID_REPO_NAME
+#include "skid_file_metadata_read.h"  // get_file_device_id()
 
 
 // Use this to help highlight an errnum that wasn't updated
@@ -85,7 +85,7 @@ END_TEST
 START_TEST(test_n03_directory)
 {
     // LOCAL VARIABLES
-    const char *repo_name = SKIP_REPO_NAME;  // Repo name
+    const char *repo_name = SKID_REPO_NAME;  // Repo name
     dev_t result = 0;                        // Return value from function call
     int errnum = CANARY_INT;                 // Errno from the function calls
     dev_t exp_result = 0;                    // Expected results
@@ -121,7 +121,7 @@ END_TEST
 START_TEST(test_n04_named_pipe)
 {
     // LOCAL VARIABLES
-    const char *repo_name = SKIP_REPO_NAME;  // Repo name
+    const char *repo_name = SKID_REPO_NAME;  // Repo name
     dev_t result = 0;                        // Return value from function call
     int errnum = CANARY_INT;                 // Errno from the function calls
     dev_t exp_result = 0;                    // Expected results
@@ -163,7 +163,7 @@ END_TEST
 START_TEST(test_n05_regular_file)
 {
     // LOCAL VARIABLES
-    const char *repo_name = SKIP_REPO_NAME;  // Repo name
+    const char *repo_name = SKID_REPO_NAME;  // Repo name
     dev_t result = 0;                        // Return value from function call
     int errnum = CANARY_INT;                 // Errno from the function calls
     dev_t exp_result = 0;                    // Expected results
@@ -227,7 +227,7 @@ END_TEST
 START_TEST(test_n07_symbolic_link)
 {
     // LOCAL VARIABLES
-    const char *repo_name = SKIP_REPO_NAME;  // Repo name
+    const char *repo_name = SKID_REPO_NAME;  // Repo name
     dev_t result = 0;                        // Return value from function call
     int errnum = CANARY_INT;                 // Errno from the function calls
     blkcnt_t exp_result = 0664;              // Expected results?
@@ -353,7 +353,7 @@ int main(void)
     // Relative path for this test case's input
     char log_rel_path[] = { "./code/test/test_output/check_sfmr_get_file_device_id.log" };
     // Absolute path for log_rel_path as resolved against the repo name
-    char *log_abs_path = resolve_to_repo(SKIP_REPO_NAME, log_rel_path, false, &errnum);
+    char *log_abs_path = resolve_to_repo(SKID_REPO_NAME, log_rel_path, false, &errnum);
     int number_failed = 0;
     Suite *suite = NULL;
     SRunner *suite_runner = NULL;

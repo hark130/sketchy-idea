@@ -1,5 +1,5 @@
 /*
- *  Check unit test suit for skip_file_metadata_read.h's is_character_device() function.
+ *  Check unit test suit for skid_file_metadata_read.h's is_character_device() function.
  *
  *  Copy/paste the following from the repo's top-level directory...
 
@@ -15,8 +15,8 @@ code/dist/check_sfmr_is_character_device.bin && CK_FORK=no valgrind --leak-check
 #include <stdlib.h>
 #include <unistd.h>                   // get_current_dir_name()
 // Local includes
-#include "devops_code.h"              // resolve_to_repo(), SKIP_REPO_NAME
-#include "skip_file_metadata_read.h"  // is_character_device()
+#include "devops_code.h"              // resolve_to_repo(), SKID_REPO_NAME
+#include "skid_file_metadata_read.h"  // is_character_device()
 
 
 // Use this to help highlight an errnum that wasn't updated
@@ -51,7 +51,7 @@ END_TEST
 START_TEST(test_n03_directory)
 {
     // LOCAL VARIABLES
-    const char *repo_name = SKIP_REPO_NAME;  // Repo name
+    const char *repo_name = SKID_REPO_NAME;  // Repo name
     bool result = false;                     // Return value from function call
     int errnum = CANARY_INT;                 // Errno from the function calls
     // Relative path for this test case's input
@@ -79,7 +79,7 @@ END_TEST
 START_TEST(test_n04_named_pipe)
 {
     // LOCAL VARIABLES
-    const char *repo_name = SKIP_REPO_NAME;  // Repo name
+    const char *repo_name = SKID_REPO_NAME;  // Repo name
     bool result = false;                     // Return value from function call
     int errnum = CANARY_INT;                 // Errno from the function calls
     // Relative path for this test case's input
@@ -112,7 +112,7 @@ END_TEST
 START_TEST(test_n05_regular_file)
 {
     // LOCAL VARIABLES
-    const char *repo_name = SKIP_REPO_NAME;  // Repo name
+    const char *repo_name = SKID_REPO_NAME;  // Repo name
     bool result = false;                     // Return value from function call
     int errnum = CANARY_INT;                 // Errno from the function calls
     // Relative path for this test case's input
@@ -151,7 +151,7 @@ END_TEST
 START_TEST(test_n07_symbolic_link)
 {
     // LOCAL VARIABLES
-    const char *repo_name = SKIP_REPO_NAME;  // Repo name
+    const char *repo_name = SKID_REPO_NAME;  // Repo name
     bool result = false;                     // Return value from function call
     int errnum = CANARY_INT;                 // Errno from the function calls
     // Relative path for this test case's input
