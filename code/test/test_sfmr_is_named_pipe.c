@@ -1,5 +1,5 @@
 /*
- *	Manually test skip_file_metadata_read.h's is_named_pipe() function.
+ *	Manually test skid_file_metadata_read.h's is_named_pipe() function.
  *
  *	Copy/paste the following...
 
@@ -18,9 +18,9 @@ rm ./code/test/test_input/named_pipe
 #include <stdio.h>                    // fprintf()
 #include <stdlib.h>					  // exit()
 // Local includes
-#define SKIP_DEBUG                    // The DEBUG output is doing double duty as test output
-#include "skip_debug.h"               // PRINT_ERRNO(), PRINT_ERROR()
-#include "skip_file_metadata_read.h"  // is_named_pipe()
+#define SKID_DEBUG                    // The DEBUG output is doing double duty as test output
+#include "skid_debug.h"               // PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_file_metadata_read.h"  // is_named_pipe()
 
 
 #define TEST_FILE_TYPE (const char *)"named pipe"  // Use this in copy/paste test cases

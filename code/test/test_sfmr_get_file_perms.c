@@ -1,5 +1,5 @@
 /*
- *	Manually test skip_file_metadata_read.h's get_file_perms() function.
+ *	Manually test skid_file_metadata_read.h's get_file_perms() function.
  *
  *	Copy/paste the following...
 
@@ -17,9 +17,9 @@
 #include <stdio.h>                    // fprintf()
 #include <stdlib.h>					  // exit()
 // Local includes
-#define SKIP_DEBUG                    // The DEBUG output is doing double duty as test output
-#include "skip_debug.h"               // PRINT_ERRNO(), PRINT_ERROR()
-#include "skip_file_metadata_read.h"  // get_file_perms()
+#define SKID_DEBUG                    // The DEBUG output is doing double duty as test output
+#include "skid_debug.h"               // PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_file_metadata_read.h"  // get_file_perms()
 
 
 int main(int argc, char *argv[])

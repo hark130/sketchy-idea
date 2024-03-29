@@ -1,5 +1,5 @@
 /*
- *	Manually test skip_file_metadata_read.h's get_*_time() functions.
+ *	Manually test skid_file_metadata_read.h's get_*_time() functions.
  *
  *	Copy/paste the following...
 
@@ -20,13 +20,13 @@
 #include <stdlib.h>					  // exit()
 #include <sys/sysmacros.h>			  // major(), minor()
 // Local includes
-#define SKIP_DEBUG                    // The DEBUG output is doing double duty as test output
-#include "skip_debug.h"               // PRINT_ERRNO(), PRINT_ERROR()
-#include "skip_file_metadata_read.h"  // get_*_time()
+#define SKID_DEBUG                    // The DEBUG output is doing double duty as test output
+#include "skid_debug.h"               // PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_file_metadata_read.h"  // get_*_time()
 
 
 /*
- *	skip_file_metadata_read's get_*_time() functions generally follow this behavior:
+ *	skid_file_metadata_read's get_*_time() functions generally follow this behavior:
  *
  *  Args:
  *      pathname: Absolute or relative pathname to fetch the time for.

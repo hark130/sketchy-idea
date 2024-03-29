@@ -1,5 +1,5 @@
 /*
- *	Manually test skip_file_metadata_read.h's is_regular_file() function.
+ *	Manually test skid_file_metadata_read.h's is_regular_file() function.
  *
  *	Copy/paste the following...
 
@@ -16,9 +16,9 @@
 #include <stdio.h>                    // fprintf()
 #include <stdlib.h>					  // exit()
 // Local includes
-#define SKIP_DEBUG                    // The DEBUG output is doing double duty as test output
-#include "skip_debug.h"               // PRINT_ERRNO(), PRINT_ERROR()
-#include "skip_file_metadata_read.h"  // is_regular_file()
+#define SKID_DEBUG                    // The DEBUG output is doing double duty as test output
+#include "skid_debug.h"               // PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_file_metadata_read.h"  // is_regular_file()
 
 
 #define TEST_FILE_TYPE (const char *)"regular file"  // Use this in copy/paste test cases
