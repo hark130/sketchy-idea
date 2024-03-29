@@ -4,6 +4,8 @@
 
 #include "skip_debug.h"				  // PRINT_ERRNO()
 #include "skip_file_metadata_read.h"
+#include <string.h>					  // memset()
+#include <time.h>					  // localtime(), strftime()
 #ifndef ENOERR
 #define ENOERR ((int)0)
 #endif  /* ENOERR */
@@ -73,10 +75,18 @@ time_t get_access_time(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	time_t retval = 0;                           // Access time
 	int err = validate_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// GET IT
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(filename, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		retval = stat_struct.st_atime;
 	}
 
 	// DONE
@@ -138,10 +148,18 @@ time_t get_change_time(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	time_t retval = 0;                           // Change time
 	int err = validate_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// GET IT
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(filename, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		retval = stat_struct.st_ctime;
 	}
 
 	// DONE
@@ -300,10 +318,18 @@ time_t get_mod_time(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	time_t retval = 0;                           // Modification time
 	int err = validate_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                     // stat struct
 
+	// GET IT
+	// Fetch metadata
 	if (!err)
 	{
-		/* CODE GOES HERE */
+		err = call_stat(filename, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		retval = stat_struct.st_mtime;
 	}
 
 	// DONE
@@ -380,6 +406,49 @@ off_t get_size(const char *pathname, int *errnum)
 
 	// DONE
 	return retval;
+}
+
+
+int format_time(char *output, size_t output_size, time_t time_val)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;                      // Result of execution
+	struct tm *tmp;                           // time_val translated to local time
+	time_t time_copy = time_val;              // Local copy of time_val
+	char format[] = { "%Y-%m-%d %H:%M:%S" };  // Standard format for time
+
+	// INPUT VALIDATION
+	if (!output || output_size <= 0)
+	{
+		result = EINVAL;  // Bad input
+	}
+
+	// SETUP
+	if (ENOERR == result)
+	{
+		memset(output, 0x0, output_size);  // Clear it
+		errno = ENOERR;  // Zeroize it, for safety
+		tmp = localtime(&time_copy);  // Populate the tm struct
+		result = errno;  // localtime() may result in EOVERFLOW
+		if (result)
+		{
+			PRINT_ERROR(The call to localtime() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+
+	// FORMAT IT
+	if (ENOERR == result)
+	{
+		if (0 == strftime(output, output_size, format, tmp))
+		{
+			PRINT_ERROR(The call to strftime() returned 0);
+			result = -1;
+		}
+	}
+
+	// DONE
+	return result;
 }
 
 

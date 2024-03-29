@@ -9,13 +9,17 @@
 
 /*
  *  Description:
- *      
+ *		Fetches the access time (atime) for pathname by reading the st_atim member from the
+ *		stat struct.
+ *
  *  Args:
- *      
+ *      pathname: Absolute or relative pathname to fetch the access time for.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
  *  Returns:
- *      
+ *		The access time, on success.  0 on error, and errnum is set.
  */
-time_t get_access_time(const char *filename, int *errnum);
+time_t get_access_time(const char *pathname, int *errnum);
 
 /*
  *  Description:
@@ -52,13 +56,17 @@ blksize_t get_block_size(const char *filename, int *errnum);
 
 /*
  *  Description:
- *      
+ *		Fetches the status change time (ctime) for pathname by reading the st_ctim member from the
+ *		stat struct.
+ *
  *  Args:
- *      
+ *      pathname: Absolute or relative pathname to fetch the status change time for.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
  *  Returns:
- *      
+ *		The status change time, on success.  0 on error, and errnum is set.
  */
-time_t get_change_time(const char *filename, int *errnum);
+time_t get_change_time(const char *pathname, int *errnum);
 
 /*
  *  Description:
@@ -168,13 +176,17 @@ nlink_t get_hard_link_num(const char *pathname, int *errnum);
 
 /*
  *  Description:
- *      
+ *		Fetches the modification time (mtime) for pathname by reading the st_mtim member from the
+ *		stat struct.
+ *
  *  Args:
- *      
+ *      pathname: Absolute or relative pathname to fetch the modification time for.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
  *  Returns:
- *      
+ *		The modification time, on success.  0 on error, and errnum is set.
  */
-time_t get_mod_time(const char *filename, int *errnum);
+time_t get_mod_time(const char *pathname, int *errnum);
 
 /*
  *  Description:
@@ -227,9 +239,27 @@ ino_t get_serial_num(const char *pathname, int *errnum);
  */
 off_t get_size(const char *pathname, int *errnum);
 
+
+/*
+ *  Description:
+ *		Format the time_val into a standardized, human-readble string in output.
+ *
+ *  Args:
+ *      output: [Out] Buffer to format the time into.
+ *		output_size: The size, in bytes, of output.
+ *		time_val: The time value to format.
+ *
+ *  Returns:
+ *		0 on success.  Returns errno value or -1 on failure.
+ */
+int format_time(char *output, size_t output_size, time_t time_val);
+
+
 /*
  *  Description:
  *      Answers the question, "Is filename a block device?".  Updates errnum with errno values.
+ *		Calls stat(filename), reads the mode field from the stat struct, and checks it against
+ *		the "block device" macro.
  *
  *  Args:
  *      filename: Absolute or relative filename to check.
@@ -244,6 +274,8 @@ bool is_block_device(const char *filename, int *errnum);
 /*
  *  Description:
  *      Answers the question, "Is filename a character device?".  Updates errnum with errno values.
+ *		Calls stat(filename), reads the mode field from the stat struct, and checks it against
+ *		the "character device" macro.
  *
  *  Args:
  *      filename: Absolute or relative filename to check.
@@ -258,6 +290,8 @@ bool is_character_device(const char *filename, int *errnum);
 /*
  *  Description:
  *      Answers the question, "Is pathname a directory?".  Updates errnum with errno values.
+ *		Calls stat(filename), reads the mode field from the stat struct, and checks it against
+ *		the "directory" macro.
  *
  *  Args:
  *      pathname: Absolute or relative pathname to check.
@@ -272,6 +306,8 @@ bool is_directory(const char *pathname, int *errnum);
 /*
  *  Description:
  *      Answers the question, "Is filename a named pipe?".  Updates errnum with errno values.
+ *		Calls stat(filename), reads the mode field from the stat struct, and checks it against
+ *		the "FIFO" macro.
  *
  *  Args:
  *      filename: Absolute or relative filename to check.
@@ -303,6 +339,8 @@ bool is_regular_file(const char *filename, int *errnum);
 /*
  *  Description:
  *      Answers the question, "Is filename a socket?".  Updates errnum with errno values.
+ *		Calls stat(filename), reads the mode field from the stat struct, and checks it against
+ *		the "socket" macro.
  *
  *  Args:
  *      filename: Absolute or relative filename to check.

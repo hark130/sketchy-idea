@@ -41,6 +41,22 @@ int free_devops_mem(char **old_array);
 
 /*
  *  Description:
+ *      Get the pathname's raw access time by executing the following command in a shell:
+ *          stat -c %X <pathname>
+ *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      get_access_time() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      pathname: The pathname, relative or absolute, to fetch the atime for.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      Raw access time on success, 0 on error.  Check errnum for actual errno value.
+ */
+time_t get_shell_atime(const char *pathname, int *errnum);
+
+/*
+ *  Description:
  *      Get the actual file permissions for pathname by executing the following command in a shell:
  *          stat -c %b <pathname>
  *      This is intended as a double-do to validate the results of skip_file_metadata_read's
@@ -55,6 +71,22 @@ int free_devops_mem(char **old_array);
  *      The only way to detect errors in execution is to check errnum an errno value (non-zero).
  */
 blkcnt_t get_shell_block_count(const char *pathname, int *errnum);
+
+/*
+ *  Description:
+ *      Get the pathname's raw status change time by executing the following command in a shell:
+ *          stat -c %Z <pathname>
+ *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      get_change_time() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      pathname: The pathname, relative or absolute, to fetch the ctime for.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      Raw status change time on success, 0 on error.  Check errnum for actual errno value.
+ */
+time_t get_shell_ctime(const char *pathname, int *errnum);
 
 /*
  *  Description:
@@ -138,6 +170,22 @@ nlink_t get_shell_hard_links(const char *pathname, int *errnum);
  *      value.  On success, errnum will be zeroized.
  */
 ino_t get_shell_inode(const char *pathname, int *errnum);
+
+/*
+ *  Description:
+ *      Get the pathname's raw modification time by executing the following command in a shell:
+ *          stat -c %Y <pathname>
+ *      This is intended as a double-do to validate the results of skip_file_metadata_read's
+ *      get_mod_time() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      pathname: The pathname, relative or absolute, to fetch the mtime for.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      Raw modification time on success, 0 on error.  Check errnum for actual errno value.
+ */
+time_t get_shell_mtime(const char *pathname, int *errnum);
 
 /*
  *  Description:

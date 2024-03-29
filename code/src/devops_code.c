@@ -112,12 +112,82 @@ int free_devops_mem(char **old_array)
 }
 
 
+time_t get_shell_atime(const char *pathname, int *errnum)
+{
+	// LOCAL VARIABLES
+	time_t retval = 0;                    // Shell command results, converted
+	int err_num = ENOERR;                 // Local errno value
+	char base_cmd[] = { "stat -c %X " };  // The base command
+	char output[512] = { 0 };             // Output from the command
+
+	// INPUT VALIDATION
+	if (!pathname || !(*pathname) || !errnum)
+	{
+		err_num = EINVAL;  // Bad input
+	}
+
+	// GET IT
+	// Execute command
+	if (!err_num)
+	{
+		err_num = run_path_command(base_cmd, pathname, output, sizeof(output));
+	}
+	// Convert results to mode_t
+	if (!err_num)
+	{
+		retval = atoi(output);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = err_num;
+	}
+	return retval;
+}
+
+
 blkcnt_t get_shell_block_count(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
 	blkcnt_t retval = 0;                  // Shell command results, converted
 	int err_num = ENOERR;                 // Local errno value
 	char base_cmd[] = { "stat -c %b " };  // The base command
+	char output[512] = { 0 };             // Output from the command
+
+	// INPUT VALIDATION
+	if (!pathname || !(*pathname) || !errnum)
+	{
+		err_num = EINVAL;  // Bad input
+	}
+
+	// GET IT
+	// Execute command
+	if (!err_num)
+	{
+		err_num = run_path_command(base_cmd, pathname, output, sizeof(output));
+	}
+	// Convert results to mode_t
+	if (!err_num)
+	{
+		retval = atoi(output);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = err_num;
+	}
+	return retval;
+}
+
+
+time_t get_shell_ctime(const char *pathname, int *errnum)
+{
+	// LOCAL VARIABLES
+	time_t retval = 0;                    // Shell command results, converted
+	int err_num = ENOERR;                 // Local errno value
+	char base_cmd[] = { "stat -c %Z " };  // The base command
 	char output[512] = { 0 };             // Output from the command
 
 	// INPUT VALIDATION
@@ -319,6 +389,41 @@ ino_t get_shell_inode(const char *pathname, int *errnum)
 		*errnum = err_num;
 	}
 	return result;
+}
+
+
+time_t get_shell_mtime(const char *pathname, int *errnum)
+{
+	// LOCAL VARIABLES
+	time_t retval = 0;                    // Shell command results, converted
+	int err_num = ENOERR;                 // Local errno value
+	char base_cmd[] = { "stat -c %Y " };  // The base command
+	char output[512] = { 0 };             // Output from the command
+
+	// INPUT VALIDATION
+	if (!pathname || !(*pathname) || !errnum)
+	{
+		err_num = EINVAL;  // Bad input
+	}
+
+	// GET IT
+	// Execute command
+	if (!err_num)
+	{
+		err_num = run_path_command(base_cmd, pathname, output, sizeof(output));
+	}
+	// Convert results to mode_t
+	if (!err_num)
+	{
+		retval = atoi(output);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = err_num;
+	}
+	return retval;
 }
 
 
