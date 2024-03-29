@@ -13,7 +13,7 @@
 #include <unistd.h>			// getcwd()
 // Local includes
 #include "devops_code.h"	// Headers
-#include "skip_debug.h"		// PRINT_ERRNO()
+#include "skid_debug.h"		// PRINT_ERRNO()
 
 
 #ifndef ENOERR

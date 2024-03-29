@@ -2,15 +2,15 @@
  *	This library defines functionality to read, parse, and report on Linux file metadata.
  */
 
-#include "skip_debug.h"				  // PRINT_ERRNO()
-#include "skip_file_metadata_read.h"
+#include "skid_debug.h"				  // PRINT_ERRNO()
+#include "skid_file_metadata_read.h"
 #include <string.h>					  // memset()
 #include <time.h>					  // localtime(), strftime()
 #ifndef ENOERR
 #define ENOERR ((int)0)
 #endif  /* ENOERR */
 
-#define SKIP_DEBUG  // Enable DEBUGGING output
+#define SKID_DEBUG  // Enable DEBUGGING output
 
 /**************************************************************************************************/
 /********************************* PRIVATE FUNCTION DECLARATIONS **********************************/
