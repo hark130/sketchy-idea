@@ -1,0 +1,191 @@
+##########################
+###### INSTRUCTIONS ######
+##########################
+#
+# 1. Stop reading this
+# 2. Read Makefile instead
+# 3. Thank Linus for this wonderful kernel!
+#
+
+
+##################################
+#### LINUX MAKEFILE VARIABLES ####
+##################################
+
+### CONSTANT VARIABLES ###
+# This was made to avoid circular dependencies and redundancies
+include Makefile_constants
+BIN_FILE_EXT = .bin
+# Defined this to aid in the proper exeuction of a list of commands
+define execute-command
+$(1)
+
+endef
+
+### COMPILER VARIABLES ###
+CC = gcc
+CFLAGS =
+AFLAGS = -fsanitize=address -g
+
+### OS-DYNAMIC VARIABLES ###
+# $(CHECK) - Checkmark
+CHECK :=
+ifneq ($(OS),Windows_NT)
+	CHECK = [✓]
+else
+$(error Wrong operating system.  This is $(OS).)
+endif
+
+# $(NULL) - Shunt output here to silence it
+NULL :=
+ifneq ($(OS),Windows_NT)
+	NULL = /dev/null
+else
+$(error Wrong operating system.  This is $(OS).)
+endif
+
+### DYNAMIC VARIABLES ###
+
+# SOURCE FILES
+# All .c filenames found in SRC_DIR
+RAW_SRC_FILES := $(shell cd $(SRC_DIR); ls *$(SRC_FILE_EXT))
+# All RAW_SRC_FILES with the file extension stripped
+BASE_SRC_NAMES := $(basename $(RAW_SRC_FILES))
+# Convert base filenames to object code filenames
+RAW_OBJ_FILES := $(addsuffix $(OBJ_FILE_EXT),$(BASE_SRC_NAMES))
+
+# CHECK UNIT TEST VARIABLES
+# Prefix for *all* Check unit test files
+CHECK_PREFIX = check_
+# Prefix for all skid_file_metadata_read library unit tests
+CHECK_SFMR_PREFIX = $(CHECK_PREFIX)sfmr_
+# All check*.c filenames found in TEST_DIR
+CHECK_SRC_FILES := $(shell cd $(TEST_DIR); ls $(CHECK_PREFIX)*$(SRC_FILE_EXT))
+# All CHECK_SRC_FILES with the file extension stripped
+CHECK_BASE_NAMES := $(basename $(CHECK_SRC_FILES))
+# Convert base Check filenames to object code filenames
+CHECK_OBJ_FILES := $(addsuffix $(OBJ_FILE_EXT),$(CHECK_BASE_NAMES))
+# Convert base Check filenames to object code filenames
+CHECK_BIN_FILES := $(addsuffix $(BIN_FILE_EXT),$(CHECK_BASE_NAMES))
+# Check unit test library arguments for $(CC)
+CHECK_CC_ARGS = -lcheck -lm -lsubunit
+
+# MANUAL TEST VARIABLES
+# Prefix for *all* manual test_* files
+MAN_TEST_PREFIX = test_
+# Prefix for all skid_file_metadata_read library manual tests
+MAN_TEST_SFMR_PREFIX = $(MAN_TEST_PREFIX)sfmr_
+# All test_*.c filenames found in TEST_DIR
+MAN_TEST_SRC_FILES := $(shell cd $(TEST_DIR); ls $(MAN_TEST_PREFIX)*$(SRC_FILE_EXT))
+# All MAN_TEST_SRC_FILES with the file extension stripped
+MAN_TEST_BASE_NAMES := $(basename $(MAN_TEST_SRC_FILES))
+# Convert base manual test filenames to object code filenames
+MAN_TEST_OBJ_FILES := $(addsuffix $(OBJ_FILE_EXT),$(MAN_TEST_BASE_NAMES))
+# Convert base manual test filenames to object code filenames
+MAN_TEST_BIN_FILES := $(addsuffix $(BIN_FILE_EXT),$(MAN_TEST_BASE_NAMES))
+
+# BINARIES
+# A space-separated list of all the test binaries
+CHECK_BIN_LIST = $(shell ls $(DIST_DIR)$(CHECK_PREFIX)*$(BIN_FILE_EXT))
+MAN_TEST_BIN_LIST = $(foreach MAN_TEST_BIN_FILE, $(MAN_TEST_BIN_FILES), $(DIST_DIR)$(MAN_TEST_BIN_FILE))
+
+### SPECIAL BUILT-IN TARGET NAMES ###
+
+# Do not treat these target names as file names
+.PHONY: _all _check_link _clean _clean_dist _compile _compilation _test _test_link _validate _validate_check _validate_gcc
+
+# Don't auto-remove my object code
+.PRECIOUS: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FILE)) \
+           $(foreach CHECK_OBJ_FILE, $(CHECK_OBJ_FILES), $(DIST_DIR)$(CHECK_OBJ_FILE)) \
+           $(foreach MAN_TEST_OBJ_FILE, $(MAN_TEST_OBJ_FILES), $(DIST_DIR)$(MAN_TEST_OBJ_FILE))
+
+##################################
+###### LINUX MAKEFILE RULES ######
+##################################
+_all:
+	$(CALL_MAKE) validate
+	$(CALL_MAKE) clean
+	$(CALL_MAKE) compile
+	$(CALL_MAKE) test
+
+# Link all of the Check unit test binaries
+_check_link: $(foreach CHECK_BIN_FILE, $(CHECK_BIN_FILES), $(DIST_DIR)$(CHECK_BIN_FILE))
+	@#echo "$@ needs $^"  # DEBUGGING
+
+_clean:
+	$(CALL_MAKE) _clean_dist
+
+_clean_dist:
+	@echo "    Cleaning "$(DIST_DIR)" directory"
+	@rm -f $(DIST_DIR)*.o $(DIST_DIR)*.exe $(DIST_DIR)*.bin $(DIST_DIR)*.lib $(DIST_DIR)*.so $(DIST_DIR)*.egg
+
+_compile:
+	$(CALL_MAKE) _compilation
+	$(CALL_MAKE) _test_link
+	$(CALL_MAKE) _check_link
+
+_compilation: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FILE))
+	@#echo "$@ needs $^"  # DEBUGGING
+
+_test:
+	@#echo "$@ needs $^"  # DEBUGGING
+	@#echo $(CHECK_BIN_LIST)  # DEBUGGING
+	$(foreach CHECK_BIN_FILE, $(CHECK_BIN_LIST), $(call execute-command,./$(CHECK_BIN_FILE)))
+
+# Link all of the manual test files
+_test_link: $(foreach MAN_TEST_BIN_FILE, $(MAN_TEST_BIN_LIST), $(MAN_TEST_BIN_FILE))
+	@#echo "$@ needs $^"  # DEBUGGING
+
+_validate:
+	$(CALL_MAKE) _validate_gcc
+	$(CALL_MAKE) _validate_check
+
+_validate_check:
+	@echo "    Validating Check"
+	@grep "Check" /usr/include/check.h > $(NULL)
+	@echo "        $(CHECK) $(shell echo -n "Check unit test version: "; printf "%s %s %s\n" CHECK_MAJOR_VERSION CHECK_MINOR_VERSION CHECK_MICRO_VERSION | gcc -include check.h -E - | tail -n 1)"
+
+_validate_gcc:
+	@echo "    Validating "$(CC)""
+	@$(CC) --version > $(NULL)
+	@echo "        $(CHECK) $(shell $(CC) --version | head -n 1)"
+
+# CHECK: Linking skid_file_metadata_read library unit test binaries
+$(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Linking Check unit test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
+
+# CHECK: Compiling unit test object code
+$(DIST_DIR)$(CHECK_PREFIX)%$(OBJ_FILE_EXT): $(TEST_DIR)$(CHECK_PREFIX)%$(SRC_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Compiling Check unit test code: $^"
+	@$(CC) $(CFLAGS) -c $^ -o $@ -I $(INCLUDE_DIR)
+
+# MANUAL TEST: Linking skid_file_metadata_read library manual test binaries
+$(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT)
+	@echo "    Linking manual test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# MANUAL TEST: Compiling manual test object code
+$(DIST_DIR)$(MAN_TEST_PREFIX)%$(OBJ_FILE_EXT): $(TEST_DIR)$(MAN_TEST_PREFIX)%$(SRC_FILE_EXT)
+	@echo "    Compiling manual test object code: $@"
+	@$(CC) $(CFLAGS) -c $^ -o $@ -I $(INCLUDE_DIR)
+
+# DEFAULT: Linking binaries
+$(DIST_DIR)%$(BIN_FILE_EXT): $(DIST_DIR)%$(OBJ_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Linking: $@"
+	@$(CC) $(CFLAGS) -o $@ $^
+
+# DEFAULT: Compiling object code
+$(DIST_DIR)%$(OBJ_FILE_EXT): $(SRC_DIR)%$(SRC_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Compiling: $^"
+	@$(CC) $(CFLAGS) -c $^ -o $@ -I $(INCLUDE_DIR)
+
+# DEFAULT: Validating source files exist
+%$(SRC_FILE_EXT):
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Verifying $@"
+	@if ! [ -f $@ ] ; then echo "Unable to locate the $@ file" >&2 && exit 2 ; fi
