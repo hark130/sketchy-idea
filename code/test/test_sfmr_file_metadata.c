@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 	// INPUT VALIDATION
 	if (argc != 2)
 	{
-	   fprintf(stderr, "Usage: %s <pathname>\n", argv[0]);
+	   FPRINTF_ERR("Usage: %s <pathname>\n", argv[0]);
 	   exit_code = EINVAL;
 	}
 	else
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				printf("%s does not denote a character or block special file.\n", pathname);
+				FPRINTF_ERR("%s does not denote a character or block special file.\n", pathname);
 			}
 		}
 	}
