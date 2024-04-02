@@ -68,7 +68,7 @@ CHECK_OBJ_FILES := $(addsuffix $(OBJ_FILE_EXT),$(CHECK_BASE_NAMES))
 # Convert base Check filenames to object code filenames
 CHECK_BIN_FILES := $(addsuffix $(BIN_FILE_EXT),$(CHECK_BASE_NAMES))
 # Check unit test library arguments for $(CC)
-CHECK_CC_ARGS = -lcheck -lm -lsubunit
+CHECK_CC_ARGS = -lcheck -lm -lsubunit -lrt -lpthread
 
 # MANUAL TEST VARIABLES
 # Prefix for *all* manual test_* files
