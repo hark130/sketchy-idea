@@ -139,11 +139,34 @@ END_TEST
 
 START_TEST(test_n06_socket)
 {
+    // LOCAL VARIABLES
+    const char *repo_name = SKID_REPO_NAME;  // Repo name
     mode_t result = 0;        // Return value from function call
     int errnum = CANARY_INT;  // Errno from the function call
-    result = get_file_type("/var/run/dbus/system_bus_socket", &errnum);
+    // Relative path for this test case's input
+    char input_rel_path[] = { "./code/test/test_input/raw_socket" };
+    // Absolute path for input_rel_path as resolved against the repo name
+    char *input_abs_path = resolve_to_repo(repo_name, input_rel_path, false, &errnum);
+
+    // VALIDATION
+    // It is important resolve_to_repo() succeeds
+    ck_assert_msg(0 == errnum, "resolve_to_repo(%s, %s) failed with [%d] %s", repo_name,
+                  input_rel_path, errnum, strerror(errnum));
+    remove_a_file(input_abs_path, true);  // Remove leftovers and ignore errors
+    // It is important make_a_socket() succeeds
+    errnum = make_a_socket(input_abs_path);
+    ck_assert_msg(0 == errnum, "make_a_socket(%s) failed with [%d] %s", input_abs_path,
+                  errnum, strerror(errnum));
+    errnum = CANARY_INT;  // Reset this temp var
+
+    // TEST START
+    result = get_file_type(input_abs_path, &errnum);
     ck_assert(S_IFSOCK == result);  // This input is *NOT* a regular file
     ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
+
+    // CLEANUP
+    remove_a_file(input_abs_path, true);
+    free_devops_mem(&input_abs_path);
 }
 END_TEST
 
