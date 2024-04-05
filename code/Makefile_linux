@@ -24,7 +24,7 @@ endef
 
 ### COMPILER VARIABLES ###
 CC = gcc
-CFLAGS =
+CFLAGS = -Wall -Werror -Wfatal-errors
 AFLAGS = -fsanitize=address -g
 
 ### OS-DYNAMIC VARIABLES ###
