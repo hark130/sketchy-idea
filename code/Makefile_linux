@@ -138,6 +138,7 @@ _test_link: $(foreach MAN_TEST_BIN_FILE, $(MAN_TEST_BIN_LIST), $(MAN_TEST_BIN_FI
 
 _validate:
 	$(CALL_MAKE) _validate_gcc
+	$(CALL_MAKE) _validate_glibc
 	$(CALL_MAKE) _validate_check
 
 _validate_check:
@@ -149,6 +150,11 @@ _validate_gcc:
 	@echo "    Validating "$(CC)""
 	@$(CC) --version > $(NULL)
 	@echo "        $(CHECK) $(shell $(CC) --version | head -n 1)"
+
+_validate_glibc:
+	@echo "    Validating glibc"
+	@ldd --version > $(NULL)
+	@echo "        $(CHECK) $(shell ldd --version | head -n 1)"
 
 # CHECK: Linking skid_file_metadata_read library unit test binaries
 $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
