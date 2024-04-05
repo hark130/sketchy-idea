@@ -59,6 +59,8 @@ RAW_OBJ_FILES := $(addsuffix $(OBJ_FILE_EXT),$(BASE_SRC_NAMES))
 CHECK_PREFIX = check_
 # Prefix for all skid_file_metadata_read library unit tests
 CHECK_SFMR_PREFIX = $(CHECK_PREFIX)sfmr_
+# Prefix for all skid_file_metadata_write library unit tests
+CHECK_SFMW_PREFIX = $(CHECK_PREFIX)sfmw_
 # All check*.c filenames found in TEST_DIR
 CHECK_SRC_FILES := $(shell cd $(TEST_DIR); ls $(CHECK_PREFIX)*$(SRC_FILE_EXT))
 # All CHECK_SRC_FILES with the file extension stripped
@@ -75,6 +77,8 @@ CHECK_CC_ARGS = -lcheck -lm -lsubunit -lrt -lpthread
 MAN_TEST_PREFIX = test_
 # Prefix for all skid_file_metadata_read library manual tests
 MAN_TEST_SFMR_PREFIX = $(MAN_TEST_PREFIX)sfmr_
+# Prefix for all skid_file_metadata_read library manual tests
+MAN_TEST_SFMW_PREFIX = $(MAN_TEST_PREFIX)sfmw_
 # All test_*.c filenames found in TEST_DIR
 MAN_TEST_SRC_FILES := $(shell cd $(TEST_DIR); ls $(MAN_TEST_PREFIX)*$(SRC_FILE_EXT))
 # All MAN_TEST_SRC_FILES with the file extension stripped
@@ -162,6 +166,12 @@ $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)
 	@echo "    Linking Check unit test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
 
+# CHECK: Linking skid_file_metadata_write library unit test binaries
+$(DIST_DIR)$(CHECK_SFMW_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMW_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_write$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Linking Check unit test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
+
 # CHECK: Compiling unit test object code
 $(DIST_DIR)$(CHECK_PREFIX)%$(OBJ_FILE_EXT): $(TEST_DIR)$(CHECK_PREFIX)%$(SRC_FILE_EXT)
 	@#echo "$@ needs $^"  # DEBUGGING
@@ -170,6 +180,11 @@ $(DIST_DIR)$(CHECK_PREFIX)%$(OBJ_FILE_EXT): $(TEST_DIR)$(CHECK_PREFIX)%$(SRC_FIL
 
 # MANUAL TEST: Linking skid_file_metadata_read library manual test binaries
 $(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT)
+	@echo "    Linking manual test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# MANUAL TEST: Linking skid_file_metadata_write library manual test binaries
+$(DIST_DIR)$(MAN_TEST_SFMW_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFMW_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_write$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
