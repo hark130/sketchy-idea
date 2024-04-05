@@ -8,6 +8,7 @@
 gcc -o ./code/dist/test_feature_test_macros.bin ./code/test/test_feature_test_macros.c && ./code/dist/test_feature_test_macros.bin
 gcc -o ./code/dist/test_feature_test_macros.bin ./code/test/test_feature_test_macros.c -D_GNU_SOURCE && ./code/dist/test_feature_test_macros.bin
 gcc -o ./code/dist/test_feature_test_macros.bin ./code/test/test_feature_test_macros.c -D_POSIX_C_SOURCE=200809L && ./code/dist/test_feature_test_macros.bin
+gcc -o ./code/dist/test_feature_test_macros.bin ./code/test/test_feature_test_macros.c -D_POSIX_C_SOURCE=202401L && ./code/dist/test_feature_test_macros.bin
 
  *	
  */
