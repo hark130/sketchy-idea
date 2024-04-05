@@ -57,8 +57,6 @@ int main(int argc, char *argv[])
 {
 	// LOCAL VARIABLES
 	int exit_code = 0;               // Store errno and/or results here
-	char tmp_time_str[512] = { 0 };  // Temp storage buffer for human-readable time string
-	time_t tmp_answer = 0;           // Return value from get_*_time()
 	char *pathname = NULL;           // Get this from argv[1]
 
 	// INPUT VALIDATION

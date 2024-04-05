@@ -83,8 +83,6 @@ int main(int argc, char *argv[])
 {
 	// LOCAL VARIABLES
 	int exit_code = 0;               // Store errno and/or results here
-	char tmp_time_str[512] = { 0 };  // Temp storage buffer for human-readable time string
-	time_t tmp_time = 0;             // Return value from get_*_time()
 	dev_t tmp_dev = 0;               // Temp variable for library return values
 	ino_t tmp_ino = 0;               // Temp variable for library return values
 	mode_t tmp_mode = 0;             // Temp variable for library return values
@@ -237,7 +235,7 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			printf("Blocks Allocated: %ld.\n", tmp_off);
+			printf("Blocks Allocated: %ld.\n", tmp_blkcnt);
 		}
 	}
 	// Access Time (atime)

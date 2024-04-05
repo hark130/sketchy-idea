@@ -68,7 +68,6 @@ START_TEST(test_n03_directory)
     const char *repo_name = SKID_REPO_NAME;  // Repo name
     dev_t result = 0;                        // Return value from function call
     int errnum = CANARY_INT;                 // Errno from the function calls
-    dev_t exp_result = 0;                    // Expected results
     // Relative path for this test case's input
     char input_rel_path[] = { "./code/test/test_input/" };
     // Absolute path for input_rel_path as resolved against the repo name
@@ -78,7 +77,6 @@ START_TEST(test_n03_directory)
     // It is important resolve_to_repo() succeeds
     ck_assert_msg(0 == errnum, "resolve_to_repo(%s, %s) failed with [%d] %s", repo_name,
                   input_rel_path, errnum, strerror(errnum));
-    exp_result = get_shell_device_id(input_abs_path, &errnum);
     errnum = CANARY_INT;  // Reset this temp var
 
     // TEST START
@@ -134,7 +132,6 @@ START_TEST(test_n05_regular_file)
     const char *repo_name = SKID_REPO_NAME;  // Repo name
     dev_t result = 0;                        // Return value from function call
     int errnum = CANARY_INT;                 // Errno from the function calls
-    dev_t exp_result = 0;                    // Expected results
     // Relative path for this test case's input
     char input_rel_path[] = { "./code/test/test_input/regular_file.txt" };
     // Absolute path for input_rel_path as resolved against the repo name
