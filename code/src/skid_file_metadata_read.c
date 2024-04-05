@@ -64,7 +64,7 @@ int validate_call_input(const char *pathname, struct stat *statbuf, int *errnum)
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
-int validate_input(const char *filename, int *errnum);
+int validate_sfmr_input(const char *filename, int *errnum);
 
 
 /**************************************************************************************************/
@@ -73,9 +73,9 @@ int validate_input(const char *filename, int *errnum);
 time_t get_access_time(const char *filename, int *errnum)
 {
 	// LOCAL VARIABLES
-	time_t retval = 0;                           // Access time
-	int err = validate_input(filename, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
+	time_t retval = 0;                                // Access time
+	int err = validate_sfmr_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
@@ -97,9 +97,9 @@ time_t get_access_time(const char *filename, int *errnum)
 blkcnt_t get_block_count(const char *filename, int *errnum)
 {
 	// LOCAL VARIABLES
-	blkcnt_t retval = 0;                         // Block count
-	int err = validate_input(filename, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
+	blkcnt_t retval = 0;                              // Block count
+	int err = validate_sfmr_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
@@ -121,9 +121,9 @@ blkcnt_t get_block_count(const char *filename, int *errnum)
 blksize_t get_block_size(const char *filename, int *errnum)
 {
 	// LOCAL VARIABLES
-	blksize_t retval = 0;                        // Block size
-	int err = validate_input(filename, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
+	blksize_t retval = 0;                             // Block size
+	int err = validate_sfmr_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
@@ -146,9 +146,9 @@ blksize_t get_block_size(const char *filename, int *errnum)
 time_t get_change_time(const char *filename, int *errnum)
 {
 	// LOCAL VARIABLES
-	time_t retval = 0;                           // Change time
-	int err = validate_input(filename, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
+	time_t retval = 0;                                // Change time
+	int err = validate_sfmr_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
@@ -170,9 +170,9 @@ time_t get_change_time(const char *filename, int *errnum)
 dev_t get_container_device_id(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
-	dev_t retval = 0;                            // Container device id
-	int err = validate_input(pathname, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
+	dev_t retval = 0;                                 // Container device id
+	int err = validate_sfmr_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
@@ -194,9 +194,9 @@ dev_t get_container_device_id(const char *pathname, int *errnum)
 dev_t get_file_device_id(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
-	dev_t retval = 0;                            // File device id
-	int err = validate_input(pathname, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
+	dev_t retval = 0;                                 // File device id
+	int err = validate_sfmr_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
@@ -220,7 +220,7 @@ mode_t get_file_perms(const char *filename, int *errnum)
 	// LOCAL VARIABLES
 	mode_t perm_mask = S_ISUID | S_ISGID | S_ISVTX | S_IRWXU | S_IRWXG | S_IRWXO;  // Perm bitmask
 	mode_t retval = 0;                                                             // File perms
-	int err = validate_input(filename, errnum);                                    // Errno value
+	int err = validate_sfmr_input(filename, errnum);                               // Errno value
 	struct stat stat_struct;                                                       // stat struct
 
 	// GET IT
@@ -243,9 +243,9 @@ mode_t get_file_perms(const char *filename, int *errnum)
 mode_t get_file_type(const char *filename, int *errnum)
 {
 	// LOCAL VARIABLES
-	mode_t retval = 0;                           // File type
-	int err = validate_input(filename, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
+	mode_t retval = 0;                                // File type
+	int err = validate_sfmr_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
@@ -268,9 +268,9 @@ mode_t get_file_type(const char *filename, int *errnum)
 gid_t get_group(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
-	gid_t retval = 0;                            // GUID
-	int err = validate_input(pathname, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
+	gid_t retval = 0;                                 // GUID
+	int err = validate_sfmr_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
@@ -292,9 +292,9 @@ gid_t get_group(const char *pathname, int *errnum)
 nlink_t get_hard_link_num(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
-	nlink_t retval = 0;                          // Number of hard links
-	int err = validate_input(pathname, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
+	nlink_t retval = 0;                               // Number of hard links
+	int err = validate_sfmr_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
@@ -316,9 +316,9 @@ nlink_t get_hard_link_num(const char *pathname, int *errnum)
 time_t get_mod_time(const char *filename, int *errnum)
 {
 	// LOCAL VARIABLES
-	time_t retval = 0;                           // Modification time
-	int err = validate_input(filename, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
+	time_t retval = 0;                                // Modification time
+	int err = validate_sfmr_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
@@ -340,9 +340,9 @@ time_t get_mod_time(const char *filename, int *errnum)
 uid_t get_owner(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
-	uid_t retval = 0;                            // UID
-	int err = validate_input(pathname, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
+	uid_t retval = 0;                                 // UID
+	int err = validate_sfmr_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
@@ -364,9 +364,9 @@ uid_t get_owner(const char *pathname, int *errnum)
 ino_t get_serial_num(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
-	ino_t retval = 0;                            // Inode number
-	int err = validate_input(pathname, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
+	ino_t retval = 0;                                 // Inode number
+	int err = validate_sfmr_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
@@ -388,9 +388,9 @@ ino_t get_serial_num(const char *pathname, int *errnum)
 off_t get_size(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
-	off_t retval = 0;                            // Size
-	int err = validate_input(pathname, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
+	off_t retval = 0;                                 // Size
+	int err = validate_sfmr_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
@@ -455,8 +455,8 @@ int format_time(char *output, size_t output_size, time_t time_val)
 bool is_block_device(const char *filename, int *errnum)
 {
 	// LOCAL VARIABLES
-	bool retval = false;                         // Is it?
-	int err = validate_input(filename, errnum);  // Errno value
+	bool retval = false;                              // Is it?
+	int err = validate_sfmr_input(filename, errnum);  // Errno value
 
 	// IS IT?
 	if (!err)
@@ -475,8 +475,8 @@ bool is_block_device(const char *filename, int *errnum)
 bool is_character_device(const char *filename, int *errnum)
 {
 	// LOCAL VARIABLES
-	bool retval = false;                         // Is it?
-	int err = validate_input(filename, errnum);  // Errno value
+	bool retval = false;                              // Is it?
+	int err = validate_sfmr_input(filename, errnum);  // Errno value
 
 	// IS IT?
 	if (!err)
@@ -495,8 +495,8 @@ bool is_character_device(const char *filename, int *errnum)
 bool is_directory(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
-	bool retval = false;                         // Is it?
-	int err = validate_input(pathname, errnum);  // Errno value
+	bool retval = false;                              // Is it?
+	int err = validate_sfmr_input(pathname, errnum);  // Errno value
 
 	// IS IT?
 	if (!err)
@@ -515,8 +515,8 @@ bool is_directory(const char *pathname, int *errnum)
 bool is_named_pipe(const char *filename, int *errnum)
 {
 	// LOCAL VARIABLES
-	bool retval = false;                         // Is it?
-	int err = validate_input(filename, errnum);  // Errno value
+	bool retval = false;                              // Is it?
+	int err = validate_sfmr_input(filename, errnum);  // Errno value
 
 	// IS IT?
 	if (!err)
@@ -535,8 +535,8 @@ bool is_named_pipe(const char *filename, int *errnum)
 bool is_regular_file(const char *filename, int *errnum)
 {
 	// LOCAL VARIABLES
-	bool retval = false;                         // Is it?
-	int err = validate_input(filename, errnum);  // Errno value
+	bool retval = false;                              // Is it?
+	int err = validate_sfmr_input(filename, errnum);  // Errno value
 
 	// IS IT?
 	if (!err)
@@ -555,8 +555,8 @@ bool is_regular_file(const char *filename, int *errnum)
 bool is_socket(const char *filename, int *errnum)
 {
 	// LOCAL VARIABLES
-	bool retval = false;                         // Is it?
-	int err = validate_input(filename, errnum);  // Errno value
+	bool retval = false;                              // Is it?
+	int err = validate_sfmr_input(filename, errnum);  // Errno value
 
 	// IS IT?
 	if (!err)
@@ -575,9 +575,9 @@ bool is_socket(const char *filename, int *errnum)
 bool is_sym_link(const char *filename, int *errnum)
 {
 	// LOCAL VARIABLES
-	bool retval = false;                         // Is it?
-	int err = validate_input(filename, errnum);  // Errno value
-	struct stat stat_struct;                     // stat struct
+	bool retval = false;                              // Is it?
+	int err = validate_sfmr_input(filename, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
 
 	// IS IT?
 	// Fetch metadata
@@ -660,7 +660,7 @@ int validate_call_input(const char *pathname, struct stat *statbuf, int *errnum)
 	// VALIDATE IT
 	// pathname
 	// errnum
-	retval = validate_input(pathname, errnum);
+	retval = validate_sfmr_input(pathname, errnum);
 	// statbuf
 	if (ENOERR == retval)
 	{
@@ -680,7 +680,7 @@ int validate_call_input(const char *pathname, struct stat *statbuf, int *errnum)
 }
 
 
-int validate_input(const char *pathname, int *errnum)
+int validate_sfmr_input(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
 	int retval = ENOERR;  // The results of validation
