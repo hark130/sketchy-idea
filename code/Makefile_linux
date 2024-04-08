@@ -167,7 +167,7 @@ $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
 
 # CHECK: Linking skid_file_metadata_write library unit test binaries
-$(DIST_DIR)$(CHECK_SFMW_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMW_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_write$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
+$(DIST_DIR)$(CHECK_SFMW_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMW_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_write$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Linking Check unit test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
