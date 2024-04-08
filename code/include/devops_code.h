@@ -265,6 +265,18 @@ int make_a_socket(const char *filename);
 
 /*
  *  Description:
+ *      Call usleep() to sleep for a number of microseconds.
+ *
+ *  Args:
+ *      num_microsecs: The number of microseconds to sleep.
+ *
+ *  Returns:
+ *      0 on success, errno on error.
+ */
+int micro_sleep(useconds_t num_microsecs);
+
+/*
+ *  Description:
  *      Use remove() to delete a file.
  *
  *  Args:

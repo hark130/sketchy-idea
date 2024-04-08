@@ -607,6 +607,24 @@ int make_a_socket(const char *filename)
 }
 
 
+int micro_sleep(useconds_t num_microsecs)
+{
+	// LOCAL VARIABLES
+	int errnum = 0;  // Errno values
+
+	// SLEEP
+	if (usleep(num_microsecs))
+	{
+		errnum = errno;
+		PRINT_ERROR(The call to usleep() failed);
+		PRINT_ERRNO(errnum);
+	}
+
+	// DONE
+	return errnum;
+}
+
+
 int remove_a_file(const char *filename, bool ignore_missing)
 {
 	// LOCAL VARIABLES
