@@ -150,12 +150,13 @@ START_TEST(test_n01_block_device)
 	int errnum = CANARY_INT;                   // Errno from the function call
 	time_t exp_result = 0;                     // Expected results
 	char input_abs_path[] = { "/dev/loop0" };  // Test case input
+	bool follow_sym = true;                    // Test case input
 
 	// SETUP
 	exp_result = get_expected_return(input_abs_path);
 
 	// TEST START
-	result = get_access_time(input_abs_path, &errnum);
+	result = get_access_time(input_abs_path, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_access_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
@@ -170,12 +171,13 @@ START_TEST(test_n02_character_device)
 	int errnum = CANARY_INT;                  // Errno from the function call
 	time_t exp_result = 0;                    // Expected results
 	char input_abs_path[] = { "/dev/null" };  // Test case input
+	bool follow_sym = true;                    // Test case input
 
 	// SETUP
 	exp_result = get_expected_return(input_abs_path);
 
 	// TEST START
-	result = get_access_time(input_abs_path, &errnum);
+	result = get_access_time(input_abs_path, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_access_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
@@ -189,6 +191,7 @@ START_TEST(test_n03_directory)
 	time_t result = 0;        // Return value from function call
 	int errnum = CANARY_INT;  // Errno from the function calls
 	time_t exp_result = 0;    // Expected results
+	bool follow_sym = true;   // Test case input
 	// Absolute path for input_rel_path as resolved against the repo name
 	char *input_abs_path = resolve_test_input("./code/test/test_input/");
 
@@ -196,7 +199,7 @@ START_TEST(test_n03_directory)
 	exp_result = get_expected_return(input_abs_path);
 
 	// TEST START
-	result = get_access_time(input_abs_path, &errnum);
+	result = get_access_time(input_abs_path, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_access_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
@@ -213,12 +216,13 @@ START_TEST(test_n04_named_pipe)
 	time_t result = 0;        // Return value from function call
 	int errnum = CANARY_INT;  // Errno from the function calls
 	time_t exp_result = 0;    // Expected results
+	bool follow_sym = true;   // Test case input
 
 	// SETUP
 	exp_result = get_expected_return(test_pipe_path);
 
 	// TEST START
-	result = get_access_time(test_pipe_path, &errnum);
+	result = get_access_time(test_pipe_path, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_access_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
@@ -232,6 +236,7 @@ START_TEST(test_n05_regular_file)
 	time_t result = 0;        // Return value from function call
 	int errnum = CANARY_INT;  // Errno from the function calls
 	time_t exp_result = 0;    // Expected results
+	bool follow_sym = true;   // Test case input
 	// Absolute path for input_rel_path as resolved against the repo name
 	char *input_abs_path = resolve_test_input("./code/test/test_input/regular_file.txt");
 
@@ -239,7 +244,7 @@ START_TEST(test_n05_regular_file)
 	exp_result = get_expected_return(input_abs_path);
 
 	// TEST START
-	result = get_access_time(input_abs_path, &errnum);
+	result = get_access_time(input_abs_path, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_access_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
@@ -256,12 +261,13 @@ START_TEST(test_n06_socket)
 	time_t result = 0;        // Return value from function call
 	int errnum = CANARY_INT;  // Errno from the function calls
 	time_t exp_result = 0;    // Expected results
+	bool follow_sym = true;   // Test case input
 
 	// SETUP
 	exp_result = get_expected_return(test_socket_path);
 
 	// TEST START
-	result = get_access_time(test_socket_path, &errnum);
+	result = get_access_time(test_socket_path, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_access_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
@@ -275,6 +281,7 @@ START_TEST(test_n07_symbolic_link)
 	time_t result = 0;        // Return value from function call
 	int errnum = CANARY_INT;  // Errno from the function calls
 	time_t exp_result = 0;    // Expected results
+	bool follow_sym = true;   // Test case input
 	// Absolute path for input_rel_path as resolved against the repo name
 	char *input_abs_path = resolve_test_input("./code/test/test_input/sym_link.txt");
 	// Absolute path for actual_rel_path as resolved against the repo name
@@ -284,7 +291,7 @@ START_TEST(test_n07_symbolic_link)
 	exp_result = get_expected_return(actual_abs_path);
 
 	// TEST START
-	result = get_access_time(input_abs_path, &errnum);
+	result = get_access_time(input_abs_path, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_access_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
@@ -304,7 +311,8 @@ START_TEST(test_e01_null_filename)
 	time_t result = 0;        // Return value from function call
 	int errnum = CANARY_INT;  // Errno from the function call
 	time_t exp_result = 0;    // Expected results
-	result = get_access_time(NULL, &errnum);
+	bool follow_sym = true;   // Test case input
+	result = get_access_time(NULL, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_access_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(EINVAL, errnum);  // The out param should be zeroized on success
@@ -317,7 +325,8 @@ START_TEST(test_e02_empty_filename)
 	time_t result = 0;        // Return value from function call
 	int errnum = CANARY_INT;  // Errno from the function call
 	time_t exp_result = 0;    // Expected results
-	result = get_access_time("\0 NOT HERE!", &errnum);
+	bool follow_sym = true;   // Test case input
+	result = get_access_time("\0 NOT HERE!", &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_access_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(EINVAL, errnum);  // The out param should be zeroized on success
@@ -329,7 +338,8 @@ START_TEST(test_e03_null_errnum)
 {
 	time_t result = 0;        // Return value from function call
 	time_t exp_result = 0;    // Expected results
-	result = get_access_time("/dev/loop0", NULL);
+	bool follow_sym = true;   // Test case input
+	result = get_access_time("/dev/loop0", NULL, follow_sym);
 	ck_assert_msg(exp_result == result, "get_access_time() returned %ld instead of %ld",
 				  result, exp_result);
 }
@@ -343,7 +353,8 @@ START_TEST(test_s01_missing_filename)
 {
 	time_t result = 0;        // Return value from function call
 	int errnum = CANARY_INT;  // Errno from the function call
-	result = get_access_time("/does/not/exist.txt", &errnum);
+	bool follow_sym = true;   // Test case input
+	result = get_access_time("/does/not/exist.txt", &errnum, follow_sym);
 	ck_assert(0 == result);
 	ck_assert_int_eq(ENOENT, errnum);
 }
