@@ -41,6 +41,14 @@ char *test_socket_path;  // Heap array containing the absolute socket filename r
 char *resolve_test_input(const char *pathname);
 
 /*
+ *	Special tests for symbolic links.  If link_name is not a symbolic link or if follow_sym is
+ *	false, utilizes run_test_case().
+ *	If follow_sym is true, checks the before and after timestamps of target_name instead.
+ */
+void run_sym_test_case(const char *link_name, const char *target_name,
+	                   bool follow_sym, int exp_ret);
+
+/*
  *	1. Gets the original time, 2. Calls the tested function, 3. Gets the new time.
  *	Verifies: actual return == exp_ret, original time < new time.
  */
@@ -78,6 +86,68 @@ char *resolve_test_input(const char *pathname)
 		free_devops_mem(&resolved_name);  // Best effort
 	}
 	return resolved_name;
+}
+
+
+void run_sym_test_case(const char *link_name, const char *target_name,
+	                   bool follow_sym, int exp_ret)
+{
+	// LOCAL VARIABLES
+	int errnum = CANARY_INT;  // Errno values
+	time_t old_time = 0;      // Original time
+	time_t new_time = 0;      // New time
+	bool use_rtc = false;     // Control flow to run_test_case instead
+
+	// CHECK IT
+	// Should we follow the symbolic link?
+	if (false == follow_sym)
+	{
+		use_rtc = true;  // run_test_case() will suffice
+	}
+	// Is link_name actually a symbolic link?
+	else if (false == is_sym_link(link_name, &errnum))
+	{
+		ck_assert_msg(0 == errnum, "is_sym_link(%s) failed with [%d] %s",
+					  link_name, errnum, strerror(errnum));
+		use_rtc = true;  // It's not even a symbolic link so just use run_test_case()
+	}
+
+	// RUN IT
+	if (true == use_rtc)
+	{
+		run_test_case(link_name, follow_sym, exp_ret);
+	}
+	else if (0 == errnum)
+	{
+		// No need to compare times if the expected result is "error"
+		if (0 == exp_ret)
+		{
+			// 1. Get original time
+			old_time = get_shell_atime(target_name, &errnum);
+			ck_assert_msg(0 == errnum, "old get_shell_atime(%s) failed with [%d] %s",
+						  target_name, errnum, strerror(errnum));
+			errnum = CANARY_INT;  // Reset temp variable
+		}
+		// 2. Call function
+		errnum = set_atime_now(link_name, follow_sym);
+		ck_assert_msg(exp_ret == errnum, "set_atime_now(%s) returned [%d] '%s' instead of [%d] '%s",
+			          link_name, errnum, strerror(errnum), exp_ret, strerror(exp_ret));
+		errnum = CANARY_INT;  // Reset temp variable
+		// No need to compare times if the expected result is "error"
+		if (0 == exp_ret)
+		{
+			// 3. Get current time
+			new_time = get_shell_atime(target_name, &errnum);
+			ck_assert_msg(0 == errnum, "new get_shell_atime(%s) failed with [%d] %s",
+						  target_name, errnum, strerror(errnum));
+			ck_assert_msg(old_time < new_time, "The time for %s, linked to by %s, was not updated",
+				          target_name, link_name);
+		}
+	}
+	else
+	{
+		ck_abort_msg("Something failed during execution of run_sym_test_case()");
+	}
 }
 
 
@@ -261,19 +331,16 @@ START_TEST(test_n05_symbolic_link_follow)
 {
 	// LOCAL VARIABLES
 	bool follow = true;       // Follow symlinks
-	int result = 0;        // Return value from function call
-	int errnum = CANARY_INT;  // Errno from the function calls
+	// int result = 0;        // Return value from function call
+	// int errnum = CANARY_INT;  // Errno from the function calls
 	int exp_result = 0;    // Expected results
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = resolve_test_input("./code/test/test_input/sym_link.txt");
 	// Absolute path for actual_rel_path as resolved against the repo name
 	char *actual_abs_path = resolve_test_input("./code/test/test_input/regular_file.txt");
 
-	// TEST START
-	result = set_atime_now(input_abs_path, follow);
-	ck_assert_msg(exp_result == result, "set_atime_now(%s) returned %d instead of %d",
-				  input_abs_path, result, exp_result);
-	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
+	// RUN TEST
+	run_sym_test_case(input_abs_path, actual_abs_path, follow, exp_result);
 
 	// CLEANUP
 	free_devops_mem(&input_abs_path);
@@ -338,7 +405,7 @@ START_TEST(test_s02_symbolic_link_nofollow)
 	char *actual_abs_path = resolve_test_input("./code/test/test_input/regular_file.txt");
 
 	// RUN TEST
-	run_test_case(input_abs_path, follow, exp_result);
+	run_sym_test_case(input_abs_path, actual_abs_path, follow, exp_result);
 
 	// CLEANUP
 	free_devops_mem(&input_abs_path);
