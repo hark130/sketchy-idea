@@ -15,6 +15,7 @@
 #endif  /* __FUNCTION_NAME__ */
 
 #ifdef SKID_DEBUG
+#include <stdio.h>   // fprintf()
 #include <string.h>  // strerror()
 #define PRINT_ERRNO(errorNum) if (errorNum) { fprintf(stderr, "<<<ERROR>>> - %s - %s() - %d - Returned errno: %s\n", __FILE__, __FUNCTION_NAME__, __LINE__, strerror(errorNum)); };
 #define PRINT_ERROR(msg) do { fprintf(stderr, "<<<ERROR>>> - %s - %s() - %d - %s!\n", __FILE__, __FUNCTION_NAME__, __LINE__, #msg); } while (0);
