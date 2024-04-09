@@ -541,7 +541,7 @@ int make_a_pipe(const char *pathname)
 	int result = validate_name(pathname);  // Errno value
 
 	// INPUT VALIDATION
-	if (ENOERR == result && mknod(pathname, S_IFIFO | 640, 0))
+	if (ENOERR == result && mknod(pathname, S_IFIFO | 0664, 0))
 	{
 		result = errno;
 		PRINT_ERROR(The call to mknod() failed);
