@@ -9,7 +9,7 @@
 
 /*
  *  Description:
- *		Fetches the access time (atime) for pathname by reading the st_atim member from the
+ *		Fetches the access time (atime) for pathname by reading the st_atime member from the
  *		stat struct.
  *
  *  Args:
@@ -20,6 +20,39 @@
  *		The access time, on success.  0 on error, and errnum is set.
  */
 time_t get_access_time(const char *pathname, int *errnum);
+
+/*
+ *  Description:
+ *		Fetches the access time (atime) for pathname by reading the stat struct's st_atim
+ *		member and then reading that timespec struct's tv_nsec member.
+ *		This value is virtually meaningless without the context of the st_atime
+ *		(AKA st_atim.tv_sec) member value.  Use the nanoseconds to "break ties" when
+ *		comparing filestamps.
+ *
+ *  Args:
+ *		pathname: Absolute or relative pathname to fetch the access time nanoseconds for.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *  Returns:
+ *		The access time nanoseconds, on success.  0 on error, and errnum is set.
+ */
+long get_access_time_nsecs(const char *pathname, int *errnum);
+
+/*
+ *  Description:
+ *		Fetches the access time (atime) seconds and nanoseconds for pathname by reading
+ *		the stat struct's st_atim member values.  Any value found in seconds or nseconds is
+ *		indeterminate if this function fails.
+ *
+ *  Args:
+ *		pathname: Absolute or relative pathname to fetch the access timestamp for.
+ *		seconds: [Out] Pointer to store the epoch seconds time in.
+ *		nseconds: [Out] Pointer to store the nanoseconds in.
+ *
+ *  Returns:
+ *		0 on success.  Errno value on failure.
+ */
+int get_access_timestamp(const char *pathname, time_t *seconds, long *nseconds);
 
 /*
  *  Description:
@@ -56,7 +89,7 @@ blksize_t get_block_size(const char *filename, int *errnum);
 
 /*
  *  Description:
- *		Fetches the status change time (ctime) for pathname by reading the st_ctim member from the
+ *		Fetches the status change time (ctime) for pathname by reading the st_ctime member from the
  *		stat struct.
  *
  *  Args:
@@ -67,6 +100,39 @@ blksize_t get_block_size(const char *filename, int *errnum);
  *		The status change time, on success.  0 on error, and errnum is set.
  */
 time_t get_change_time(const char *pathname, int *errnum);
+
+/*
+ *  Description:
+ *		Fetches the status change time (ctime) for pathname by reading the stat struct's st_ctim
+ *		member and then reading that timespec struct's tv_nsec member.
+ *		This value is virtually meaningless without the context of the st_ctime
+ *		(AKA st_ctim.tv_sec) member value.  Use the nanoseconds to "break ties" when
+ *		comparing filestamps.
+ *
+ *  Args:
+ *		pathname: Absolute or relative pathname to fetch the change time nanoseconds for.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *  Returns:
+ *		The change time nanoseconds, on success.  0 on error, and errnum is set.
+ */
+long get_change_time_nsecs(const char *pathname, int *errnum);
+
+/*
+ *  Description:
+ *		Fetches the status change time (ctime) seconds and nanoseconds for pathname by reading
+ *		the stat struct's st_ctim member values.  Any value found in seconds or nseconds is
+ *		indeterminate if this function fails.
+ *
+ *  Args:
+ *		pathname: Absolute or relative pathname to fetch the change timestamp for.
+ *		seconds: [Out] Pointer to store the epoch seconds time in.
+ *		nseconds: [Out] Pointer to store the nanoseconds in.
+ *
+ *  Returns:
+ *		0 on success.  Errno value on failure.
+ */
+int get_change_timestamp(const char *pathname, time_t *seconds, long *nseconds);
 
 /*
  *  Description:
@@ -176,7 +242,7 @@ nlink_t get_hard_link_num(const char *pathname, int *errnum);
 
 /*
  *  Description:
- *		Fetches the modification time (mtime) for pathname by reading the st_mtim member from the
+ *		Fetches the modification time (mtime) for pathname by reading the st_mtime member from the
  *		stat struct.
  *
  *  Args:
@@ -187,6 +253,39 @@ nlink_t get_hard_link_num(const char *pathname, int *errnum);
  *		The modification time, on success.  0 on error, and errnum is set.
  */
 time_t get_mod_time(const char *pathname, int *errnum);
+
+/*
+ *  Description:
+ *		Fetches the modification time (mtime) for pathname by reading the stat struct's st_mtim
+ *		member and then reading that timespec struct's tv_nsec member.
+ *		This value is virtually meaningless without the context of the st_mtime
+ *		(AKA st_mtim.tv_sec) member value.  Use the nanoseconds to "break ties" when
+ *		comparing filestamps.
+ *
+ *  Args:
+ *		pathname: Absolute or relative pathname to fetch the modification time nanoseconds for.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *  Returns:
+ *		The modification time nanoseconds, on success.  0 on error, and errnum is set.
+ */
+long get_mod_time_nsecs(const char *pathname, int *errnum);
+
+/*
+ *  Description:
+ *		Fetches the status modification time (mtime) seconds and nanoseconds for pathname by reading
+ *		the stat struct's st_mtim member values.  Any value found in seconds or nseconds is
+ *		indeterminate if this function fails.
+ *
+ *  Args:
+ *		pathname: Absolute or relative pathname to fetch the modification timestamp for.
+ *		seconds: [Out] Pointer to store the epoch seconds time in.
+ *		nseconds: [Out] Pointer to store the nanoseconds in.
+ *
+ *  Returns:
+ *		0 on success.  Errno value on failure.
+ */
+int get_mod_timestamp(const char *pathname, time_t *seconds, long *nseconds);
 
 /*
  *  Description:
