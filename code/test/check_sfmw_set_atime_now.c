@@ -97,7 +97,6 @@ void run_test_case(const char *pathname, bool follow_sym, int exp_ret)
 		ck_assert_msg(0 == errnum, "old get_shell_atime(%s) failed with [%d] %s",
 					  pathname, errnum, strerror(errnum));
 		errnum = CANARY_INT;  // Reset temp variable
-		micro_sleep(MICRO_SEC_SLEEP);  // Wait a few microseconds
 	}
 	// 2. Call function
 	errnum = set_atime_now(pathname, follow_sym);
@@ -108,7 +107,6 @@ void run_test_case(const char *pathname, bool follow_sym, int exp_ret)
 	if (0 == exp_ret)
 	{
 		// 3. Get current time
-		micro_sleep(MICRO_SEC_SLEEP);  // Wait a few microseconds
 		new_time = get_shell_atime(pathname, &errnum);
 		ck_assert_msg(0 == errnum, "new get_shell_atime(%s) failed with [%d] %s",
 					  pathname, errnum, strerror(errnum));
@@ -161,7 +159,6 @@ void setup(void)
 					  errnum, strerror(errnum));
 		errnum = CANARY_INT;  // Reset temp variable
 	}
-	errnum = CANARY_INT;  // Reset temp variable
 	// Raw Socket
 	test_socket_path = resolve_test_input(raw_socket);
 	if (test_socket_path)
@@ -181,10 +178,10 @@ void setup(void)
 void teardown(void)
 {
 	// Pipe
-	// remove_a_file(test_pipe_path, true);  // Best effort
+	remove_a_file(test_pipe_path, true);  // Best effort
 	free_devops_mem(&test_pipe_path);  // Ignore any errors
 	// Socket
-	// remove_a_file(test_socket_path, true);  // Best effort
+	remove_a_file(test_socket_path, true);  // Best effort
 	free_devops_mem(&test_socket_path);  // Ignore any errors
 }
 
@@ -220,6 +217,8 @@ START_TEST(test_n02_named_pipe)
 	char *input_abs_path = test_pipe_path;
 
 	// RUN TEST
+	// Files created at test-time may cause false-negatives when test cases execute too quickly
+	micro_sleep(1000000);  // Wait one second before changing the atime
 	run_test_case(input_abs_path, follow, exp_result);
 }
 END_TEST
@@ -251,6 +250,8 @@ START_TEST(test_n04_socket)
 	char *input_abs_path = test_socket_path;
 
 	// RUN TEST
+	// Files created at test-time may cause false-negatives when test cases execute too quickly
+	micro_sleep(1000000);  // Wait one second before changing the atime
 	run_test_case(input_abs_path, follow, exp_result);
 }
 END_TEST
