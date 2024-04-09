@@ -17,6 +17,20 @@
 /**************************************************************************************************/
 /*
  *  Description:
+ *      Calls one of the stat-family functions based on caller arguments.  Defaults to stat().
+ *		If pathname is a symbolic link and follow_sym is true, uses lstat() instead.
+ *  Args:
+ *      pathname: Absolute or relative pathname to check with lstat().
+ *		statbuf: [Out] Pointer to a stat struct to update with the results of the call to stat().
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *		follow_sym: If false, uses lstat() for symlinks.
+ *  Returns:
+ *      An errno value indicating the results of validation.  0 on successful validation.
+ */
+int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum, bool follow_sym);
+
+/*
+ *  Description:
  *      Calls lstat(pathname) and updates statbuf.  Standardizes basic error handling.  Updates
  *		errnum with any errno values encountered, 0 on success.
  *  Args:
@@ -92,18 +106,18 @@ int validate_timestamp(const char *pathname, time_t *seconds, long *nseconds);
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
 /**************************************************************************************************/
-time_t get_access_time(const char *filename, int *errnum)
+time_t get_access_time(const char *pathname, int *errnum, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	time_t retval = 0;                                // Access time
-	int err = validate_sfmr_input(filename, errnum);  // Errno value
+	int err = validate_sfmr_input(pathname, errnum);  // Errno value
 	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(filename, &stat_struct, errnum);
+		err = call_a_stat(pathname, &stat_struct, errnum, follow_sym);
 	}
 	// Check it
 	if (!err)
@@ -116,7 +130,7 @@ time_t get_access_time(const char *filename, int *errnum)
 }
 
 
-long get_access_time_nsecs(const char *pathname, int *errnum)
+long get_access_time_nsecs(const char *pathname, int *errnum, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	long retval = 0;                                  // Access time nanoseconds
@@ -127,7 +141,7 @@ long get_access_time_nsecs(const char *pathname, int *errnum)
 	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(pathname, &stat_struct, errnum);
+		err = call_a_stat(pathname, &stat_struct, errnum, follow_sym);
 	}
 	// Check it
 	if (!err)
@@ -140,28 +154,25 @@ long get_access_time_nsecs(const char *pathname, int *errnum)
 }
 
 
-int get_access_timestamp(const char *pathname, time_t *seconds, long *nseconds)
+int get_access_timestamp(const char *pathname, time_t *seconds, long *nseconds, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	int result = ENOERR;  // Result of the function call
 
 	// INPUT VALIDATION
-	fprintf(stderr, "GET ACCESS TIMESTAMP(%p, %p, %p)\n", pathname, seconds, nseconds);  // DEBUGGING
 	result = validate_timestamp(pathname, seconds, nseconds);
 
 	// GET IT
 	// seconds
 	if (ENOERR == result)
 	{
-		fprintf(stderr, "CALLING GET ACCESS TIME(%p)\n", pathname);  // DEBUGGING
-		*seconds = get_access_time(pathname, &result);
+		*seconds = get_access_time(pathname, &result, follow_sym);
 		fprintf(stderr, "%s ATIME SECONDS: %ld\n", pathname, *seconds);  // DEBUGGING
 	}
 	// nseconds
 	if (ENOERR == result)
 	{
-		fprintf(stderr, "CALLING GET ACCESS TIME NSECS(%p)\n", pathname);  // DEBUGGING
-		*nseconds = get_access_time_nsecs(pathname, &result);
+		*nseconds = get_access_time_nsecs(pathname, &result, follow_sym);
 		fprintf(stderr, "%s ATIME NSECONDS: %ld\n", pathname, *nseconds );  // DEBUGGING
 	}
 
@@ -219,18 +230,18 @@ blksize_t get_block_size(const char *filename, int *errnum)
 }
 
 
-time_t get_change_time(const char *filename, int *errnum)
+time_t get_change_time(const char *pathname, int *errnum, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	time_t retval = 0;                                // Change time
-	int err = validate_sfmr_input(filename, errnum);  // Errno value
+	int err = validate_sfmr_input(pathname, errnum);  // Errno value
 	struct stat stat_struct;                          // stat struct
 
 	// GET IT
 	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(filename, &stat_struct, errnum);
+		err = call_a_stat(pathname, &stat_struct, errnum, follow_sym);
 	}
 	// Check it
 	if (!err)
@@ -243,7 +254,7 @@ time_t get_change_time(const char *filename, int *errnum)
 }
 
 
-long get_change_time_nsecs(const char *pathname, int *errnum)
+long get_change_time_nsecs(const char *pathname, int *errnum, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	long retval = 0;                                  // Change time nanoseconds
@@ -254,7 +265,7 @@ long get_change_time_nsecs(const char *pathname, int *errnum)
 	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(pathname, &stat_struct, errnum);
+		err = call_a_stat(pathname, &stat_struct, errnum, follow_sym);
 	}
 	// Check it
 	if (!err)
@@ -267,7 +278,7 @@ long get_change_time_nsecs(const char *pathname, int *errnum)
 }
 
 
-int get_change_timestamp(const char *pathname, time_t *seconds, long *nseconds)
+int get_change_timestamp(const char *pathname, time_t *seconds, long *nseconds, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	int result = ENOERR;  // Result of the function call
@@ -279,12 +290,12 @@ int get_change_timestamp(const char *pathname, time_t *seconds, long *nseconds)
 	// seconds
 	if (ENOERR == result)
 	{
-		*seconds = get_change_time(pathname, &result);
+		*seconds = get_change_time(pathname, &result, follow_sym);
 	}
 	// nseconds
 	if (ENOERR == result)
 	{
-		*nseconds = get_change_time_nsecs(pathname, &result);
+		*nseconds = get_change_time_nsecs(pathname, &result, follow_sym);
 	}
 
 	// DONE
@@ -438,7 +449,7 @@ nlink_t get_hard_link_num(const char *pathname, int *errnum)
 }
 
 
-time_t get_mod_time(const char *filename, int *errnum)
+time_t get_mod_time(const char *filename, int *errnum, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	time_t retval = 0;                                // Modification time
@@ -449,7 +460,7 @@ time_t get_mod_time(const char *filename, int *errnum)
 	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(filename, &stat_struct, errnum);
+		err = call_a_stat(filename, &stat_struct, errnum, follow_sym);
 	}
 	// Check it
 	if (!err)
@@ -462,7 +473,7 @@ time_t get_mod_time(const char *filename, int *errnum)
 }
 
 
-long get_mod_time_nsecs(const char *pathname, int *errnum)
+long get_mod_time_nsecs(const char *pathname, int *errnum, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	long retval = 0;                                  // Modification time nanoseconds
@@ -473,7 +484,7 @@ long get_mod_time_nsecs(const char *pathname, int *errnum)
 	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(pathname, &stat_struct, errnum);
+		err = call_a_stat(pathname, &stat_struct, errnum, follow_sym);
 	}
 	// Check it
 	if (!err)
@@ -486,7 +497,7 @@ long get_mod_time_nsecs(const char *pathname, int *errnum)
 }
 
 
-int get_mod_timestamp(const char *pathname, time_t *seconds, long *nseconds)
+int get_mod_timestamp(const char *pathname, time_t *seconds, long *nseconds, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	int result = ENOERR;  // Result of the function call
@@ -498,12 +509,12 @@ int get_mod_timestamp(const char *pathname, time_t *seconds, long *nseconds)
 	// seconds
 	if (ENOERR == result)
 	{
-		*seconds = get_mod_time(pathname, &result);
+		*seconds = get_mod_time(pathname, &result, follow_sym);
 	}
 	// nseconds
 	if (ENOERR == result)
 	{
-		*nseconds = get_mod_time_nsecs(pathname, &result);
+		*nseconds = get_mod_time_nsecs(pathname, &result, follow_sym);
 	}
 
 	// DONE
@@ -776,6 +787,30 @@ bool is_sym_link(const char *filename, int *errnum)
 /**************************************************************************************************/
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
+int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum, bool follow_sym)
+{
+	// LOCAL VARIABLES
+	int result = validate_call_input(pathname, statbuf, errnum);  // Errno value
+
+	// CHECK FOR SYMLINK
+	if (ENOERR == result)
+	{
+		// CALL A STAT FUNCTION
+		if (true == is_sym_link(pathname, &result) && false == follow_sym)
+		{
+			result = call_lstat(pathname, statbuf, errnum);
+		}
+		else if (ENOERR == result)
+		{
+			result = call_stat(pathname, statbuf, errnum);
+		}
+	}
+
+	// DONE
+	return result;
+}
+
+
 int call_lstat(const char *pathname, struct stat *statbuf, int *errnum)
 {
 	// LOCAL VARIABLES

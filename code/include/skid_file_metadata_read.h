@@ -15,11 +15,12 @@
  *  Args:
  *      pathname: Absolute or relative pathname to fetch the access time for.
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *		follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
  *		The access time, on success.  0 on error, and errnum is set.
  */
-time_t get_access_time(const char *pathname, int *errnum);
+time_t get_access_time(const char *pathname, int *errnum, bool follow_sym);
 
 /*
  *  Description:
@@ -32,11 +33,12 @@ time_t get_access_time(const char *pathname, int *errnum);
  *  Args:
  *		pathname: Absolute or relative pathname to fetch the access time nanoseconds for.
  *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *		follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
  *		The access time nanoseconds, on success.  0 on error, and errnum is set.
  */
-long get_access_time_nsecs(const char *pathname, int *errnum);
+long get_access_time_nsecs(const char *pathname, int *errnum, bool follow_sym);
 
 /*
  *  Description:
@@ -48,11 +50,12 @@ long get_access_time_nsecs(const char *pathname, int *errnum);
  *		pathname: Absolute or relative pathname to fetch the access timestamp for.
  *		seconds: [Out] Pointer to store the epoch seconds time in.
  *		nseconds: [Out] Pointer to store the nanoseconds in.
+ *		follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
  *		0 on success.  Errno value on failure.
  */
-int get_access_timestamp(const char *pathname, time_t *seconds, long *nseconds);
+int get_access_timestamp(const char *pathname, time_t *seconds, long *nseconds, bool follow_sym);
 
 /*
  *  Description:
@@ -95,11 +98,12 @@ blksize_t get_block_size(const char *filename, int *errnum);
  *  Args:
  *      pathname: Absolute or relative pathname to fetch the status change time for.
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *		follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
  *		The status change time, on success.  0 on error, and errnum is set.
  */
-time_t get_change_time(const char *pathname, int *errnum);
+time_t get_change_time(const char *pathname, int *errnum, bool follow_sym);
 
 /*
  *  Description:
@@ -112,11 +116,12 @@ time_t get_change_time(const char *pathname, int *errnum);
  *  Args:
  *		pathname: Absolute or relative pathname to fetch the change time nanoseconds for.
  *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *		follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
  *		The change time nanoseconds, on success.  0 on error, and errnum is set.
  */
-long get_change_time_nsecs(const char *pathname, int *errnum);
+long get_change_time_nsecs(const char *pathname, int *errnum, bool follow_sym);
 
 /*
  *  Description:
@@ -128,11 +133,12 @@ long get_change_time_nsecs(const char *pathname, int *errnum);
  *		pathname: Absolute or relative pathname to fetch the change timestamp for.
  *		seconds: [Out] Pointer to store the epoch seconds time in.
  *		nseconds: [Out] Pointer to store the nanoseconds in.
+ *		follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
  *		0 on success.  Errno value on failure.
  */
-int get_change_timestamp(const char *pathname, time_t *seconds, long *nseconds);
+int get_change_timestamp(const char *pathname, time_t *seconds, long *nseconds, bool follow_sym);
 
 /*
  *  Description:
@@ -248,11 +254,12 @@ nlink_t get_hard_link_num(const char *pathname, int *errnum);
  *  Args:
  *      pathname: Absolute or relative pathname to fetch the modification time for.
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *		follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
  *		The modification time, on success.  0 on error, and errnum is set.
  */
-time_t get_mod_time(const char *pathname, int *errnum);
+time_t get_mod_time(const char *pathname, int *errnum, bool follow_sym);
 
 /*
  *  Description:
@@ -265,11 +272,12 @@ time_t get_mod_time(const char *pathname, int *errnum);
  *  Args:
  *		pathname: Absolute or relative pathname to fetch the modification time nanoseconds for.
  *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *		follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
  *		The modification time nanoseconds, on success.  0 on error, and errnum is set.
  */
-long get_mod_time_nsecs(const char *pathname, int *errnum);
+long get_mod_time_nsecs(const char *pathname, int *errnum, bool follow_sym);
 
 /*
  *  Description:
@@ -281,11 +289,12 @@ long get_mod_time_nsecs(const char *pathname, int *errnum);
  *		pathname: Absolute or relative pathname to fetch the modification timestamp for.
  *		seconds: [Out] Pointer to store the epoch seconds time in.
  *		nseconds: [Out] Pointer to store the nanoseconds in.
+ *		follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
  *		0 on success.  Errno value on failure.
  */
-int get_mod_timestamp(const char *pathname, time_t *seconds, long *nseconds);
+int get_mod_timestamp(const char *pathname, time_t *seconds, long *nseconds, bool follow_sym);
 
 /*
  *  Description:

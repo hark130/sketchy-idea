@@ -3,6 +3,8 @@
  */
 
 #define _POSIX_C_SOURCE 200809L		  // Expose utimensat()
+#define SKID_DEBUG                    // Enable DEBUGGING output
+
 #include <fcntl.h>					  // AT_FDCWD
 #include "skid_debug.h"				  // PRINT_ERRNO()
 #include "skid_file_metadata_read.h"
@@ -215,12 +217,15 @@ int call_utnsat(const char *pathname, const struct timespec times[2], bool follo
 		{
 			// If pathname specifies a symbolic link, then update the timestamps of the link,
 			// rather than the file to which it refers.
+			fprintf(stderr, "BEFORE FLAGS: 0x%X\n", flags);  // DEBUGGING
 			flags |= AT_SYMLINK_NOFOLLOW;
+			fprintf(stderr, "AFTER FLAGS:  0x%X\n", flags);  // DEBUGGING
 		}
 	}
 	// Call utimensat()
 	if (ENOERR == retval)
 	{
+		FPRINTF_ERR("Calling utimensat(%s)\n", pathname);  // DEBUGGING
 		if(utimensat(dirfd, pathname, times, flags))
 		{
 			retval = errno;

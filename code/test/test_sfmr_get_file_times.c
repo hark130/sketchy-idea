@@ -31,11 +31,12 @@
  *  Args:
  *      pathname: Absolute or relative pathname to fetch the time for.
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *		follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
  *		The time, on success.  0 on error, and errnum is set.
  */
-typedef time_t (*GetTime)(const char *pathname, int *errnum);
+typedef time_t (*GetTime)(const char *pathname, int *errnum, bool follow_sym);
 
 
 /*
@@ -46,11 +47,13 @@ typedef time_t (*GetTime)(const char *pathname, int *errnum);
  *      get_time_func: Function pointer to a get_*_time() function.
  *		func_type: The answer to "...pathname's _____ is..." (e.g., access, change, modification)
  *      pathname: The path to fetch a time for.
+ *		follow_sym: If true, follows symlinks to evaluate the target.
  *      
  *  Returns:
  *      On success, 0.  Errno or -1 on failure.
  */
-int print_formatted_time(GetTime get_time_func, const char *func_type, const char *pathname);
+int print_formatted_time(GetTime get_time_func, const char *func_type, const char *pathname,
+	                     bool follow_sym);
 
 
 int main(int argc, char *argv[])
@@ -74,17 +77,17 @@ int main(int argc, char *argv[])
 	// Access Time (atime)
 	if (!exit_code)
 	{
-		exit_code = print_formatted_time(get_access_time, "access", pathname);
+		exit_code = print_formatted_time(get_access_time, "access", pathname, false);
 	}
 	// Change Time (ctime)
 	if (!exit_code)
 	{
-		exit_code = print_formatted_time(get_change_time, "change", pathname);
+		exit_code = print_formatted_time(get_change_time, "change", pathname, false);
 	}
 	// Modification Time (mtime)
 	if (!exit_code)
 	{
-		exit_code = print_formatted_time(get_mod_time, "modification", pathname);
+		exit_code = print_formatted_time(get_mod_time, "modification", pathname, false);
 	}
 
 	// DONE
@@ -92,7 +95,8 @@ int main(int argc, char *argv[])
 }
 
 
-int print_formatted_time(GetTime get_time_func, const char *func_type, const char *pathname)
+int print_formatted_time(GetTime get_time_func, const char *func_type, const char *pathname,
+	                     bool follow_sym)
 {
 	// LOCAL VARIABLES
 	int result = 0;              // Store errno and/or results here
@@ -109,7 +113,7 @@ int print_formatted_time(GetTime get_time_func, const char *func_type, const cha
 	// Get the time
 	if (!result)
 	{
-		answer = (*get_time_func)(pathname, &result);
+		answer = (*get_time_func)(pathname, &result, follow_sym);
 	}
 	// Format the time
 	if (!result)
