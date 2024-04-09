@@ -32,6 +32,7 @@ START_TEST(test_n01_block_device)
 	time_t result = 0;                     // Return value from function call
 	int errnum = CANARY_INT;               // Errno from the function call
 	time_t exp_result = 0;                 // Expected results
+	bool follow_sym = true;                // Test case input
 	char input_path[] = { "/dev/loop0" };  // Test case input
 
 	// SETUP
@@ -46,7 +47,7 @@ START_TEST(test_n01_block_device)
 	errnum = CANARY_INT;  // Reset this temp var
 
 	// TEST START
-	result = get_change_time(input_path, &errnum);
+	result = get_change_time(input_path, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_change_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
@@ -60,6 +61,7 @@ START_TEST(test_n02_character_device)
 	time_t result = 0;                    // Return value from function call
 	int errnum = CANARY_INT;              // Errno from the function call
 	time_t exp_result = 0;                // Expected results
+	bool follow_sym = true;               // Test case input
 	char input_path[] = { "/dev/null" };  // Test case input
 
 	// SETUP
@@ -74,7 +76,7 @@ START_TEST(test_n02_character_device)
 	errnum = CANARY_INT;  // Reset this temp var
 
 	// TEST START
-	result = get_change_time(input_path, &errnum);
+	result = get_change_time(input_path, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_change_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
@@ -89,6 +91,7 @@ START_TEST(test_n03_directory)
 	time_t result = 0;                       // Return value from function call
 	int errnum = CANARY_INT;                 // Errno from the function calls
 	time_t exp_result = 0;                   // Expected results
+	bool follow_sym = true;                  // Test case input
 	// Relative path for this test case's input
 	char input_rel_path[] = { "./code/test/test_input/" };
 	// Absolute path for input_rel_path as resolved against the repo name
@@ -107,7 +110,7 @@ START_TEST(test_n03_directory)
 	errnum = CANARY_INT;  // Reset this temp var
 
 	// TEST START
-	result = get_change_time(input_abs_path, &errnum);
+	result = get_change_time(input_abs_path, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_change_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
@@ -125,6 +128,7 @@ START_TEST(test_n04_named_pipe)
 	time_t result = 0;                       // Return value from function call
 	int errnum = CANARY_INT;                 // Errno from the function calls
 	time_t exp_result = 0;                   // Expected results
+	bool follow_sym = true;                  // Test case input
 	// Relative path for this test case's input
 	char input_rel_path[] = { "./code/test/test_input/named_pipe" };
 	// Absolute path for input_rel_path as resolved against the repo name
@@ -148,7 +152,7 @@ START_TEST(test_n04_named_pipe)
 	errnum = CANARY_INT;  // Reset this temp var
 
 	// TEST START
-	result = get_change_time(input_abs_path, &errnum);
+	result = get_change_time(input_abs_path, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_change_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
@@ -167,6 +171,7 @@ START_TEST(test_n05_regular_file)
 	time_t result = 0;                       // Return value from function call
 	int errnum = CANARY_INT;                 // Errno from the function calls
 	time_t exp_result = 0;                   // Expected results
+	bool follow_sym = true;                  // Test case input
 	// Relative path for this test case's input
 	char input_rel_path[] = { "./code/test/test_input/regular_file.txt" };
 	// Absolute path for input_rel_path as resolved against the repo name
@@ -185,7 +190,7 @@ START_TEST(test_n05_regular_file)
 	errnum = CANARY_INT;  // Reset this temp var
 
 	// TEST START
-	result = get_change_time(input_abs_path, &errnum);
+	result = get_change_time(input_abs_path, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_change_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
@@ -203,6 +208,7 @@ START_TEST(test_n06_socket)
 	time_t result = 0;                       // Return value from function call
 	int errnum = CANARY_INT;                 // Errno from the function calls
 	time_t exp_result = 0;                   // Expected results
+	bool follow_sym = true;                  // Test case input
 	// Relative path for this test case's input
 	char input_rel_path[] = { "./code/test/test_input/raw_socket" };
 	// Absolute path for input_rel_path as resolved against the repo name
@@ -226,7 +232,7 @@ START_TEST(test_n06_socket)
 	errnum = CANARY_INT;  // Reset this temp var
 
 	// TEST START
-	result = get_change_time(input_abs_path, &errnum);
+	result = get_change_time(input_abs_path, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_change_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
@@ -245,6 +251,7 @@ START_TEST(test_n07_symbolic_link)
 	time_t result = 0;                       // Return value from function call
 	int errnum = CANARY_INT;                 // Errno from the function calls
 	time_t exp_result = 0;                   // Expected results
+	bool follow_sym = true;                  // Test case input
 	// Relative path for this test case's input
 	char input_rel_path[] = { "./code/test/test_input/sym_link.txt" };
 	// Relative path for this test case's input
@@ -267,7 +274,7 @@ START_TEST(test_n07_symbolic_link)
 	errnum = CANARY_INT;  // Reset this temp var
 
 	// TEST START
-	result = get_change_time(input_abs_path, &errnum);
+	result = get_change_time(input_abs_path, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_change_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
@@ -287,7 +294,8 @@ START_TEST(test_e01_null_filename)
 	time_t result = 0;        // Return value from function call
 	int errnum = CANARY_INT;  // Errno from the function call
 	time_t exp_result = 0;    // Expected results
-	result = get_change_time(NULL, &errnum);
+	bool follow_sym = true;   // Test case input
+	result = get_change_time(NULL, &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_change_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(EINVAL, errnum);  // The out param should be zeroized on success
@@ -300,7 +308,8 @@ START_TEST(test_e02_empty_filename)
 	time_t result = 0;        // Return value from function call
 	int errnum = CANARY_INT;  // Errno from the function call
 	time_t exp_result = 0;    // Expected results
-	result = get_change_time("\0 NOT HERE!", &errnum);
+	bool follow_sym = true;   // Test case input
+	result = get_change_time("\0 NOT HERE!", &errnum, follow_sym);
 	ck_assert_msg(exp_result == result, "get_change_time() returned %ld instead of %ld",
 				  result, exp_result);
 	ck_assert_int_eq(EINVAL, errnum);  // The out param should be zeroized on success
@@ -312,7 +321,8 @@ START_TEST(test_e03_null_errnum)
 {
 	time_t result = 0;        // Return value from function call
 	time_t exp_result = 0;    // Expected results
-	result = get_change_time("/dev/loop0", NULL);
+	bool follow_sym = true;   // Test case input
+	result = get_change_time("/dev/loop0", NULL, follow_sym);
 	ck_assert_msg(exp_result == result, "get_change_time() returned %ld instead of %ld",
 				  result, exp_result);
 }
@@ -326,7 +336,8 @@ START_TEST(test_s01_missing_filename)
 {
 	time_t result = 0;        // Return value from function call
 	int errnum = CANARY_INT;  // Errno from the function call
-	result = get_change_time("/does/not/exist.txt", &errnum);
+	bool follow_sym = true;   // Test case input
+	result = get_change_time("/does/not/exist.txt", &errnum, follow_sym);
 	ck_assert(0 == result);
 	ck_assert_int_eq(ENOENT, errnum);
 }
