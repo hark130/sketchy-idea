@@ -2,7 +2,7 @@
  *	This library defines functionality to read, parse, and report on Linux file metadata.
  */
 
-#define SKID_DEBUG  // Enable DEBUGGING output
+// #define SKID_DEBUG  // Enable DEBUGGING output
 
 #include "skid_debug.h"				  // PRINT_ERRNO()
 #include "skid_file_metadata_read.h"
@@ -167,13 +167,11 @@ int get_access_timestamp(const char *pathname, time_t *seconds, long *nseconds, 
 	if (ENOERR == result)
 	{
 		*seconds = get_access_time(pathname, &result, follow_sym);
-		fprintf(stderr, "%s ATIME SECONDS: %ld\n", pathname, *seconds);  // DEBUGGING
 	}
 	// nseconds
 	if (ENOERR == result)
 	{
 		*nseconds = get_access_time_nsecs(pathname, &result, follow_sym);
-		fprintf(stderr, "%s ATIME NSECONDS: %ld\n", pathname, *nseconds );  // DEBUGGING
 	}
 
 	// DONE
@@ -807,6 +805,10 @@ int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum, bool fo
 	}
 
 	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
 	return result;
 }
 
