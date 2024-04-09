@@ -23,7 +23,7 @@ code/dist/check_sfmw_set_atime_now.bin && CK_FORK=no valgrind --leak-check=full 
 // Use this to help highlight an errnum that wasn't updated
 #define CANARY_INT (int)0xBADC0DE  // Actually, a reverse canary value
 // Use this with usleep(MICRO_SEC_SLEEP) to let the file timestamp update
-#define MICRO_SEC_SLEEP (useconds_t)1000000  // Give the file timestamp 1 second to update
+#define MICRO_SEC_SLEEP (useconds_t)100000  // Give the file timestamp 0.1 second to update
 
 
 /**************************************************************************************************/
@@ -89,12 +89,14 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 	// LOCAL VARIABLES
 	int errnum = CANARY_INT;            // Errno values
 	time_t old_time = 0;                // Original time
+	long old_time_nsec = 0;             // Original time nanoseconds
 	time_t new_time = 0;                // New time
+	long new_time_nsec = 0;             // New time nanoseconds
 	const char *time_check = pathname;  // Filename to gather timestamps for
 
 	// CHECK IT
 	// Should we use target_name instead?
-	if (true == follow_sym && true == is_sym_link(pathname, &errnum))
+	if (pathname && *pathname && true == follow_sym && true == is_sym_link(pathname, &errnum))
 	{
 		ck_assert_msg(0 == errnum, "is_sym_link(%s) failed with [%d] %s",
 					  pathname, errnum, strerror(errnum));
@@ -107,13 +109,14 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 	if (0 == exp_ret)
 	{
 		// 1. Get original time
-		old_time = get_shell_atime(time_check, &errnum);
-		ck_assert_msg(0 == errnum, "old get_shell_atime(%s) failed with [%d] %s",
+		// old_time = get_shell_atime(time_check, &errnum);
+		errnum = get_access_timestamp(time_check, &old_time, &old_time_nsec, follow_sym);
+		ck_assert_msg(0 == errnum, "old get_access_timestamp(%s) failed with [%d] %s",
 					  time_check, errnum, strerror(errnum));
 		errnum = CANARY_INT;  // Reset temp variable
 	}
 	// 2. Call function
-	micro_sleep(MICRO_SEC_SLEEP);  // Wait one second before changing the timestamp
+	micro_sleep(MICRO_SEC_SLEEP);  // Wait before changing the timestamp
 	errnum = set_atime_now(pathname, follow_sym);
 	ck_assert_msg(exp_ret == errnum, "set_atime_now(%s) returned [%d] '%s' instead of [%d] '%s",
 		          pathname, errnum, strerror(errnum), exp_ret, strerror(exp_ret));
@@ -122,36 +125,23 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 	if (0 == exp_ret)
 	{
 		// 3. Get current time
-		new_time = get_shell_atime(time_check, &errnum);
-		ck_assert_msg(0 == errnum, "new get_shell_atime(%s) failed with [%d] %s",
+		// new_time = get_shell_atime(time_check, &errnum);
+		errnum = get_access_timestamp(time_check, &new_time, &new_time_nsec, follow_sym);
+		ck_assert_msg(0 == errnum, "new get_access_timestamp(%s) failed with [%d] %s",
 					  time_check, errnum, strerror(errnum));
 
 		// VALIDATE RESULTS
 		// Compare times
-		/*
-		 *	WARNING: Filesystems are frequently mounted with the relatime flag.  Mine certainly is.
-		 *	See: cat /proc/mounts
-		 *
-		 *	Why does that matter?  Great question.  When your filesystem is mounted with
-		 *	relatime, and you read a file or directory, the atime is only updated if:
-		 *		- the atime is older than the ctime (change time) or mtime (modification time), or
-		 *		- if the atime is more than a day in the past.
-		 *
-		 *	What does that have to do with these unit tests?  Another great question.
-		 *	I could have launched into some crazy filesytem-parsing devops code to better
-		 *	when a directory's timestamp should be updated (and when it shouldn't).  Instead,
-		 *	I decided to go 'easy' on validating directories based on what I've found.
-		 */
-		if (true == is_directory(pathname, &errnum))
+		if (old_time > new_time)
 		{
-			ck_assert_msg(old_time <= new_time, "The time for dir %s was not updated", pathname);
+			ck_abort_msg("The time for %s was not updated: old sec %ld > new sec %ld",
+			             pathname, old_time, new_time);
 		}
-		else
+		else if (old_time == new_time && old_time_nsec >= new_time_nsec)
 		{
-			ck_assert_msg(old_time < new_time, "The time for %s was not updated", pathname);
+			ck_abort_msg("The nanoseconds for %s weren't updated: old nsec %ld > new nsec %ld",
+			             pathname, old_time_nsec, new_time_nsec);
 		}
-		ck_assert_msg(0 == errnum, "new is_directory(%s) failed with [%d] %s",
-					  pathname, errnum, strerror(errnum));
 	}
 }
 
