@@ -2,6 +2,8 @@
  *	This library defines functionality to read, parse, and report on Linux file metadata.
  */
 
+#define SKID_DEBUG  // Enable DEBUGGING output
+
 #include "skid_debug.h"				  // PRINT_ERRNO()
 #include "skid_file_metadata_read.h"
 #include <string.h>					  // memset()
@@ -9,8 +11,6 @@
 #ifndef ENOERR
 #define ENOERR ((int)0)
 #endif  /* ENOERR */
-
-#define SKID_DEBUG  // Enable DEBUGGING output
 
 /**************************************************************************************************/
 /********************************* PRIVATE FUNCTION DECLARATIONS **********************************/
@@ -59,12 +59,34 @@ int validate_call_input(const char *pathname, struct stat *statbuf, int *errnum)
  *      Validates the input arguments and updates errnum accordingly.  Will update errnum unless
  *		errnum is the cause of the problem.
  *  Args:
- *      filename: Must be non-NULL and also can't be empty.
+ *      pathname: Must be non-NULL and also can't be empty.
  *      errnum: Must be a non-NULL pointer.  Set to 0 on success.
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
-int validate_sfmr_input(const char *filename, int *errnum);
+int validate_sfmr_input(const char *pathname, int *errnum);
+
+/*
+ *  Description:
+ *      Validates the pathname input argument.
+ *  Args:
+ *      pathname: Must be non-NULL and also can't be empty.
+ *  Returns:
+ *      An errno value indicating the results of validation.  0 on successful validation.
+ */
+int validate_sfmr_pathname(const char *pathname);
+
+/*
+ *  Description:
+ *      Validates the timestamp input arguments.
+ *  Args:
+ *      pathname: Must be non-NULL and also can't be empty.
+ *		seconds: Non-NULL pointer.
+ *		nseconds: Non-NULL pointer.
+ *  Returns:
+ *      An errno value indicating the results of validation.  0 on successful validation.
+ */
+int validate_timestamp(const char *pathname, time_t *seconds, long *nseconds);
 
 
 /**************************************************************************************************/
@@ -91,6 +113,60 @@ time_t get_access_time(const char *filename, int *errnum)
 
 	// DONE
 	return retval;
+}
+
+
+long get_access_time_nsecs(const char *pathname, int *errnum)
+{
+	// LOCAL VARIABLES
+	long retval = 0;                                  // Access time nanoseconds
+	int err = validate_sfmr_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
+
+	// GET IT
+	// Fetch metadata
+	if (!err)
+	{
+		err = call_stat(pathname, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		retval = stat_struct.st_atim.tv_nsec;
+	}
+
+	// DONE
+	return retval;
+}
+
+
+int get_access_timestamp(const char *pathname, time_t *seconds, long *nseconds)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // Result of the function call
+
+	// INPUT VALIDATION
+	fprintf(stderr, "GET ACCESS TIMESTAMP(%p, %p, %p)\n", pathname, seconds, nseconds);  // DEBUGGING
+	result = validate_timestamp(pathname, seconds, nseconds);
+
+	// GET IT
+	// seconds
+	if (ENOERR == result)
+	{
+		fprintf(stderr, "CALLING GET ACCESS TIME(%p)\n", pathname);  // DEBUGGING
+		*seconds = get_access_time(pathname, &result);
+		fprintf(stderr, "%s ATIME SECONDS: %ld\n", pathname, *seconds);  // DEBUGGING
+	}
+	// nseconds
+	if (ENOERR == result)
+	{
+		fprintf(stderr, "CALLING GET ACCESS TIME NSECS(%p)\n", pathname);  // DEBUGGING
+		*nseconds = get_access_time_nsecs(pathname, &result);
+		fprintf(stderr, "%s ATIME NSECONDS: %ld\n", pathname, *nseconds );  // DEBUGGING
+	}
+
+	// DONE
+	return result;
 }
 
 
@@ -164,6 +240,55 @@ time_t get_change_time(const char *filename, int *errnum)
 
 	// DONE
 	return retval;
+}
+
+
+long get_change_time_nsecs(const char *pathname, int *errnum)
+{
+	// LOCAL VARIABLES
+	long retval = 0;                                  // Change time nanoseconds
+	int err = validate_sfmr_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
+
+	// GET IT
+	// Fetch metadata
+	if (!err)
+	{
+		err = call_stat(pathname, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		retval = stat_struct.st_ctim.tv_nsec;
+	}
+
+	// DONE
+	return retval;
+}
+
+
+int get_change_timestamp(const char *pathname, time_t *seconds, long *nseconds)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // Result of the function call
+
+	// INPUT VALIDATION
+	result = validate_timestamp(pathname, seconds, nseconds);
+
+	// GET IT
+	// seconds
+	if (ENOERR == result)
+	{
+		*seconds = get_change_time(pathname, &result);
+	}
+	// nseconds
+	if (ENOERR == result)
+	{
+		*nseconds = get_change_time_nsecs(pathname, &result);
+	}
+
+	// DONE
+	return result;
 }
 
 
@@ -334,6 +459,55 @@ time_t get_mod_time(const char *filename, int *errnum)
 
 	// DONE
 	return retval;
+}
+
+
+long get_mod_time_nsecs(const char *pathname, int *errnum)
+{
+	// LOCAL VARIABLES
+	long retval = 0;                                  // Modification time nanoseconds
+	int err = validate_sfmr_input(pathname, errnum);  // Errno value
+	struct stat stat_struct;                          // stat struct
+
+	// GET IT
+	// Fetch metadata
+	if (!err)
+	{
+		err = call_stat(pathname, &stat_struct, errnum);
+	}
+	// Check it
+	if (!err)
+	{
+		retval = stat_struct.st_mtim.tv_nsec;
+	}
+
+	// DONE
+	return retval;
+}
+
+
+int get_mod_timestamp(const char *pathname, time_t *seconds, long *nseconds)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // Result of the function call
+
+	// INPUT VALIDATION
+	result = validate_timestamp(pathname, seconds, nseconds);
+
+	// GET IT
+	// seconds
+	if (ENOERR == result)
+	{
+		*seconds = get_mod_time(pathname, &result);
+	}
+	// nseconds
+	if (ENOERR == result)
+	{
+		*nseconds = get_mod_time_nsecs(pathname, &result);
+	}
+
+	// DONE
+	return result;
 }
 
 
@@ -687,16 +861,7 @@ int validate_sfmr_input(const char *pathname, int *errnum)
 
 	// VALIDATE IT
 	// pathname
-	if (!pathname)
-	{
-		retval = EINVAL;  // Invalid argument
-		PRINT_ERROR(Invalid Argument - Received a null pathname pointer);
-	}
-	else if (!(*pathname))
-	{
-		retval = EINVAL;  // Invalid argument
-		PRINT_ERROR(Invalid Argument - Received an empty pathname);
-	}
+	retval = validate_sfmr_pathname(pathname);
 	// errnum
 	if (!errnum)
 	{
@@ -709,5 +874,53 @@ int validate_sfmr_input(const char *pathname, int *errnum)
 	{
 		*errnum = retval;
 	}
+	return retval;
+}
+
+
+int validate_sfmr_pathname(const char *pathname)
+{
+	// LOCAL VARIABLES
+	int retval = ENOERR;  // The results of validation
+
+	// VALIDATE IT
+	// pathname
+	if (!pathname)
+	{
+		retval = EINVAL;  // Invalid argument
+		PRINT_ERROR(Invalid Argument - Received a null pathname pointer);
+	}
+	else if (!(*pathname))
+	{
+		retval = EINVAL;  // Invalid argument
+		PRINT_ERROR(Invalid Argument - Received an empty pathname);
+	}
+
+	// DONE
+	return retval;
+}
+
+int validate_timestamp(const char *pathname, time_t *seconds, long *nseconds)
+{
+	// LOCAL VARIABLES
+	int retval = ENOERR;  // The results of validation
+
+	// VALIDATE IT
+	// pathname
+	retval = validate_sfmr_pathname(pathname);
+	// seconds
+	if (ENOERR == retval && !seconds)
+	{
+		retval = EINVAL;  // NULL pointer
+		PRINT_ERROR(Invalid Argument - Received a null seconds pointer);
+	}
+	// nseconds
+	if (ENOERR == retval && !nseconds)
+	{
+		retval = EINVAL;  // NULL pointer
+		PRINT_ERROR(Invalid Argument - Received a null nseconds pointer);
+	}
+
+	// DONE
 	return retval;
 }
