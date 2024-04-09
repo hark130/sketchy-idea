@@ -23,7 +23,7 @@ code/dist/check_sfmw_set_atime_now.bin && CK_FORK=no valgrind --leak-check=full 
 // Use this to help highlight an errnum that wasn't updated
 #define CANARY_INT (int)0xBADC0DE  // Actually, a reverse canary value
 // Use this with usleep(MICRO_SEC_SLEEP) to let the file timestamp update
-#define MICRO_SEC_SLEEP (useconds_t)5  // Give the file time a 5 microseconds to update
+#define MICRO_SEC_SLEEP (useconds_t)1000000  // Give the file timestamp 1 second to update
 
 
 /**************************************************************************************************/
@@ -41,18 +41,13 @@ char *test_socket_path;  // Heap array containing the absolute socket filename r
 char *resolve_test_input(const char *pathname);
 
 /*
- *	Special tests for symbolic links.  If link_name is not a symbolic link or if follow_sym is
- *	false, utilizes run_test_case().
- *	If follow_sym is true, checks the before and after timestamps of target_name instead.
- */
-void run_sym_test_case(const char *link_name, const char *target_name,
-	                   bool follow_sym, int exp_ret);
-
-/*
  *	1. Gets the original time, 2. Calls the tested function, 3. Gets the new time.
- *	Verifies: actual return == exp_ret, original time < new time.
+ *	Verifies: actual return == exp_ret, original time < new time (special cases
+ *	original time <= new time for directories because of "filesystem relatime flag").
+ *	If follow_sym is true and pathname is a symbolic link, checks the before and after timestamps
+ *	of target_name instead.  Otherwise, target_name is ignored.
  */
-void run_test_case(const char *pathname, bool follow_sym, int exp_ret);
+void run_test_case(const char *pathname, const char *target_name, bool follow_sym, int exp_ret);
 
 /*
  *	Resolve the named pipe and raw socket default filenames to the repo and store the heap
@@ -89,86 +84,36 @@ char *resolve_test_input(const char *pathname)
 }
 
 
-void run_sym_test_case(const char *link_name, const char *target_name,
-	                   bool follow_sym, int exp_ret)
+void run_test_case(const char *pathname, const char *target_name, bool follow_sym, int exp_ret)
 {
 	// LOCAL VARIABLES
-	int errnum = CANARY_INT;  // Errno values
-	time_t old_time = 0;      // Original time
-	time_t new_time = 0;      // New time
-	bool use_rtc = false;     // Control flow to run_test_case instead
+	int errnum = CANARY_INT;            // Errno values
+	time_t old_time = 0;                // Original time
+	time_t new_time = 0;                // New time
+	const char *time_check = pathname;  // Filename to gather timestamps for
 
 	// CHECK IT
-	// Should we follow the symbolic link?
-	if (false == follow_sym)
-	{
-		use_rtc = true;  // run_test_case() will suffice
-	}
-	// Is link_name actually a symbolic link?
-	else if (false == is_sym_link(link_name, &errnum))
+	// Should we use target_name instead?
+	if (true == follow_sym && true == is_sym_link(pathname, &errnum))
 	{
 		ck_assert_msg(0 == errnum, "is_sym_link(%s) failed with [%d] %s",
-					  link_name, errnum, strerror(errnum));
-		use_rtc = true;  // It's not even a symbolic link so just use run_test_case()
+					  pathname, errnum, strerror(errnum));
+		time_check = target_name;
 	}
-
-	// RUN IT
-	if (true == use_rtc)
-	{
-		run_test_case(link_name, follow_sym, exp_ret);
-	}
-	else if (0 == errnum)
-	{
-		// No need to compare times if the expected result is "error"
-		if (0 == exp_ret)
-		{
-			// 1. Get original time
-			old_time = get_shell_atime(target_name, &errnum);
-			ck_assert_msg(0 == errnum, "old get_shell_atime(%s) failed with [%d] %s",
-						  target_name, errnum, strerror(errnum));
-			errnum = CANARY_INT;  // Reset temp variable
-		}
-		// 2. Call function
-		errnum = set_atime_now(link_name, follow_sym);
-		ck_assert_msg(exp_ret == errnum, "set_atime_now(%s) returned [%d] '%s' instead of [%d] '%s",
-			          link_name, errnum, strerror(errnum), exp_ret, strerror(exp_ret));
-		errnum = CANARY_INT;  // Reset temp variable
-		// No need to compare times if the expected result is "error"
-		if (0 == exp_ret)
-		{
-			// 3. Get current time
-			new_time = get_shell_atime(target_name, &errnum);
-			ck_assert_msg(0 == errnum, "new get_shell_atime(%s) failed with [%d] %s",
-						  target_name, errnum, strerror(errnum));
-			ck_assert_msg(old_time < new_time, "The time for %s, linked to by %s, was not updated",
-				          target_name, link_name);
-		}
-	}
-	else
-	{
-		ck_abort_msg("Something failed during execution of run_sym_test_case()");
-	}
-}
-
-
-void run_test_case(const char *pathname, bool follow_sym, int exp_ret)
-{
-	// LOCAL VARIABLES
-	int errnum = CANARY_INT;  // Errno values
-	time_t old_time = 0;      // Original time
-	time_t new_time = 0;      // New time
+	errnum = CANARY_INT;  // Reset temp variable
 
 	// RUN IT
 	// No need to compare times if the expected result is "error"
 	if (0 == exp_ret)
 	{
 		// 1. Get original time
-		old_time = get_shell_atime(pathname, &errnum);
+		old_time = get_shell_atime(time_check, &errnum);
 		ck_assert_msg(0 == errnum, "old get_shell_atime(%s) failed with [%d] %s",
-					  pathname, errnum, strerror(errnum));
+					  time_check, errnum, strerror(errnum));
 		errnum = CANARY_INT;  // Reset temp variable
 	}
 	// 2. Call function
+	micro_sleep(MICRO_SEC_SLEEP);  // Wait one second before changing the timestamp
 	errnum = set_atime_now(pathname, follow_sym);
 	ck_assert_msg(exp_ret == errnum, "set_atime_now(%s) returned [%d] '%s' instead of [%d] '%s",
 		          pathname, errnum, strerror(errnum), exp_ret, strerror(exp_ret));
@@ -177,9 +122,9 @@ void run_test_case(const char *pathname, bool follow_sym, int exp_ret)
 	if (0 == exp_ret)
 	{
 		// 3. Get current time
-		new_time = get_shell_atime(pathname, &errnum);
+		new_time = get_shell_atime(time_check, &errnum);
 		ck_assert_msg(0 == errnum, "new get_shell_atime(%s) failed with [%d] %s",
-					  pathname, errnum, strerror(errnum));
+					  time_check, errnum, strerror(errnum));
 
 		// VALIDATE RESULTS
 		// Compare times
@@ -270,7 +215,7 @@ START_TEST(test_n01_directory)
 	char *input_abs_path = resolve_test_input("./code/test/test_input/");
 
 	// RUN TEST
-	run_test_case(input_abs_path, follow, exp_result);
+	run_test_case(input_abs_path, NULL, follow, exp_result);
 
 	// CLEANUP
 	free_devops_mem(&input_abs_path);
@@ -287,9 +232,7 @@ START_TEST(test_n02_named_pipe)
 	char *input_abs_path = test_pipe_path;
 
 	// RUN TEST
-	// Files created at test-time may cause false-negatives when test cases execute too quickly
-	micro_sleep(1000000);  // Wait one second before changing the atime
-	run_test_case(input_abs_path, follow, exp_result);
+	run_test_case(input_abs_path, NULL, follow, exp_result);
 }
 END_TEST
 
@@ -303,7 +246,7 @@ START_TEST(test_n03_regular_file)
 	char *input_abs_path = resolve_test_input("./code/test/test_input/regular_file.txt");
 
 	// RUN TEST
-	run_test_case(input_abs_path, follow, exp_result);
+	run_test_case(input_abs_path, NULL, follow, exp_result);
 
 	// CLEANUP
 	free_devops_mem(&input_abs_path);
@@ -320,9 +263,7 @@ START_TEST(test_n04_socket)
 	char *input_abs_path = test_socket_path;
 
 	// RUN TEST
-	// Files created at test-time may cause false-negatives when test cases execute too quickly
-	micro_sleep(1000000);  // Wait one second before changing the atime
-	run_test_case(input_abs_path, follow, exp_result);
+	run_test_case(input_abs_path, NULL, follow, exp_result);
 }
 END_TEST
 
@@ -340,7 +281,7 @@ START_TEST(test_n05_symbolic_link_follow)
 	char *actual_abs_path = resolve_test_input("./code/test/test_input/regular_file.txt");
 
 	// RUN TEST
-	run_sym_test_case(input_abs_path, actual_abs_path, follow, exp_result);
+	run_test_case(input_abs_path, actual_abs_path, follow, exp_result);
 
 	// CLEANUP
 	free_devops_mem(&input_abs_path);
@@ -360,7 +301,7 @@ START_TEST(test_e01_null_filename)
 	char *input_abs_path = NULL;  // Test case input
 
 	// RUN TEST
-	run_test_case(input_abs_path, follow, exp_result);
+	run_test_case(input_abs_path, NULL, follow, exp_result);
 }
 END_TEST
 
@@ -373,7 +314,7 @@ START_TEST(test_e02_empty_filename)
 	char input_abs_path[] = { "\0 NOT HERE!" };  // Test case input
 
 	// RUN TEST
-	run_test_case(input_abs_path, follow, exp_result);
+	run_test_case(input_abs_path, NULL, follow, exp_result);
 }
 END_TEST
 
@@ -389,7 +330,7 @@ START_TEST(test_s01_missing_filename)
 	char input_abs_path[] = { "/does/not/exist.txt" };  // Test case input
 
 	// RUN TEST
-	run_test_case(input_abs_path, follow, exp_result);
+	run_test_case(input_abs_path, NULL, follow, exp_result);
 }
 END_TEST
 
@@ -405,7 +346,7 @@ START_TEST(test_s02_symbolic_link_nofollow)
 	char *actual_abs_path = resolve_test_input("./code/test/test_input/regular_file.txt");
 
 	// RUN TEST
-	run_sym_test_case(input_abs_path, actual_abs_path, follow, exp_result);
+	run_test_case(input_abs_path, actual_abs_path, follow, exp_result);
 
 	// CLEANUP
 	free_devops_mem(&input_abs_path);
@@ -422,7 +363,7 @@ START_TEST(test_s03_block_device)
 	char input_abs_path[] = { "/dev/loop0" };  // Test case input
 
 	// RUN TEST
-	run_test_case(input_abs_path, follow, exp_result);
+	run_test_case(input_abs_path, NULL, follow, exp_result);
 }
 END_TEST
 
@@ -435,7 +376,7 @@ START_TEST(test_s04_character_device)
 	char input_abs_path[] = { "/dev/null" };  // Test case input
 
 	// RUN TEST
-	run_test_case(input_abs_path, follow, exp_result);
+	run_test_case(input_abs_path, NULL, follow, exp_result);
 }
 END_TEST
 
