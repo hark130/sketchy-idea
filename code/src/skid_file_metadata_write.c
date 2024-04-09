@@ -217,9 +217,7 @@ int call_utnsat(const char *pathname, const struct timespec times[2], bool follo
 		{
 			// If pathname specifies a symbolic link, then update the timestamps of the link,
 			// rather than the file to which it refers.
-			fprintf(stderr, "BEFORE FLAGS: 0x%X\n", flags);  // DEBUGGING
 			flags |= AT_SYMLINK_NOFOLLOW;
-			fprintf(stderr, "AFTER FLAGS:  0x%X\n", flags);  // DEBUGGING
 		}
 	}
 	// Call utimensat()

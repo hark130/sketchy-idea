@@ -30,7 +30,6 @@ code/dist/check_sfmw_set_atime_now.bin && CK_FORK=no valgrind --leak-check=full 
 /***************************************** TEST FIXTURES ******************************************/
 /**************************************************************************************************/
 
-
 char *test_pipe_path;  // Heap array containing the absolute pipe filename resolved to the repo
 char *test_socket_path;  // Heap array containing the absolute socket filename resolved to the repo
 
@@ -109,7 +108,6 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 	if (0 == exp_ret)
 	{
 		// 1. Get original time
-		// old_time = get_shell_atime(time_check, &errnum);
 		errnum = get_access_timestamp(time_check, &old_time, &old_time_nsec, follow_sym);
 		ck_assert_msg(0 == errnum, "old get_access_timestamp(%s) failed with [%d] %s",
 					  time_check, errnum, strerror(errnum));
@@ -125,7 +123,6 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 	if (0 == exp_ret)
 	{
 		// 3. Get current time
-		// new_time = get_shell_atime(time_check, &errnum);
 		errnum = get_access_timestamp(time_check, &new_time, &new_time_nsec, follow_sym);
 		ck_assert_msg(0 == errnum, "new get_access_timestamp(%s) failed with [%d] %s",
 					  time_check, errnum, strerror(errnum));
@@ -261,10 +258,8 @@ END_TEST
 START_TEST(test_n05_symbolic_link_follow)
 {
 	// LOCAL VARIABLES
-	bool follow = true;       // Follow symlinks
-	// int result = 0;        // Return value from function call
-	// int errnum = CANARY_INT;  // Errno from the function calls
-	int exp_result = 0;    // Expected results
+	bool follow = true;  // Follow symlinks
+	int exp_result = 0;  // Expected results
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = resolve_test_input("./code/test/test_input/sym_link.txt");
 	// Absolute path for actual_rel_path as resolved against the repo name
