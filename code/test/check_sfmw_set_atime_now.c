@@ -23,7 +23,7 @@ code/dist/check_sfmw_set_atime_now.bin && CK_FORK=no valgrind --leak-check=full 
 // Use this to help highlight an errnum that wasn't updated
 #define CANARY_INT (int)0xBADC0DE  // Actually, a reverse canary value
 // Use this with usleep(MICRO_SEC_SLEEP) to let the file timestamp update
-#define MICRO_SEC_SLEEP (useconds_t)100000  // Give the file timestamp 0.1 second to update
+#define MICRO_SEC_SLEEP (useconds_t)10000  // Give the file timestamp 0.01 second to update
 
 
 /**************************************************************************************************/
@@ -58,6 +58,12 @@ void setup(void);
  *	Delete the named pipe and raw socket files.  Then, free the heap memory arrays.
  */
 void teardown(void);
+
+/*
+ *	Compare the old vs new times to verify the timestamp was updated.
+ */
+void verify_time_update(const char *pathname, const char *time_adj,
+	                    time_t old_time, long old_time_nsec, time_t new_time, long new_time_nsec);
 
 
 char *resolve_test_input(const char *pathname)
@@ -128,17 +134,7 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 					  time_check, errnum, strerror(errnum));
 
 		// VALIDATE RESULTS
-		// Compare times
-		if (old_time > new_time)
-		{
-			ck_abort_msg("The time for %s was not updated: old sec %ld > new sec %ld",
-			             pathname, old_time, new_time);
-		}
-		else if (old_time == new_time && old_time_nsec >= new_time_nsec)
-		{
-			ck_abort_msg("The nanoseconds for %s weren't updated: old nsec %ld > new nsec %ld",
-			             pathname, old_time_nsec, new_time_nsec);
-		}
+		verify_time_update(time_check, "access", old_time, old_time_nsec, new_time, new_time_nsec);
 	}
 }
 
@@ -185,6 +181,23 @@ void teardown(void)
 	// Socket
 	remove_a_file(test_socket_path, true);  // Best effort
 	free_devops_mem(&test_socket_path);  // Ignore any errors
+}
+
+
+void verify_time_update(const char *pathname, const char *time_adj,
+	                    time_t old_time, long old_time_nsec, time_t new_time, long new_time_nsec)
+{
+	// Compare times
+	if (old_time > new_time)
+	{
+		ck_abort_msg("The %s time for %s was not updated: old sec %ld > new sec %ld",
+		             time_adj, pathname, old_time, new_time);
+	}
+	else if (old_time == new_time && old_time_nsec >= new_time_nsec)
+	{
+		ck_abort_msg("The %s nanoseconds for %s weren't updated: old nsec %ld >= new nsec %ld",
+		             time_adj, pathname, old_time_nsec, new_time_nsec);
+	}
 }
 
 
