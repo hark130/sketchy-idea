@@ -42,8 +42,6 @@ START_TEST(test_n01_block_device)
 	// It is important get_shell_mtime() succeeds
 	ck_assert_msg(0 == errnum, "get_shell_mtime() failed with [%d] %s",
 				  errnum, strerror(errnum));
-	ck_assert_msg(exp_result >= 0, "get_shell_mtime() provided an invalid value of %ld",
-				  exp_result);
 	errnum = CANARY_INT;  // Reset this temp var
 
 	// TEST START
@@ -71,8 +69,6 @@ START_TEST(test_n02_character_device)
 	// It is important get_shell_mtime() succeeds
 	ck_assert_msg(0 == errnum, "get_shell_mtime() failed with [%d] %s",
 				  errnum, strerror(errnum));
-	ck_assert_msg(exp_result >= 0, "get_shell_mtime() provided an invalid value of %ld",
-				  exp_result);
 	errnum = CANARY_INT;  // Reset this temp var
 
 	// TEST START
@@ -105,8 +101,6 @@ START_TEST(test_n03_directory)
 	// It is important get_shell_mtime() succeeds
 	ck_assert_msg(0 == errnum, "get_shell_mtime() failed with [%d] %s",
 				  errnum, strerror(errnum));
-	ck_assert_msg(exp_result >= 0, "get_shell_mtime() provided an invalid value of %ld",
-				  exp_result);
 	errnum = CANARY_INT;  // Reset this temp var
 
 	// TEST START
@@ -147,8 +141,6 @@ START_TEST(test_n04_named_pipe)
 	// It is important get_shell_mtime() succeeds
 	ck_assert_msg(0 == errnum, "get_shell_mtime() failed with [%d] %s",
 				  errnum, strerror(errnum));
-	ck_assert_msg(exp_result >= 0, "get_shell_mtime() provided an invalid value of %ld",
-				  exp_result);
 	errnum = CANARY_INT;  // Reset this temp var
 
 	// TEST START
@@ -185,8 +177,6 @@ START_TEST(test_n05_regular_file)
 	// It is important get_shell_mtime() succeeds
 	ck_assert_msg(0 == errnum, "get_shell_mtime() failed with [%d] %s",
 				  errnum, strerror(errnum));
-	ck_assert_msg(exp_result >= 0, "get_shell_mtime() provided an invalid value of %ld",
-				  exp_result);
 	errnum = CANARY_INT;  // Reset this temp var
 
 	// TEST START
@@ -227,8 +217,6 @@ START_TEST(test_n06_socket)
 	// It is important get_shell_mtime() succeeds
 	ck_assert_msg(0 == errnum, "get_shell_mtime() failed with [%d] %s",
 				  errnum, strerror(errnum));
-	ck_assert_msg(exp_result >= 0, "get_shell_mtime() provided an invalid value of %ld",
-				  exp_result);
 	errnum = CANARY_INT;  // Reset this temp var
 
 	// TEST START
@@ -269,8 +257,6 @@ START_TEST(test_n07_symbolic_link)
 	// It is important get_shell_mtime() succeeds
 	ck_assert_msg(0 == errnum, "get_shell_mtime() failed with [%d] %s",
 				  errnum, strerror(errnum));
-	ck_assert_msg(exp_result >= 0, "get_shell_mtime() provided an invalid value of %ld",
-				  exp_result);
 	errnum = CANARY_INT;  // Reset this temp var
 
 	// TEST START

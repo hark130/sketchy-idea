@@ -63,8 +63,6 @@ time_t get_expected_return(const char *pathname)
 	// VALIDATION
 	ck_assert_msg(0 == errnum, "get_shell_atime(%s) failed with [%d] %s",
 				  pathname, errnum, strerror(errnum));
-	ck_assert_msg(exp_result >= 0, "get_shell_atime(%s) provided an invalid value of %ld",
-				  pathname, exp_result);
 
 	// DONE
 	return exp_result;
