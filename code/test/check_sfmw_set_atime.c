@@ -32,6 +32,8 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sfmw_set_atime.bin; unset CK_R
 #define CANARY_INT (int)0xBADC0DE  // Actually, a reverse canary value
 // Use this with usleep(MICRO_SEC_SLEEP) to let the file timestamp update
 #define MICRO_SEC_SLEEP (useconds_t)10000  // Give the file timestamp 0.01 second to update
+#define UTIME_NSEC_MIN 0l          // Minimum allowed value for tv_nsec (see: utimensat(2))
+#define UTIME_NSEC_MAX 999999999l  // Maximum allowed value for tv_nsec (see: utimensat(2))
 
 
 /**************************************************************************************************/
@@ -383,6 +385,189 @@ END_TEST
 
 
 /**************************************************************************************************/
+/************************************** BOUNDARY TEST CASES ***************************************/
+/**************************************************************************************************/
+START_TEST(test_b01_sec_min_value)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                     // Follow symlinks
+	int exp_result = 0;                     // Expected results
+	time_t new_sec = INT_MIN + 1;           // Seconds test input
+	long new_nsec = 0x7E57;                 // Nanoseconds test input
+	char *input_abs_path = test_file_path;  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
+}
+END_TEST
+
+
+START_TEST(test_b02_sec_almost_epoch)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                     // Follow symlinks
+	int exp_result = 0;                     // Expected results
+	time_t new_sec = -1;                    // Seconds test input
+	long new_nsec = 0x7E57;                 // Nanoseconds test input
+	char *input_abs_path = test_file_path;  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
+}
+END_TEST
+
+
+START_TEST(test_b03_sec_epoch_time)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                     // Follow symlinks
+	int exp_result = 0;                     // Expected results
+	time_t new_sec = 0;                     // Seconds test input
+	long new_nsec = 0x7E57;                 // Nanoseconds test input
+	char *input_abs_path = test_file_path;  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
+}
+END_TEST
+
+
+START_TEST(test_b04_sec_barely_past_epoch)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                     // Follow symlinks
+	int exp_result = 0;                     // Expected results
+	time_t new_sec = 1;                     // Seconds test input
+	long new_nsec = 0x7E57;                 // Nanoseconds test input
+	char *input_abs_path = test_file_path;  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
+}
+END_TEST
+
+
+START_TEST(test_b05_sec_static_now)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                     // Follow symlinks
+	int exp_result = 0;                     // Expected results
+	time_t new_sec = 0x66197EA4;            // Seconds test input: 4/12/2024, 1:34:12 PM
+	long new_nsec = 0x7E57;                 // Nanoseconds test input
+	char *input_abs_path = test_file_path;  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
+}
+END_TEST
+
+
+START_TEST(test_b06_sec_max_value)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                     // Follow symlinks
+	int exp_result = 0;                     // Expected results
+	time_t new_sec = INT_MAX;               // Seconds test input
+	long new_nsec = 0x7E57;                 // Nanoseconds test input
+	char *input_abs_path = test_file_path;  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
+}
+END_TEST
+
+
+START_TEST(test_b07_nsec_low_very_bad)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                     // Follow symlinks
+	int exp_result = EINVAL;                // Expected results
+	time_t new_sec = 0x7E57;                // Seconds test input
+	long new_nsec = LONG_MIN;               // Nanoseconds test input
+	char *input_abs_path = test_file_path;  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
+}
+END_TEST
+
+
+START_TEST(test_b08_nsec_low_barely_bad)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                     // Follow symlinks
+	int exp_result = EINVAL;                // Expected results
+	time_t new_sec = 0x7E57;                // Seconds test input
+	long new_nsec = UTIME_NSEC_MIN - 1l;    // Nanoseconds test input
+	char *input_abs_path = test_file_path;  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
+}
+END_TEST
+
+
+START_TEST(test_b09_nsec_low_barely_good)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                     // Follow symlinks
+	int exp_result = 0;                     // Expected results
+	time_t new_sec = 0x7E57;                // Seconds test input
+	long new_nsec = UTIME_NSEC_MIN;         // Nanoseconds test input
+	char *input_abs_path = test_file_path;  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
+}
+END_TEST
+
+
+START_TEST(test_b10_nsec_high_barely_good)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                     // Follow symlinks
+	int exp_result = 0;                     // Expected results
+	time_t new_sec = 0x7E57;                // Seconds test input
+	long new_nsec = UTIME_NSEC_MAX;         // Nanoseconds test input
+	char *input_abs_path = test_file_path;  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
+}
+END_TEST
+
+
+START_TEST(test_b11_nsec_high_barely_bad)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                     // Follow symlinks
+	int exp_result = EINVAL;                // Expected results
+	time_t new_sec = 0x7E57;                // Seconds test input
+	long new_nsec = UTIME_NSEC_MAX + 1l;    // Nanoseconds test input
+	char *input_abs_path = test_file_path;  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
+}
+END_TEST
+
+
+START_TEST(test_b12_nsec_high_very_bad)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                     // Follow symlinks
+	int exp_result = EINVAL;                // Expected results
+	time_t new_sec = 0x7E57;                // Seconds test input
+	long new_nsec = LONG_MAX;               // Nanoseconds test input
+	char *input_abs_path = test_file_path;  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
+}
+END_TEST
+
+
+/**************************************************************************************************/
 /*************************************** SPECIAL TEST CASES ***************************************/
 /**************************************************************************************************/
 START_TEST(test_s01_missing_filename)
@@ -448,12 +633,30 @@ START_TEST(test_s04_character_device)
 END_TEST
 
 
+/*
+ *	NOTE: If the seconds are set to INT_MIN, the nanoseconds appear to always be set to 0.
+ */
+START_TEST(test_s05_sec_min_value_edge_case)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                     // Follow symlinks
+	int exp_result = 0;                     // Expected results
+	time_t new_sec = INT_MIN;               // Seconds test input
+	long new_nsec = 0;                      // Nanoseconds test input
+	char *input_abs_path = test_file_path;  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
+}
+END_TEST
+
+
 Suite *set_atime_suite(void)
 {
 	Suite *suite = NULL;
 	TCase *tc_normal = NULL;
 	TCase *tc_error = NULL;
-	// TCase *tc_boundary = NULL;
+	TCase *tc_boundary = NULL;
 	TCase *tc_special = NULL;
 
 	suite = suite_create("SFMW_Set_Atime");
@@ -461,11 +664,11 @@ Suite *set_atime_suite(void)
 	/* Core test case */
 	tc_normal = tcase_create("Normal");
 	tc_error = tcase_create("Error");
-	// tc_boundary = tcase_create("Boundary");
+	tc_boundary = tcase_create("Boundary");
 	tc_special = tcase_create("Special");
 	tcase_add_checked_fixture(tc_normal, setup, teardown);
 	tcase_add_checked_fixture(tc_error, setup, teardown);
-	// tcase_add_checked_fixture(tc_boundary, setup, teardown);
+	tcase_add_checked_fixture(tc_boundary, setup, teardown);
 	tcase_add_checked_fixture(tc_special, setup, teardown);
 	tcase_add_test(tc_normal, test_n01_directory);
 	tcase_add_test(tc_normal, test_n02_named_pipe);
@@ -474,13 +677,26 @@ Suite *set_atime_suite(void)
 	tcase_add_test(tc_normal, test_n05_symbolic_link_follow);
 	tcase_add_test(tc_error, test_e01_null_filename);
 	tcase_add_test(tc_error, test_e02_empty_filename);
+	tcase_add_test(tc_boundary, test_b01_sec_min_value);
+	tcase_add_test(tc_boundary, test_b02_sec_almost_epoch);
+	tcase_add_test(tc_boundary, test_b03_sec_epoch_time);
+	tcase_add_test(tc_boundary, test_b04_sec_barely_past_epoch);
+	tcase_add_test(tc_boundary, test_b05_sec_static_now);
+	tcase_add_test(tc_boundary, test_b06_sec_max_value);
+	tcase_add_test(tc_boundary, test_b07_nsec_low_very_bad);
+	tcase_add_test(tc_boundary, test_b08_nsec_low_barely_bad);
+	tcase_add_test(tc_boundary, test_b09_nsec_low_barely_good);
+	tcase_add_test(tc_boundary, test_b10_nsec_high_barely_good);
+	tcase_add_test(tc_boundary, test_b11_nsec_high_barely_bad);
+	tcase_add_test(tc_boundary, test_b12_nsec_high_very_bad);
 	tcase_add_test(tc_special, test_s01_missing_filename);
 	tcase_add_test(tc_special, test_s02_symbolic_link_nofollow);
 	tcase_add_test(tc_special, test_s03_block_device);
 	tcase_add_test(tc_special, test_s04_character_device);
+	tcase_add_test(tc_special, test_s05_sec_min_value_edge_case);
 	suite_add_tcase(suite, tc_normal);
 	suite_add_tcase(suite, tc_error);
-	// suite_add_tcase(suite, tc_boundary);
+	suite_add_tcase(suite, tc_boundary);
 	suite_add_tcase(suite, tc_special);
 
 	return suite;
