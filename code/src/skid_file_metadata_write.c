@@ -242,6 +242,37 @@ int set_mtime_now(const char *pathname, bool follow_sym)
 }
 
 
+int set_times(const char *pathname, bool follow_sym, time_t seconds, long nseconds)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;            // 0 on success, errno on failure
+	struct timespec times[2] = {};  // Communicate with utimensat() using atime, mtime
+
+	// INPUT VALIDATION
+	result = validate_pathname(pathname);
+
+	// SET IT
+	// Prepare atime
+	if (ENOERR == result)
+	{
+		result = set_timespec(&(times[SFMW_ATIME_INDEX]), seconds, nseconds);
+	}
+	// Prepare mtime
+	if (ENOERR == result)
+	{
+		result = set_timespec(&(times[SFMW_MTIME_INDEX]), seconds, nseconds);
+	}
+	// Call call_utnsat()
+	if (ENOERR == result)
+	{
+		result = call_utnsat(pathname, times, follow_sym);
+	}
+
+	// DONE
+	return result;
+}
+
+
 int set_times_now(const char *pathname, bool follow_sym)
 {
 	// LOCAL VARIABLES
