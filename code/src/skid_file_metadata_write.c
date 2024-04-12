@@ -51,10 +51,22 @@ int call_utnsat(const char *pathname, const struct timespec times[2], bool follo
 bool is_abs_path(const char *pathname, int *errnum);
 
 /*
+ *	Description:
+ *		Set the timespec struct's tv_sec to seconds and the tv_nsec field to nseconds.
+ *	Args:
+ *		time: A pointer to a timespec struct.
+ *		seconds: The epoch seconds to set time to.
+ *		nseconds: The nanoseconds to set time to.
+ *  Returns:
+ *      0 on success.  An errno value on failure.
+ */
+int set_timespec(struct timespec *time, time_t seconds, long nseconds);
+
+/*
  *  Description:
  *      Set the timespec struct's tv_nsec field to UTIME_NOW.
  *  Args:
- *		time: A pointer to a timespect struct.
+ *		time: A pointer to a timespec struct.
  *  Returns:
  *      0 on success.  An errno value on failure.
  */
@@ -64,7 +76,7 @@ int set_timespec_now(struct timespec *time);
  *  Description:
  *      Set the timespec struct's tv_nsec field to UTIME_OMIT.
  *  Args:
- *		time: A pointer to a timespect struct.
+ *		time: A pointer to a timespec struct.
  *  Returns:
  *      0 on success.  An errno value on failure.
  */
@@ -96,7 +108,7 @@ int validate_pathname(const char *pathname);
  *  Description:
  *      Validates the time arguments on behalf of this library.
  *  Args:
- *		time: A pointer to a timespect struct.
+ *		time: A pointer to a timespec struct.
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
@@ -106,6 +118,37 @@ int validate_timespec(struct timespec *time);
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
 /**************************************************************************************************/
+int set_atime(const char *pathname, bool follow_sym, time_t seconds, long nseconds)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;            // 0 on success, errno on failure
+	struct timespec times[2] = {};  // Communicate with utimensat() using atime, mtime
+
+	// INPUT VALIDATION
+	result = validate_pathname(pathname);
+
+	// SET IT
+	// Prepare atime
+	if (ENOERR == result)
+	{
+		result = set_timespec(&(times[SFMW_ATIME_INDEX]), seconds, nseconds);
+	}
+	// Prepare mtime
+	if (ENOERR == result)
+	{
+		result = set_timespec_omit(&(times[SFMW_MTIME_INDEX]));
+	}
+	// Call call_utnsat()
+	if (ENOERR == result)
+	{
+		result = call_utnsat(pathname, times, follow_sym);
+	}
+
+	// DONE
+	return result;
+}
+
+
 int set_atime_now(const char *pathname, bool follow_sym)
 {
 	// LOCAL VARIABLES
@@ -200,7 +243,6 @@ int call_utnsat(const char *pathname, const struct timespec times[2], bool follo
 
 	// INPUT VALIDATION
 	retval = validate_pathname(pathname);
-
 	// CALL IT
 	// Is pathname absolute?
 	if (ENOERR == retval)
@@ -223,7 +265,6 @@ int call_utnsat(const char *pathname, const struct timespec times[2], bool follo
 	// Call utimensat()
 	if (ENOERR == retval)
 	{
-		FPRINTF_ERR("Calling utimensat(%s)\n", pathname);  // DEBUGGING
 		if(utimensat(dirfd, pathname, times, flags))
 		{
 			retval = errno;
@@ -261,6 +302,26 @@ bool is_abs_path(const char *pathname, int *errnum)
 		*errnum = results;
 	}
 	return is_abs;
+}
+
+
+int set_timespec(struct timespec *time, time_t seconds, long nseconds)
+{
+	// LOCAL VARIABLES
+	int retval = ENOERR;  // The results of validation
+
+	// INPUT VALIDATION
+	retval = validate_timespec(time);
+
+	// SET IT
+	if (ENOERR == retval)
+	{
+		time->tv_sec = seconds;
+		time->tv_nsec = nseconds;
+	}
+
+	// DONE
+	return retval;
 }
 
 
