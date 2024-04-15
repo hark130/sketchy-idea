@@ -13,11 +13,50 @@
 #endif  /* ENOERR */
 #define SFMW_ATIME_INDEX 0  // Index of the atime timespec struct
 #define SFMW_MTIME_INDEX 1  // Index of the mtime timespec struct
+#define SFMW_IGNORE_ID -1   // When using the chown-family funcs, if an ID is -1 it is not changed.
 
 
 /**************************************************************************************************/
 /********************************* PRIVATE FUNCTION DECLARATIONS **********************************/
 /**************************************************************************************************/
+/*
+ *  Description:
+ *      Calls one of the chown-family functions based on caller arguments.  Defaults to chown().
+ *		If pathname is a symbolic link and follow_sym is false, uses lchown() instead.
+ *  Args:
+ *      pathname: Absolute or relative pathname to update with a chown-family function.
+ *		new_owner: The UID of the new owner for pathname.  Pass -1 to ignore this ID.
+ *		new_group: The GID of the new group for pathname.  Pass -1 to ignore this ID.
+ *		follow_sym: If true, calls chown().  If false, uses lchown() for symlinks.
+ *  Returns:
+ *      0 on success.  Errno value on failure.
+ */
+int call_a_chown(const char *pathname, uid_t new_owner, gid_t new_group, bool follow_sym);
+
+/*
+ *  Description:
+ *      Calls chown(pathname, new_owner, new_group).
+ *  Args:
+ *      pathname: Absolute or relative pathname to update with chown().
+ *		new_owner: The UID of the new owner for pathname.  Pass -1 to ignore this ID.
+ *		new_group: The GID of the new group for pathname.  Pass -1 to ignore this ID.
+ *  Returns:
+ *      0 on success.  Errno value on failure.
+ */
+int call_chown(const char *pathname, uid_t new_owner, gid_t new_group);
+
+/*
+ *  Description:
+ *      Calls lchown(pathname, new_owner, new_group).
+ *  Args:
+ *      pathname: Absolute or relative pathname to update with lchown().
+ *		new_owner: The UID of the new owner for pathname.  Pass -1 to ignore this ID.
+ *		new_group: The GID of the new group for pathname.  Pass -1 to ignore this ID.
+ *  Returns:
+ *      0 on success.  Errno value on failure.
+ */
+int call_lchown(const char *pathname, uid_t new_owner, gid_t new_group);
+
 /*
  *  Description:
  *      A wrapper around the call to utimensat().
@@ -180,6 +219,26 @@ int set_atime_now(const char *pathname, bool follow_sym)
 }
 
 
+int set_group_id(const char *pathname, gid_t new_group, bool follow_sym)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;         // 0 on success, errno on failure
+	uid_t uid = SFMW_IGNORE_ID;  // Ignore the owner
+
+	// INPUT VALIDATION
+	result = validate_pathname(pathname);
+
+	// SET IT
+	if (ENOERR == result)
+	{
+		result = call_a_chown(pathname, uid, new_group, follow_sym);
+	}
+
+	// DONE
+	return result;
+}
+
+
 int set_mtime(const char *pathname, bool follow_sym, time_t seconds, long nseconds)
 {
 	// LOCAL VARIABLES
@@ -242,6 +301,45 @@ int set_mtime_now(const char *pathname, bool follow_sym)
 }
 
 
+int set_owner_id(const char *pathname, uid_t new_owner, bool follow_sym)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;         // 0 on success, errno on failure
+	gid_t gid = SFMW_IGNORE_ID;  // Ignore the group
+
+	// INPUT VALIDATION
+	result = validate_pathname(pathname);
+
+	// SET IT
+	if (ENOERR == result)
+	{
+		result = call_a_chown(pathname, new_owner, gid, follow_sym);
+	}
+
+	// DONE
+	return result;
+}
+
+
+int set_ownership(const char *pathname, uid_t new_owner, gid_t new_group, bool follow_sym)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // 0 on success, errno on failure
+
+	// INPUT VALIDATION
+	result = validate_pathname(pathname);
+
+	// SET IT
+	if (ENOERR == result)
+	{
+		result = call_a_chown(pathname, new_owner, new_group, follow_sym);
+	}
+
+	// DONE
+	return result;
+}
+
+
 int set_times(const char *pathname, bool follow_sym, time_t seconds, long nseconds)
 {
 	// LOCAL VARIABLES
@@ -296,6 +394,87 @@ int set_times_now(const char *pathname, bool follow_sym)
 /**************************************************************************************************/
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
+int call_a_chown(const char *pathname, uid_t new_owner, gid_t new_group, bool follow_sym)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // The results of execution
+	bool is_sym = false;  // Is pathname a symbolic link?
+
+	// INPUT VALIDATION
+	result = validate_pathname(pathname);
+
+	// CALL IT
+	// Is pathname a symbolic link?
+	if (ENOERR == result)
+	{
+		is_sym = is_sym_link(pathname, &result);
+	}
+	// Call it
+	if (ENOERR == result)
+	{
+		if (true == is_sym && false == follow_sym)
+		{
+			result = call_lchown(pathname, new_owner, new_group);
+		}
+		else
+		{
+			result = call_chown(pathname, new_owner, new_group);
+		}
+	}
+
+	// DONE
+	return result;
+}
+
+
+int call_chown(const char *pathname, uid_t new_owner, gid_t new_group)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // The results of execution
+
+	// INPUT VALIDATION
+	result = validate_pathname(pathname);
+
+	// CALL IT
+	if (ENOERR == result)
+	{
+		if (chown(pathname, new_owner, new_group))
+		{
+			result = errno;
+			PRINT_ERROR(The call to chown() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+
+	// DONE
+	return result;
+}
+
+
+int call_lchown(const char *pathname, uid_t new_owner, gid_t new_group)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // The results of execution
+
+	// INPUT VALIDATION
+	result = validate_pathname(pathname);
+
+	// CALL IT
+	if (ENOERR == result)
+	{
+		if (lchown(pathname, new_owner, new_group))
+		{
+			result = errno;
+			PRINT_ERROR(The call to lchown() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+
+	// DONE
+	return result;
+}
+
+
 int call_utnsat(const char *pathname, const struct timespec times[2], bool follow_sym)
 {
 	// LOCAL VARIABLES
