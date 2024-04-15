@@ -798,26 +798,26 @@ int run_command(const char *command, char *output, size_t output_len)
 }
 
 
-int run_path_command(const char *command, const char *pathname, char *output, size_t output_len)
+int run_command_append(const char *base_cmd, const char *cmd_suffix, char *output, size_t output_len)
 {
 	// LOCAL VARIABLES
-	char *full_cmd = NULL;     // command + pathname in a heap-allocated buffer
+	char *full_cmd = NULL;     // command + cmd_suffix in a heap-allocated buffer
 	size_t full_cmd_size = 0;  // Size of full_cmd buffer
 	int result = ENOERR;       // Errno value
 
 	// INPUT VALIDATION
-	result = validate_name(command);
+	result = validate_name(base_cmd);
 	if (ENOERR == result)
 	{
-		result = validate_name(pathname);
+		result = validate_name(cmd_suffix);
 		// NOTE: The remaining arguments will be exhaustively validated by run_command()
 	}
 
 	// SETUP
 	// 1. Allocate
-	if (ENOERR == result)
+	if (ENOERR == result && cmd_suffix && *cmd_suffix)
 	{
-		full_cmd_size = strlen(command) + strlen(pathname);
+		full_cmd_size = strlen(base_cmd) + strlen(cmd_suffix);
 		full_cmd = alloc_devops_mem(full_cmd_size + 1, sizeof(char), &result);
 		if (!full_cmd)
 		{
@@ -833,21 +833,53 @@ int run_path_command(const char *command, const char *pathname, char *output, si
 		}
 	}
 	// 2. Copy & Concatenate
-	if (ENOERR == result)
+	if (ENOERR == result && cmd_suffix && *cmd_suffix)
 	{
-		strncpy(full_cmd, command, strlen(command));
-		strncat(full_cmd, pathname, strlen(pathname));
+		strncpy(full_cmd, base_cmd, strlen(base_cmd));
+		strncat(full_cmd, cmd_suffix, strlen(cmd_suffix));
 	}
 	// 3. Run it
 	if (ENOERR == result)
 	{
-		result = run_command(full_cmd, output, output_len);
+		if (cmd_suffix && *cmd_suffix)
+		{
+			result = run_command(full_cmd, output, output_len);  // Run base_cmd + cmd_suffix
+		}
+		else
+		{
+			result = run_command(base_cmd, output, output_len);  // No suffix, just the cmd
+		}
 	}
 
 	// CLEANUP
 	if (full_cmd)
 	{
 		free_devops_mem(&full_cmd);
+	}
+
+	// DONE
+	return result;
+}
+
+
+int run_path_command(const char *command, const char *pathname, char *output, size_t output_len)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // Errno value
+
+	// INPUT VALIDATION
+	result = validate_name(command);
+	if (ENOERR == result)
+	{
+		result = validate_name(pathname);
+		// NOTE: The remaining arguments will be exhaustively validated by run_command_append()
+	}
+
+	// SETUP
+	// 1. Allocate
+	if (ENOERR == result)
+	{
+		result = run_command_append(command, pathname, output, output_len);
 	}
 
 	// DONE

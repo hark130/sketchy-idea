@@ -327,6 +327,25 @@ int run_command(const char *command, char *output, size_t output_len);
 
 /*
  *  Description:
+ *      Uses popen to execute base_cmd + cmd_suffix in a read-only process and read the results
+ *      into output.  If there needs to be a space between base_cmd and cmd_suffix, ensure
+ *      base_cmd has a trailing space.
+ *
+ *  Args:
+ *      base_cmd: The preface command to execute.
+ *      cmd_suffix: Optional; The suffix to add to base_cmd prior to execution.  If NULL or
+ *          empty, just the base_cmd will be executed.
+ *      output: Optional; [Out] The output from command will be read into this buffer, if a valid
+ *          pointer.
+ *      output_len: Optional; If output is to be used, this value indicates the size of output.
+ *
+ *  Returns:
+ *      0 on success, errno on error.
+ */
+int run_command_append(const char *base_cmd, const char *cmd_suffix, char *output, size_t output_len);
+
+/*
+ *  Description:
  *      Uses popen to execute command + pathname in a read-only process and read the results
  *      into output.  If there needs to be a space between command and pathname, ensure
  *      command has a trailing space.
