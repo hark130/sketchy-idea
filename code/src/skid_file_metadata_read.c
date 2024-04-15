@@ -18,7 +18,7 @@
 /*
  *  Description:
  *      Calls one of the stat-family functions based on caller arguments.  Defaults to stat().
- *		If pathname is a symbolic link and follow_sym is true, uses lstat() instead.
+ *		If pathname is a symbolic link and follow_sym is false, uses lstat() instead.
  *  Args:
  *      pathname: Absolute or relative pathname to check with lstat().
  *		statbuf: [Out] Pointer to a stat struct to update with the results of the call to stat().
