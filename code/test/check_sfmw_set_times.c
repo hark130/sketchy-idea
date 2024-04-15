@@ -672,7 +672,7 @@ END_TEST
 Suite *set_times_suite(void)
 {
 	// LOCAL VARIABLES
-	Suite *suite = suite_create("SFMW_Set_Ttimes");  // Test suite
+	Suite *suite = suite_create("SFMW_Set_Times");  // Test suite
 	TCase *tc_normal = tcase_create("Normal");       // Normal test cases
 	TCase *tc_error = tcase_create("Error");         // Error test cases
 	TCase *tc_boundary = tcase_create("Boundary");   // Boundary test cases
