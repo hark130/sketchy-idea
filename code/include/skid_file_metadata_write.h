@@ -56,7 +56,7 @@ int set_atime_now(const char *pathname, bool follow_sym);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to modify the group of.
- *		new_group: The GID of the new group for pathname.
+ *		new_group: The GID of the new group for pathname.  If this value is -1, it will not change.
  *		follow_sym: Controls how symbolic links are handled: follow symbolic links if true,
  *			do not follow symbolic links if false.
  *
@@ -113,7 +113,7 @@ int set_mtime_now(const char *pathname, bool follow_sym);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to modify the group of.
- *		new_owner: The UID of the new owner for pathname.
+ *		new_owner: The UID of the new owner for pathname.  If this value is -1, it will not change.
  *		follow_sym: Controls how symbolic links are handled: follow symbolic links if true,
  *			do not follow symbolic links if false.
  *
@@ -139,8 +139,8 @@ int set_owner_id(const char *pathname, uid_t new_owner, bool follow_sym);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to modify the group of.
- *		new_owner: The UID of the new owner for pathname.
- *		new_group: The GID of the new group for pathname.
+ *		new_owner: The UID of the new owner for pathname.  If this value is -1, it will not change.
+ *		new_group: The GID of the new group for pathname.  If this value is -1, it will not change.
  *		follow_sym: Controls how symbolic links are handled: follow symbolic links if true,
  *			do not follow symbolic links if false.
  *
