@@ -189,6 +189,38 @@ time_t get_shell_mtime(const char *pathname, int *errnum);
 
 /*
  *  Description:
+ *      Get the current user's GID by executing the following command in a shell:
+ *          id -g
+ *      This is intended as a double-do to facilitate testing of skid_file_metadata_write's
+ *      set_ownership() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      GID on success, 0 on error.  The only true indication of an error is the errnum value
+ *      since 0 is a valid GID.
+ */
+gid_t get_shell_my_gid(int *errnum);
+
+/*
+ *  Description:
+ *      Get the current user's UID by executing the following command in a shell:
+ *          id -u
+ *      This is intended as a double-do to facilitate testing of skid_file_metadata_write's
+ *      set_ownership() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      UID on success, 0 on error.  The only true indication of an error is the errnum value
+ *      since 0 is a valid UID.
+ */
+uid_t get_shell_my_uid(int *errnum);
+
+/*
+ *  Description:
  *      Get the current user's username by executing the following command in a shell:
  *          whoami
  *      This is intended as a double-do and not meant to be "production code".

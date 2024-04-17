@@ -440,6 +440,80 @@ time_t get_shell_mtime(const char *pathname, int *errnum)
 }
 
 
+gid_t get_shell_my_gid(int *errnum)
+{
+	// LOCAL VARIABLES
+	gid_t my_gid = 0;              // My GID
+	int results = ENOERR;          // Local errno value
+	char command[] = { "id -g" };  // The shell command
+	char output[512] = { 0 };      // Output from the command
+
+	// INPUT VALIDATION
+	results = validate_err(errnum);
+
+	// GET IT
+	// Execute command
+	if (ENOERR == results)
+	{
+		results = run_command(command, output, sizeof(output) / sizeof(*output));
+		if (results)
+		{
+			PRINT_ERROR(The call to run_command() failed);
+			PRINT_ERRNO(results);
+		}
+	}
+	// Convert results
+	if (ENOERR == result)
+	{
+		my_gid = atoi(output);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = results;
+	}
+	return my_gid;
+}
+
+
+uid_t get_shell_my_uid(int *errnum)
+{
+	// LOCAL VARIABLES
+	uid_t my_uid = 0;              // My UID
+	int results = ENOERR;          // Local errno value
+	char command[] = { "id -u" };  // The shell command
+	char output[512] = { 0 };      // Output from the command
+
+	// INPUT VALIDATION
+	results = validate_err(errnum);
+
+	// GET IT
+	// Execute command
+	if (ENOERR == results)
+	{
+		results = run_command(command, output, sizeof(output) / sizeof(*output));
+		if (results)
+		{
+			PRINT_ERROR(The call to run_command() failed);
+			PRINT_ERRNO(results);
+		}
+	}
+	// Convert results
+	if (ENOERR == result)
+	{
+		my_uid = atoi(output);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = results;
+	}
+	return my_uid;
+}
+
+
 char *get_shell_my_username(int *errnum)
 {
 	// LOCAL VARIABLES
