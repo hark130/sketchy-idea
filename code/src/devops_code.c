@@ -1,19 +1,19 @@
 /*
- *	This library contains non-releasable, unit-test-specific, miscellaneous helper code.
+ *  This library contains non-releasable, unit-test-specific, miscellaneous helper code.
  */
 
-#include <errno.h>      	// errno
-#include <limits.h>			// PATH_MAX
-#include <stdio.h>			// remove()
-#include <stdlib.h>			// calloc(), free()
-#include <string.h>			// strstr()
-#include <sys/socket.h>		// AF_UNIX, socket()
-#include <sys/stat.h>		// stat()
-#include <sys/un.h>			// struct sockaddr_un
-#include <unistd.h>			// getcwd()
+#include <errno.h>          // errno
+#include <limits.h>         // PATH_MAX
+#include <stdio.h>          // remove()
+#include <stdlib.h>         // calloc(), free()
+#include <string.h>         // strstr()
+#include <sys/socket.h>     // AF_UNIX, socket()
+#include <sys/stat.h>       // stat()
+#include <sys/un.h>         // struct sockaddr_un
+#include <unistd.h>         // getcwd()
 // Local includes
-#include "devops_code.h"	// Headers
-#include "skid_debug.h"		// PRINT_ERRNO()
+#include "devops_code.h"    // Headers
+#include "skid_debug.h"     // PRINT_ERRNO()
 
 
 #ifndef ENOERR
@@ -22,6 +22,8 @@
 
 // The useradd utility may only support 32 but Linux supports more
 #define SKID_MAX_USERNAME_LEN 256  // Maximum username length
+// The maximum lenth of an ID (e.g., UID, GID)
+#define SKID_MAX_ID_LEN 10  // strlen("4294967295")
 
 /**************************************************************************************************/
 /********************************* PRIVATE FUNCTION DECLARATIONS **********************************/
@@ -40,17 +42,107 @@ int convert_octal_to_decimal(int octal_value);
 
 /*
  *  Description:
+ *      Parser group_entry's colon-delimited fields for a particular field.
+ *      This function is very fault tolerant.
+ *
+ *  Args:
+ *      group_entry: One nul-terminated /etc/group line.  This line must be in the format
+ *          specified by group(5).
+ *      field_num: 0 for group_name, 1 for password, 2 for GID, or 3 for user_list.
+ *
+ *  Returns:
+ *      A pointer into group_entry on success, NULL on invalid input.
+ */
+char *extract_group_field(char *group_entry, int field_num);
+
+/*
+ *  Description:
+ *      Parser group_entry's colon-delimited fields for the user_list.
+ *      This function is very fault tolerant.
+ *
+ *  Args:
+ *      group_entry: One nul-terminated /etc/group line.  This line must be in the format
+ *          specified by group(5).
+ *
+ *  Returns:
+ *      A pointer into group_entry on success, NULL on invalid input.
+ */
+char *extract_group_user_list(char *group_entry);
+
+/*
+ *  Description:
+ *      Return a heap-allocated array of all the GIDs, found in /etc/group, where username
+ *      is a member.  Terminate the array with username's GID.  The return value should contain
+ *      all of the "groups" entries from the `id <username>` command.
+ *
+ *  Args:
+ *      username: The name to check for compatibility.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      A heap-allocated array of compatible GIDs 0 on success.  Returns NULL on failure and
+ *      errnum is updated with the relevant errno value.
+ */
+gid_t *parse_compatible_groups(char *username, int *errnum);
+
+/*
+ *  Description:
+ *      Parser group_entry's user list for username.  This function is very fault tolerant.
+ *      Trailing newlines are ignored.  Example results (sans found_gid for brevity):
+ *          p_g_u_l("hark", "docker:x:134:hark") returns true
+ *          p_g_u_l("hark", "nogroup:x:65534:") returns false
+ *          p_g_u_l("hark", "hark:x:1337:") returns false (because the user_list is empty)
+ *          p_g_u_l("hark", "docker:x:134:hark\n") returns true
+ *          p_g_u_l("hark", "docker:x:134:joe,hark") returns true
+ *          p_g_u_l("hark", "docker:x:134:hark,eddie") returns true
+ *          p_g_u_l(NULL, "docker:x:134:hark") returns false
+ *          p_g_u_l("hark", NULL) returns false
+ *
+ *  Args:
+ *      username: The name to search /etc/group's user lists for.
+ *      group_entry: One nul-terminated /etc/group line.  This line must be in the format
+ *          specified by group(5).
+ *      found_gid: [Out] Storage location for a compatible GID.  This value may or may not
+ *          be zeroized during execution.  Ignore the value found here if this function returns
+ *          false.
+ *
+ *  Returns:
+ *      True if username if found in group_entry's properly formatted "user_list" section.
+ *      False if username is not found, invalid input was received, or an error occurred.
+ */
+bool parse_group_user_list(char *username, char *group_entry, gid_t *found_gid);
+
+/*
+ *  Description:
+ *      Read a particular colon-delimited field from group_entry into field_value.  No more than
+ *      fv_len characters will be read in to field_value.  This function will nul-terminate
+ *      field_value (if there's room).
+ *
+ *  Args:
+ *      group_entry: One nul-terminated /etc/group line.  This line must be in the format
+ *          specified by group(5).
+ *      field_num: 0 for group_name, 1 for password, 2 for GID, or 3 for user_list.
+ *      field_value: [Out] A buffer to read the group_entry field into.
+ *      fv_len: The length of the buffer found at field_value.
+ *
+ *  Returns:
+ *      0 on success, errno on invalid input or error.
+ */
+int read_group_field(char *group_entry, int field_num, char *field_value, int fv_len);
+
+/*
+ *  Description:
  *      Find needle in haystack.  Truncate the rest of hastack with a trailing "/\0".
  *
  *  Args:
  *      haystack: The buffer, holding an absolute directory, to search for needle in and then
- *			modify.
- *		needle: The directory name to look for in haystack.
- *		hay_len: The number of elements in haystack, to avoid buffer overruns.
+ *          modify.
+ *      needle: The directory name to look for in haystack.
+ *      hay_len: The number of elements in haystack, to avoid buffer overruns.
  *
  *  Returns:
  *      0 on success, ENOKEY if needle is not found in haystack, ENOBUFS if haystack is not
- *		big enough to one more character, errno on error.
+ *      big enough to one more character, errno on error.
  */
 int truncate_dir(char *haystack, const char *needle, size_t hay_len);
 
@@ -59,12 +151,25 @@ int truncate_dir(char *haystack, const char *needle, size_t hay_len);
  *      Validate standard errno [Out] args on behalf of the library.  No values are changed.
  *
  *  Args:
- *		err: This must be a valid pointer.
+ *      err: This must be a valid pointer.
  *
  *  Returns:
  *      0 on success, EINVAL for bad input.
  */
 int validate_err(int *err);
+
+/*
+ *  Description:
+ *      Validate one entry from /etc/group against the format specified in group(5).  Trailing
+ *      newlines are ignored.
+ *
+ *  Args:
+ *      name: The /etc/group entry to validate.
+ *
+ *  Returns:
+ *      0 on success, EINVAL for bad input.
+ */
+int validate_group_entry(char *group_entry);
 
 /*
  *  Description:
@@ -84,7 +189,7 @@ int validate_name(const char *name);
  *
  *  Args:
  *      name: This must be a valid pointer to a string that is not empty.
- *		err: This must be a valid pointer.
+ *      err: This must be a valid pointer.
  *
  *  Returns:
  *      0 on success, EINVAL for bad input.
@@ -213,6 +318,54 @@ blkcnt_t get_shell_block_count(const char *pathname, int *errnum)
 		*errnum = err_num;
 	}
 	return retval;
+}
+
+
+gid_t *get_shell_compatible_gid(int *errnum)
+{
+	// LOCAL VARIABLES
+	int results = ENOERR;  // Results of this function's execution
+	gid_t *gid_arr = NULL;  // "My GID"-terminated, heap-allocated array of compatible GIDs
+	char *my_name = NULL;   // My username
+
+	// INPUT VALIDATION
+	results = validate_err(errnum);
+
+	// GET IT
+	// 1. Get the current user's username (using get_shell_my_username())
+	if (ENOERR == results)
+	{
+		my_name = get_shell_my_username(&results);
+	}
+	// 2. Parse /etc/group for all GIDs "my username" is a member of
+	// 3. Store those GIDs in a heap-allocated array of gid_t values
+	// 4. Terminate the array with "my username"'s GID
+	if (ENOERR == results)
+	{
+		gid_arr = parse_compatible_groups(my_name, &results);
+		if (ENOERR != results)
+		{
+			PRINT_ERROR(The call to parse_compatible_groups() failed);
+			PRINT_ERRNO(results);
+		}
+	}
+
+	// CLEANUP
+	if (my_name)
+	{
+		free_devops_mem(&my_name);  // Ignore errors
+	}
+	if (ENOERR != results && gid_arr)
+	{
+		free_devops_mem(&gid_arr);  // Ignore errors
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = results;
+	}
+	return gid_arr;
 }
 
 
@@ -635,6 +788,44 @@ off_t get_shell_size(const char *pathname, int *errnum)
 }
 
 
+gid_t get_shell_user_gid(const char *username, int *errnum)
+{
+	// LOCAL VARIABLES
+	gid_t users_gid = 0;            // Username's GID
+	int results = ENOERR;           // Local errno value
+	char command[] = { "id -g " };  // The base shell command
+	char output[512] = { 0 };       // Output from the command
+
+	// INPUT VALIDATION
+	results = validate_err(errnum);
+
+	// GET IT
+	// Execute command
+	if (ENOERR == results)
+	{
+		results = run_command_append(command, usernanme, output, sizeof(output) / sizeof(*output));
+		if (results)
+		{
+			PRINT_ERROR(The call to run_command() failed);
+			PRINT_ERRNO(results);
+		}
+	}
+	// Convert results
+	if (ENOERR == result)
+	{
+		users_gid = atoi(output);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = results;
+	}
+	return users_gid;
+}
+
+
+
 long get_sys_block_size(int *errnum)
 {
 	// LOCAL VARIABLES
@@ -1031,7 +1222,8 @@ int run_command(const char *command, char *output, size_t output_len)
 }
 
 
-int run_command_append(const char *base_cmd, const char *cmd_suffix, char *output, size_t output_len)
+int run_command_append(const char *base_cmd, const char *cmd_suffix, char *output,
+	                   size_t output_len)
 {
 	// LOCAL VARIABLES
 	char *full_cmd = NULL;     // command + cmd_suffix in a heap-allocated buffer
@@ -1057,7 +1249,7 @@ int run_command_append(const char *base_cmd, const char *cmd_suffix, char *outpu
 			PRINT_ERROR(The call to alloc_devops_mem() encountered an error);
 			if (ENOERR != result)
 			{
-				PRINT_ERRNO(result);	
+				PRINT_ERRNO(result);
 			}
 			else
 			{
@@ -1150,6 +1342,288 @@ int convert_octal_to_decimal(int octal_value)
 }
 
 
+char *extract_group_field(char *group_entry, int field_num)
+{
+	// LOCAL VARIABLES
+	int results = ENOERR;             // Errno value
+	int count = 0;                    // Field count
+	char *entry_field = group_entry;  // Pointer to the given field_num
+
+	// INPUT VALIDATION
+	results = validate_group_entry(group_entry);
+	if (!results)
+	{
+		if (field_num < 0 || field_num > 3)
+		{
+			results = EINVAL;  // Bad field number
+		}
+	}
+
+	// EXTRACT IT
+	if (!results)
+	{
+		// Advance to the user_list
+		while (count < field_num && *entry_field != '\0')
+		{
+			if (':' == *entry_field)
+			{
+				count++;
+			}
+			entry_field++;  // Advance to next character
+		}
+	}
+
+	// DONE
+	if (results)
+	{
+		entry_field = NULL;
+	}
+	return entry_field;
+}
+
+
+char *extract_group_user_list(char *group_entry)
+{
+	// LOCAL VARIABLES
+	int results = ENOERR;      // Errno value
+	char *entry_field = NULL;  // Pointer to the given field_num
+
+	// INPUT VALIDATION
+	results = validate_group_entry(group_entry);
+
+	// EXTRACT IT
+	if (!results)
+	{
+		entry_field = extract_group_field(group_entry, 3);
+	}
+
+	// DONE
+	return entry_field;
+}
+
+
+gid_t *parse_compatible_groups(char *username, int *errnum)
+{
+	// LOCAL VARIABLES
+	int results = ENOERR;             // Errno value
+	gid_t local_gids[1024] = { 0 };   // Local array of GIDs
+	int gid_index = 0;                // Temporary pointer into local_gids
+	gid_t tmp_gid = 0;                // Temporary GID
+	gid_t *gid_arr = NULL;            // Array of compatible gid_t's
+	gid_t users_gid = 0;              // The GID for username
+	char *group_cont = NULL;          // Contents of /etc/group
+	char *tmp_curr = NULL;            // Temporary "current" line
+	char *tmp_next = NULL;            // Temporary "next" line
+
+	// INPUT VALIDATION
+	results = validate_standard_args(username, errnum);
+
+	// SETUP
+	if (!results)
+	{
+		users_gid = get_shell_user_gid(username, &results);
+	}
+
+	// PARSE IT
+	// Read /etc/group
+	if (!results)
+	{
+		group_cont = read_a_file("/etc/group", &results);
+	}
+	// Parse /etc/group for all GIDs "my username" is a member of
+	if (!results)
+	{
+		tmp_curr = group_cont;
+		while (NULL != tmp_curr && '\0' != *tmp_curr)
+		{
+			tmp_next = strstr(tmp_curr, "\n");
+			if (tmp_next)
+			{
+				// Separate the lines
+				*tmp_next = '\0';  // Truncate that entry
+				tmp_next++;  // Advance to the next entry
+			}
+			// At this point, tmp_curr is line N and tmp_next is line N+1 (if there is one)
+			if (true == parse_group_user_list(username, tmp_curr, &tmp_gid))
+			{
+				if (gid_index < (sizeof(local_gids) / sizeof(*local_gids)))
+				{
+					// Save the user's GID for the last index
+					if (tmp_gid != users_gid)
+					{
+						local_gids[gid_index] = tmp_gid;
+						gid_index++;  // Advance to next index
+					}
+				}
+				else
+				{
+					results = ENOBUFS;  // local_gids ran out of room?!
+				}
+			}
+			// Advance the pointers to their next lines
+			tmp_curr = tmp_next;  // Now pointing at N+1 (because line N has been parsed)
+			tmp_next = NULL;
+		}
+	}
+	// Truncate the local array
+	if (!results)
+	{
+		if (gid_index < (sizeof(local_gids) / sizeof(*local_gids)))
+		{
+			// Save the user's GID for the last index
+			local_gids[gid_index] = tmp_gid;
+			gid_index++;  // Now this becomes the index count for the GID array
+		}
+		else
+		{
+			results = ENOBUFS;  // local_gids ran out of room?!
+		}
+	}
+	// Allocate a heap buffer to store all the GIDs
+	if (!results)
+	{
+		gid_arr = alloc_devops_mem(gid_index, sizeof(*local_gids), &results);
+	}
+	// Store those GIDs in a heap-allocated array of gid_t values
+	if (!results)
+	{
+		for (int i = 0; i < gid_index; i++)
+		{
+			gid_arr[i] = local_gids[i];
+		}
+	}
+
+	// CLEANUP
+	// Always free the /etc/group file contents
+	if (group_cont)
+	{
+		free_devops_mem(&group_cont);  // Ignore errors
+	}
+	// Free the GID array if it was allocated and there was an error
+	if (ENOERR != results && gid_arr)
+	{
+		free_devops_mem(&gid_arr);  // Ignore errors
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = results;
+	}
+	return gid_arr;
+}
+
+
+bool parse_group_user_list(char *username, char *group_entry, gid_t *found_gid)
+{
+	// LOCAL VARIABLES
+	bool found_one = false;                     // Username was found in group_entry's user_list
+	int results = ENOERR;                       // Control flow
+	int count = 0;                              // Colon count
+	char *tmp_ptr = group_entry;                // Iterating pointer variable into group_entry
+	char *found_ptr = NULL;                     // Pointer to an username in the user_list
+	size_t name_len = 0;                        // Length of username
+	char gid_str[SKID_MAX_ID_LEN + 1] = { 0 };  // The GID field read from group_entry
+
+	// INPUT VALIDATION
+	results = validate_name(username);
+	if (!results)
+	{
+		results = validate_group_entry(group_entry);
+	}
+	if (!results && NULL == found_gid)
+	{
+		results = EINVAL;  // NULL gid_t pointer
+	}
+	else
+	{
+		name_len = strlen(username);
+		*found_gid = 0;  // Zeroize it
+	}
+
+	// PARSE IT
+	// Find a match
+	if (!results)
+	{
+		// Advance to the user_list
+		tmp_ptr = extract_group_field(group_entry, 3);
+		// Check the user_list for username
+		if (strlen(tmp_ptr) >= name_len)
+		{
+			found_ptr = strstr(tmp_ptr, username);
+			if (found_ptr)
+			{
+				// Attempting to avoid false positives (e.g., "phil" in ":phillip")
+				if ('\0' == found_ptr[name_len] || '\n' == found_ptr[name_len]
+					|| ',' == found_ptr[name_len])
+				{
+					found_one = true;
+				}
+			}
+		}
+	}
+	// Read the matching GID
+	if (!results && true == found_one)
+	{
+		results = read_group_field(group_entry, 2, gid_str, SKID_MAX_ID_LEN);
+	}
+	// Store the matching GID
+	if (!results && true == found_one)
+	{
+		*found_gid = atoi(gid_str);
+	}
+
+	// DONE
+	return found_one;
+}
+
+
+int read_group_field(char *group_entry, int field_num, char *field_value, int fv_len)
+{
+	// LOCAL VARIABLES
+	int results = ENOERR;      // Errno value
+	char *entry_field = NULL;  // Pointer to the given field_num
+	int curr_index = 0;        // Index into group_entry field number field_num
+
+	// INPUT VALIDATION
+	results = validate_group_entry(group_entry);
+
+	// DO IT
+	// Extract it
+	if (!results)
+	{
+		entry_field = extract_group_field(group_entry, field_num);
+		if (NULL == entry_field)
+		{
+			results = -1;  // Unspecified error
+		}
+	}
+	// Read it
+	if (!results)
+	{
+		while (curr_index < fv_len)
+		{
+			// Store it
+			field_value[curr_index] = entry_field[curr_index];
+			// Check it
+			if (':' == field_value[curr_index] || '\n' == field_value[curr_index])
+			{
+				field_value[curr_index] = '\0';  // That's the end of the field
+			}
+			if ('\0' == field_value[curr_index])
+			{
+				break;  // The end
+			}
+			// Next
+			curr_index++;  // Next group field character
+		}
+	}
+
+	// DONE
+	return results;
+}
+
+
 int truncate_dir(char *haystack, const char *needle, size_t hay_len)
 {
 	// LOCAL VARIABLES
@@ -1218,6 +1692,41 @@ int validate_err(int *err)
 	if (!err)
 	{
 		result = EINVAL;  // Bad input
+	}
+
+	// DONE
+	return result;
+}
+
+
+int validate_group_entry(char *group_entry)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;          // Errno value
+	int count = 0;                // Count of colon characters (of which there must be 3)
+	char *tmp_ptr = group_entry;  // Iterating pointer
+
+	// INPUT VALIDATION
+	if (!group_entry || !(*group_entry))
+	{
+		result = EINVAL;  // Bad input
+	}
+	else
+	{
+		// Count colons
+		while (*tmp_ptr != '\0' && *tmp_ptr != '\n')
+		{
+			if (':' == *tmp_ptr)
+			{
+				count++;
+			}
+			tmp_ptr++;  // Next character
+		}
+		// Validate colons
+		if (3 != count)
+		{
+			result = EINVAL;
+		}
 	}
 
 	// DONE

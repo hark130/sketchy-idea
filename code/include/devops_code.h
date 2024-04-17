@@ -74,6 +74,28 @@ blkcnt_t get_shell_block_count(const char *pathname, int *errnum);
 
 /*
  *  Description:
+ *      Using devops_code run_command-family functions:
+ *          1. Get the current user's username (using get_shell_my_username())
+ *          2. Parse /etc/group for all GIDs "my username" is a member of
+ *          3. Store those GIDs in a heap-allocated array of gid_t values
+ *          4. Terminate the array with "my username"'s GID (using get_shell_*() functionality)
+ *      This is intended as a double-do to facilitate testing of skid_file_metadata_write's
+ *      set_ownership() without having to hard-code brittle expected return values.
+ *      The caller is responsible for using free_devops_mem() to free the array of gid_t's
+ *      returned by this function.
+ *
+ *  Args:
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      A "my GID"-terminated heap-allocated array of compatible GIDs on success.
+ *      NULL on error.  Check errnum for actual errno value.
+ */
+gid_t *get_shell_compatible_gid(int *errnum);
+
+
+/*
+ *  Description:
  *      Get the pathname's raw status change time by executing the following command in a shell:
  *          stat -c %Z <pathname>
  *      This is intended as a double-do to validate the results of skid_file_metadata_read's
@@ -269,6 +291,23 @@ uid_t get_shell_owner(const char *pathname, int *errnum);
  *      On success, errnum will be zeroized.
  */
 off_t get_shell_size(const char *pathname, int *errnum);
+
+/*
+ *  Description:
+ *      Get the username's GID by executing the following command in a shell:
+ *          id -g <username>
+ *      This is intended as a double-do to facilitate testing of skid_file_metadata_write's
+ *      set_ownership() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      username: The name to fetch the GID for.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      GID on success, 0 on error.  The only true indication of an error is the errnum value
+ *      since 0 is a valid GID.
+ */
+gid_t get_shell_user_gid(const char *username, int *errnum);
 
 /*
  *  Description:
