@@ -20,6 +20,9 @@
 #define ENOERR ((int)0)
 #endif  /* ENOERR */
 
+// The useradd utility may only support 32 but Linux supports more
+#define SKID_MAX_USERNAME_LEN 256  // Maximum username length
+
 /**************************************************************************************************/
 /********************************* PRIVATE FUNCTION DECLARATIONS **********************************/
 /**************************************************************************************************/
@@ -437,6 +440,64 @@ time_t get_shell_mtime(const char *pathname, int *errnum)
 }
 
 
+char *get_shell_my_username(int *errnum)
+{
+	// LOCAL VARIABLES
+	int results = ENOERR;                              // Local errno value
+	char command[] = { "whoami" };                     // The shell command
+	char username[SKID_MAX_USERNAME_LEN + 1] = { 0 };  // Local username storage
+	size_t name_len = 0;                               // Length of the username
+	char *name_ptr = NULL;                             // Heap-allocated buffer w/ username
+
+	// INPUT VALIDATION
+	results = validate_err(errnum);
+
+	// GET IT
+	// Execute shell command
+	if (ENOERR == results)
+	{
+		results = run_command(command, username, sizeof(username) / sizeof(*username));
+		if (results)
+		{
+			PRINT_ERROR(The call to run_command() failed);
+			PRINT_ERRNO(results);
+		}
+		else
+		{
+			name_len = strlen(username);
+		}
+	}
+	// Allocate a buffer
+	if (ENOERR == results)
+	{
+		name_ptr = alloc_devops_mem(name_len + 1, sizeof(char), &results);
+		if (ENOERR != results)
+		{
+			PRINT_ERROR(The call to alloc_devops_mem() failed);
+			PRINT_ERRNO(results);
+		}
+	}
+	// Copy username
+	if (ENOERR == results)
+	{
+		strncpy(name_ptr, username, name_len * sizeof(char));
+	}
+
+	// CLEANUP
+	if (ENOERR != resuls && name_ptr)
+	{
+		free_devops_mem(&name_ptr);  // Ignore errors
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = results;
+	}
+	return name_ptr;
+}
+
+
 uid_t get_shell_owner(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
@@ -622,6 +683,104 @@ int micro_sleep(useconds_t num_microsecs)
 
 	// DONE
 	return errnum;
+}
+
+
+char *read_a_file(const char *filename, int *errnum)
+{
+	// LOCAL VARIABLES
+	int results = ENOERR;       // Results of this function call
+	int temp_results = ENOERR;  // Temporary errno value
+	char *file_buff = NULL;     // Heap-allocated buffer
+	off_t file_size = 0;        // Size of filename
+	FILE *file_ptr = NULL;      // Filename read stream
+	size_t bytes_read = 0;      // Return value from fread()
+
+	// INPUT VALIDATION
+	results = validate_standard_args(filename, errnum);
+
+	// READ IT
+	// Size it
+	if (ENOERR == results)
+	{
+		file_size = get_shell_size(filename, &results);
+		if (results)
+		{
+			PRINT_ERROR(The call to get_shell_size() failed);
+			PRINT_ERRNO(results);
+		}
+	}
+	// Allocate buffer
+	if (ENOERR == results)
+	{
+		file_buff = alloc_devops_mem(file_size + 1, 1, &results);
+		if (results)
+		{
+			PRINT_ERROR(The call to alloc_devops_mem() failed);
+			PRINT_ERRNO(results);
+		}
+	}
+	// Open it
+	if (ENOERR == results)
+	{
+		file_ptr = fopen(filename, "r");
+		if (NULL == file_ptr)
+		{
+			results = errno;
+			PRINT_ERROR(The call to fopen() failed);
+			PRINT_ERRNO(results);
+		}
+	}
+	// Read it
+	if (ENOERR == results)
+	{
+		bytes_read = fread(file_buff, 1, file_size, file_ptr);
+		if (bytes_read != file_size)
+		{
+			if (ferror(file_ptr))
+			{
+				PRINT_ERROR(A call to ferror() indicated an unspecified fread() error);
+				results = -1;  // Unspecified error
+			}
+			else if (feof(file_ptr))
+			{
+				PRINT_WARNG(A call to feof() indicated an unanticipated EOF);  // This is fine?
+			}
+		}
+	}
+
+	// WRAP UP
+	// FILE pointer
+	if (file_ptr)
+	{
+		if (fclose(file_ptr))
+		{
+			temp_results = errno;
+			PRINT_ERROR(The call to fclose() failed);
+			PRINT_ERRNO(temp_results);
+			if (ENOERR == results)
+			{
+				results = temp_results;
+			}
+		}
+	}
+	// Heap buffer
+	if (ENOERR != results)
+	{
+		if (file_buff)
+		{
+			// Ignore errors since we already encountered some
+			free_devops_mem(&file_buff);  // Best effort
+		}
+	}
+	// Function call results
+	if (errnum)
+	{
+		*errnum = results;
+	}
+
+	// DONE
+	return file_buff;
 }
 
 

@@ -189,6 +189,23 @@ time_t get_shell_mtime(const char *pathname, int *errnum);
 
 /*
  *  Description:
+ *      Get the current user's username by executing the following command in a shell:
+ *          whoami
+ *      This is intended as a double-do and not meant to be "production code".
+ *      Also, the caller is responsible for using free_devops_mem() to free the memory address
+ *      returned by this function.
+ *
+ *  Args:
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      Heap-allocated string containing the username on success, NULL on error.
+ *      Check errnum for actual errno value on error.
+ */
+char *get_shell_my_username(int *errnum);
+
+/*
+ *  Description:
  *      Get the ID of pathname's owner by executing the following command in a shell:
  *          stat -c %u <pathname>
  *      This is intended as a double-do to validate the results of skid_file_metadata_read's
@@ -277,6 +294,21 @@ int micro_sleep(useconds_t num_microsecs);
 
 /*
  *  Description:
+ *      Read the contents of filename into a heap-allocated buffer.  The caller is responsible
+ *      for using free_devops_mem() to free the memory address returned by this function.
+ *
+ *  Args:
+ *      filename: The relative or absolute path of a filename to read.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      Pointer to a heap-allocated buffer, which contains the contents of filename, on success.
+ *      Returns NULL on error.  Check errnum for errno value (or -1 on unspecified error).
+ */
+char *read_a_file(const char *filename, int *errnum);
+
+/*
+ *  Description:
  *      Use remove() to delete a file.
  *
  *  Args:
@@ -342,7 +374,8 @@ int run_command(const char *command, char *output, size_t output_len);
  *  Returns:
  *      0 on success, errno on error.
  */
-int run_command_append(const char *base_cmd, const char *cmd_suffix, char *output, size_t output_len);
+int run_command_append(const char *base_cmd, const char *cmd_suffix, char *output,
+                       size_t output_len);
 
 /*
  *  Description:
