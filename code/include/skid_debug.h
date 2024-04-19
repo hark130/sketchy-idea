@@ -17,11 +17,15 @@
 #ifdef SKID_DEBUG
 #include <stdio.h>   // fprintf()
 #include <string.h>  // strerror()
-#define PRINT_ERRNO(errorNum) if (errorNum) { fprintf(stderr, "<<<ERROR>>> - %s - %s() - %d - Returned errno: %s\n", __FILE__, __FUNCTION_NAME__, __LINE__, strerror(errorNum)); };
-#define PRINT_ERROR(msg) do { fprintf(stderr, "<<<ERROR>>> - %s - %s() - %d - %s!\n", __FILE__, __FUNCTION_NAME__, __LINE__, #msg); } while (0);
-#define PRINT_WARNG(msg) do { fprintf(stderr, "¿¿¿WARNING??? - %s - %s() - %d - %s!\n", __FILE__, __FUNCTION_NAME__, __LINE__, #msg); } while (0);
+#define DEBUG_ERROR_STR "<<<ERROR>>>"
+#define DEBUG_WARNG_STR "¿¿¿WARNING???"
+#define PRINT_ERRNO(errorNum) if (errorNum) { fprintf(stderr, "%s - %s - %s() - %d - Returned errno: %s\n", DEBUG_ERROR_STR, __FILE__, __FUNCTION_NAME__, __LINE__, strerror(errorNum)); };
+#define PRINT_ERROR(msg) do { fprintf(stderr, "%s - %s - %s() - %d - %s!\n", DEBUG_ERROR_STR, __FILE__, __FUNCTION_NAME__, __LINE__, #msg); } while (0);
+#define PRINT_WARNG(msg) do { fprintf(stderr, "%s - %s - %s() - %d - %s!\n", DEBUG_WARNG_STR, __FILE__, __FUNCTION_NAME__, __LINE__, #msg); } while (0);
 #define FPRINTF_ERR(...) do { fprintf(stderr, __VA_ARGS__); } while (0);
 #else
+#define DEBUG_ERROR_STR ""
+#define DEBUG_WARNG_STR ""
 #define PRINT_ERRNO(errorNum) ;;;
 #define PRINT_ERROR(msg) ;;;
 #define PRINT_WARNG(msg) ;;;
