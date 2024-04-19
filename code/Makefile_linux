@@ -75,6 +75,8 @@ CHECK_CC_ARGS = -lcheck -lm -lsubunit -lrt -lpthread
 # MANUAL TEST VARIABLES
 # Prefix for *all* manual test_* files
 MAN_TEST_PREFIX = test_
+# Prefix for all devops_code library manual tests
+MAN_TEST_DEVOPS_PREFIX = $(MAN_TEST_PREFIX)devops_code_
 # Prefix for all skid_file_metadata_read library manual tests
 MAN_TEST_SFMR_PREFIX = $(MAN_TEST_PREFIX)sfmr_
 # Prefix for all skid_file_metadata_read library manual tests
@@ -177,6 +179,11 @@ $(DIST_DIR)$(CHECK_PREFIX)%$(OBJ_FILE_EXT): $(TEST_DIR)$(CHECK_PREFIX)%$(SRC_FIL
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Compiling Check unit test code: $^"
 	@$(CC) $(CFLAGS) -c $^ -o $@ -I $(INCLUDE_DIR)
+
+# MANUAL TEST: Linking devops_code library manual test binaries
+$(DIST_DIR)$(MAN_TEST_DEVOPS_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_DEVOPS_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
+	@echo "    Linking manual test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
 # MANUAL TEST: Linking skid_file_metadata_read library manual test binaries
 $(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT)
