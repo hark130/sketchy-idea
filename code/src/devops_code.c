@@ -72,8 +72,9 @@ char *extract_group_user_list(char *group_entry);
 /*
  *  Description:
  *      Return a heap-allocated array of all the GIDs, found in /etc/group, where username
- *      is a member.  Terminate the array with username's GID.  The return value should contain
- *      all of the "groups" entries from the `id <username>` command.
+ *      is a member.  Terminate the array with username's GID and two zero values
+ *		(for double-safety).  The return value should contain all of the "groups" entries from
+ *		the `id <username>` command.
  *
  *  Args:
  *      username: The name to check for compatibility.
@@ -148,6 +149,19 @@ int truncate_dir(char *haystack, const char *needle, size_t hay_len);
 
 /*
  *  Description:
+ *      Strip trailing newlines from string.  First newline character will be truncated with a
+ *		nul character.
+ *
+ *  Args:
+ *      string: A nul-terminated string to remove newlines from.
+ *
+ *  Returns:
+ *      0 on success, EINVAL on bad input.
+ */
+int strip_newlines(char *string);
+
+/*
+ *  Description:
  *      Validate standard errno [Out] args on behalf of the library.  No values are changed.
  *
  *  Args:
@@ -200,11 +214,11 @@ int validate_standard_args(const char *name, int *err);
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
 /**************************************************************************************************/
-char *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum)
+void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum)
 {
 	// LOCAL VARIABLES
 	int result = ENOERR;   // Errno value
-	char *new_buf = NULL;  // Pointer to the newly allocated buffer
+	void *new_buf = NULL;  // Pointer to the newly allocated buffer
 
 	// INPUT VALIDATION
 	if (num_elem <= 0 || size_elem <= 0 || !errnum)
@@ -233,11 +247,11 @@ char *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum)
 }
 
 
-int free_devops_mem(char **old_array)
+int free_devops_mem(void **old_array)
 {
 	// LOCAL VARIABLES
 	int result = ENOERR;   // Errno value
-	char *old_buf = NULL;  // Pointer to the old buffer to free
+	void *old_buf = NULL;  // Pointer to the old buffer to free
 
 	// INPUT VALIDATION
 	if (old_array && *old_array)
@@ -353,11 +367,11 @@ gid_t *get_shell_compatible_gid(int *errnum)
 	// CLEANUP
 	if (my_name)
 	{
-		free_devops_mem(&my_name);  // Ignore errors
+		free_devops_mem((void**)&my_name);  // Ignore errors
 	}
 	if (ENOERR != results && gid_arr)
 	{
-		free_devops_mem(&gid_arr);  // Ignore errors
+		free_devops_mem((void**)&gid_arr);  // Ignore errors
 	}
 
 	// DONE
@@ -616,7 +630,7 @@ gid_t get_shell_my_gid(int *errnum)
 		}
 	}
 	// Convert results
-	if (ENOERR == result)
+	if (ENOERR == results)
 	{
 		my_gid = atoi(output);
 	}
@@ -653,7 +667,7 @@ uid_t get_shell_my_uid(int *errnum)
 		}
 	}
 	// Convert results
-	if (ENOERR == result)
+	if (ENOERR == results)
 	{
 		my_uid = atoi(output);
 	}
@@ -689,10 +703,16 @@ char *get_shell_my_username(int *errnum)
 			PRINT_ERROR(The call to run_command() failed);
 			PRINT_ERRNO(results);
 		}
-		else
-		{
-			name_len = strlen(username);
-		}
+	}
+	// Cleanup username
+	if (ENOERR == results)
+	{
+		results = strip_newlines(username);
+	}
+	// Measure it
+	if (ENOERR == results)
+	{
+		name_len = strlen(username);
 	}
 	// Allocate a buffer
 	if (ENOERR == results)
@@ -711,9 +731,9 @@ char *get_shell_my_username(int *errnum)
 	}
 
 	// CLEANUP
-	if (ENOERR != resuls && name_ptr)
+	if (ENOERR != results && name_ptr)
 	{
-		free_devops_mem(&name_ptr);  // Ignore errors
+		free_devops_mem((void**)&name_ptr);  // Ignore errors
 	}
 
 	// DONE
@@ -803,7 +823,7 @@ gid_t get_shell_user_gid(const char *username, int *errnum)
 	// Execute command
 	if (ENOERR == results)
 	{
-		results = run_command_append(command, usernanme, output, sizeof(output) / sizeof(*output));
+		results = run_command_append(command, username, output, sizeof(output) / sizeof(*output));
 		if (results)
 		{
 			PRINT_ERROR(The call to run_command() failed);
@@ -811,7 +831,7 @@ gid_t get_shell_user_gid(const char *username, int *errnum)
 		}
 	}
 	// Convert results
-	if (ENOERR == result)
+	if (ENOERR == results)
 	{
 		users_gid = atoi(output);
 	}
@@ -1035,7 +1055,7 @@ char *read_a_file(const char *filename, int *errnum)
 		if (file_buff)
 		{
 			// Ignore errors since we already encountered some
-			free_devops_mem(&file_buff);  // Best effort
+			free_devops_mem((void**)&file_buff);  // Best effort
 		}
 	}
 	// Function call results
@@ -1141,7 +1161,7 @@ char *resolve_to_repo(const char *repo_name, const char *rel_filename, bool must
 	// CLEANUP
 	if (ENOERR != result && abs_file)
 	{
-		free_devops_mem(&abs_file);
+		free_devops_mem((void**)&abs_file);
 	}
 
 	// DONE
@@ -1175,12 +1195,14 @@ int run_command(const char *command, char *output, size_t output_len)
 	// Setup read-only pipe
 	if (ENOERR == result)
 	{
+		FPRINTF_ERR("About to call popen(%s)\n", command);  // DEBUGGING
 		process = popen(command, "r");
-		if (!process)
+		if (NULL == process)
 		{
 			result = errno;
 		}
 		PRINT_ERROR(The call to popen() did not succeed);
+		FPRINTF_ERR("It was popen(%s) that failed with %d\n", command, result);
 		PRINT_ERRNO(result);
 	}
 	// Get the data
@@ -1279,7 +1301,7 @@ int run_command_append(const char *base_cmd, const char *cmd_suffix, char *outpu
 	// CLEANUP
 	if (full_cmd)
 	{
-		free_devops_mem(&full_cmd);
+		free_devops_mem((void**)&full_cmd);
 	}
 
 	// DONE
@@ -1443,14 +1465,17 @@ gid_t *parse_compatible_groups(char *username, int *errnum)
 				*tmp_next = '\0';  // Truncate that entry
 				tmp_next++;  // Advance to the next entry
 			}
+			// FPRINTF_ERR("LINE N: %s\nLINE N+1: %s\n", tmp_curr, tmp_next);  // DEBUGGING
 			// At this point, tmp_curr is line N and tmp_next is line N+1 (if there is one)
 			if (true == parse_group_user_list(username, tmp_curr, &tmp_gid))
 			{
+				FPRINTF_ERR("parse_group_user_list(%s, %s, %p) just returned true and provided a GID of %u\n", username, tmp_curr, &tmp_gid, tmp_gid);  // DEBUGGING
 				if (gid_index < (sizeof(local_gids) / sizeof(*local_gids)))
 				{
 					// Save the user's GID for the last index
 					if (tmp_gid != users_gid)
 					{
+						FPRINTF_ERR("About to store %u in local_gids[%d]\n", tmp_gid, gid_index);  // DEBUGGING
 						local_gids[gid_index] = tmp_gid;
 						gid_index++;  // Advance to next index
 					}
@@ -1466,12 +1491,14 @@ gid_t *parse_compatible_groups(char *username, int *errnum)
 		}
 	}
 	// Truncate the local array
+	FPRINTF_ERR("About to truncate the local array and results is [%d] %s\n", results, strerror(results));  // DEBUGGING
 	if (!results)
 	{
+		FPRINTF_ERR("The tmp_gid is %u\n", tmp_gid);  // DEBUGGING
 		if (gid_index < (sizeof(local_gids) / sizeof(*local_gids)))
 		{
 			// Save the user's GID for the last index
-			local_gids[gid_index] = tmp_gid;
+			local_gids[gid_index] = users_gid;
 			gid_index++;  // Now this becomes the index count for the GID array
 		}
 		else
@@ -1482,13 +1509,15 @@ gid_t *parse_compatible_groups(char *username, int *errnum)
 	// Allocate a heap buffer to store all the GIDs
 	if (!results)
 	{
-		gid_arr = alloc_devops_mem(gid_index, sizeof(*local_gids), &results);
+		gid_arr = alloc_devops_mem(gid_index + 2, sizeof(*local_gids), &results);
 	}
 	// Store those GIDs in a heap-allocated array of gid_t values
 	if (!results)
 	{
+		FPRINTF_ERR("Storing GIDs in the heap buffer and gid_index is currently %d\n", gid_index);  // DEBUGGING
 		for (int i = 0; i < gid_index; i++)
 		{
+			FPRINTF_ERR("Storing %u in gid_arr[%d]\n", local_gids[i], i);  // DEBUGGING
 			gid_arr[i] = local_gids[i];
 		}
 	}
@@ -1497,12 +1526,12 @@ gid_t *parse_compatible_groups(char *username, int *errnum)
 	// Always free the /etc/group file contents
 	if (group_cont)
 	{
-		free_devops_mem(&group_cont);  // Ignore errors
+		free_devops_mem((void**)&group_cont);  // Ignore errors
 	}
 	// Free the GID array if it was allocated and there was an error
 	if (ENOERR != results && gid_arr)
 	{
-		free_devops_mem(&gid_arr);  // Ignore errors
+		free_devops_mem((void**)&gid_arr);  // Ignore errors
 	}
 
 	// DONE
@@ -1519,7 +1548,6 @@ bool parse_group_user_list(char *username, char *group_entry, gid_t *found_gid)
 	// LOCAL VARIABLES
 	bool found_one = false;                     // Username was found in group_entry's user_list
 	int results = ENOERR;                       // Control flow
-	int count = 0;                              // Colon count
 	char *tmp_ptr = group_entry;                // Iterating pointer variable into group_entry
 	char *found_ptr = NULL;                     // Pointer to an username in the user_list
 	size_t name_len = 0;                        // Length of username
@@ -1551,12 +1579,15 @@ bool parse_group_user_list(char *username, char *group_entry, gid_t *found_gid)
 		if (strlen(tmp_ptr) >= name_len)
 		{
 			found_ptr = strstr(tmp_ptr, username);
+			FPRINTF_ERR("strstr('%s', '%s') returned '%s'\n", tmp_ptr, username, found_ptr);  // DEBUGGING
 			if (found_ptr)
 			{
+				FPRINTF_ERR("The character value following '%s' is %d\n", username, found_ptr[name_len]);  // DEBUGGING
 				// Attempting to avoid false positives (e.g., "phil" in ":phillip")
 				if ('\0' == found_ptr[name_len] || '\n' == found_ptr[name_len]
 					|| ',' == found_ptr[name_len])
 				{
+					FPRINTF_ERR("FOUND ONE!\n");  // DEBUGGING
 					found_one = true;
 				}
 			}
@@ -1566,11 +1597,13 @@ bool parse_group_user_list(char *username, char *group_entry, gid_t *found_gid)
 	if (!results && true == found_one)
 	{
 		results = read_group_field(group_entry, 2, gid_str, SKID_MAX_ID_LEN);
+		FPRINTF_ERR("The call to read_group_field(%s, %d, %s, %d) resulted in [%d] '%s'\n", group_entry, 2, gid_str, SKID_MAX_ID_LEN, results, strerror(results));  // DEBUGGING
 	}
 	// Store the matching GID
 	if (!results && true == found_one)
 	{
 		*found_gid = atoi(gid_str);
+		FPRINTF_ERR("Just stored %u in *found_gid\n", *found_gid);  // DEBUGGING
 	}
 
 	// DONE
@@ -1616,6 +1649,36 @@ int read_group_field(char *group_entry, int field_num, char *field_value, int fv
 			}
 			// Next
 			curr_index++;  // Next group field character
+		}
+	}
+
+	// DONE
+	return results;
+}
+
+
+int strip_newlines(char *string)
+{
+	// LOCAL VARIABLES
+	int results = ENOERR;    // Return value
+	char *tmp_ptr = string;  // Iterating variable
+
+	// INPUT VALIDATION
+	results = validate_name(string);
+
+	// STRIP IT
+	if (!results)
+	{
+		while ('\0' != *tmp_ptr)
+		{
+			if ('\n' == *tmp_ptr)
+			{
+				*tmp_ptr = '\0';  // Truncate it
+			}
+			else
+			{
+				tmp_ptr++;  // Keep looking
+			}
 		}
 	}
 

@@ -6,7 +6,8 @@
 #define __SKID_DEVOPS__
 
 #include <stdbool.h>    // bool, false, true
-#include <stddef.h>		// size_t
+#include <stddef.h>     // size_t
+#include <unistd.h>     // useconds_t
 
 // Baseline dir level to standardize file-based test input paths
 #define SKID_REPO_NAME (const char *)"sketchy-idea"  // The name of this repo
@@ -25,7 +26,7 @@
  *		Caller is respsonsible for freeing the return value with free_devops_mem().
  *		NULL on error (check errnum).
  */
-char *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum);
+void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum);
 
 /*
  *  Description:
@@ -37,7 +38,7 @@ char *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum);
  *  Returns:
  *      0 on success, errno on error.
  */
-int free_devops_mem(char **old_array);
+int free_devops_mem(void **old_array);
 
 /*
  *  Description:
