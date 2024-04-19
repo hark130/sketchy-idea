@@ -83,7 +83,7 @@ char *resolve_test_input(const char *pathname)
 	// DONE
 	if (0 != errnum && resolved_name)
 	{
-		free_devops_mem(&resolved_name);  // Best effort
+		free_devops_mem((void **)&resolved_name);  // Best effort
 	}
 	return resolved_name;
 }
@@ -177,10 +177,10 @@ void teardown(void)
 {
 	// Pipe
 	remove_a_file(test_pipe_path, true);  // Best effort
-	free_devops_mem(&test_pipe_path);  // Ignore any errors
+	free_devops_mem((void **)&test_pipe_path);  // Ignore any errors
 	// Socket
 	remove_a_file(test_socket_path, true);  // Best effort
-	free_devops_mem(&test_socket_path);  // Ignore any errors
+	free_devops_mem((void **)&test_socket_path);  // Ignore any errors
 }
 
 
@@ -218,7 +218,7 @@ START_TEST(test_n01_directory)
 	run_test_case(input_abs_path, NULL, follow, exp_result);
 
 	// CLEANUP
-	free_devops_mem(&input_abs_path);
+	free_devops_mem((void **)&input_abs_path);
 }
 END_TEST
 
@@ -249,7 +249,7 @@ START_TEST(test_n03_regular_file)
 	run_test_case(input_abs_path, NULL, follow, exp_result);
 
 	// CLEANUP
-	free_devops_mem(&input_abs_path);
+	free_devops_mem((void **)&input_abs_path);
 }
 END_TEST
 
@@ -282,8 +282,8 @@ START_TEST(test_n05_symbolic_link_follow)
 	run_test_case(input_abs_path, actual_abs_path, follow, exp_result);
 
 	// CLEANUP
-	free_devops_mem(&input_abs_path);
-	free_devops_mem(&actual_abs_path);
+	free_devops_mem((void **)&input_abs_path);
+	free_devops_mem((void **)&actual_abs_path);
 }
 END_TEST
 
@@ -347,8 +347,8 @@ START_TEST(test_s02_symbolic_link_nofollow)
 	run_test_case(input_abs_path, actual_abs_path, follow, exp_result);
 
 	// CLEANUP
-	free_devops_mem(&input_abs_path);
-	free_devops_mem(&actual_abs_path);
+	free_devops_mem((void **)&input_abs_path);
+	free_devops_mem((void **)&actual_abs_path);
 }
 END_TEST
  
@@ -429,7 +429,7 @@ int main(void)
 
 	// CLEANUP
 	srunner_free(suite_runner);
-	free_devops_mem(&log_abs_path);
+	free_devops_mem((void **)&log_abs_path);
 
 	// DONE
 	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;

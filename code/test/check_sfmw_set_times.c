@@ -125,7 +125,7 @@ char *resolve_test_input(const char *pathname)
 	// DONE
 	if (0 != errnum && resolved_name)
 	{
-		free_devops_mem(&resolved_name);  // Best effort
+		free_devops_mem((void **)&resolved_name);  // Best effort
 	}
 	return resolved_name;
 }
@@ -249,19 +249,19 @@ void teardown(void)
 {
 	// Directory
 	set_times_now(test_dir_path, false);  // Ignore any errors
-	free_devops_mem(&test_dir_path);  // Ignore any errors
+	free_devops_mem((void **)&test_dir_path);  // Ignore any errors
 	// File
 	// set_times_now(test_file_path, false);  // Ignore any errors
-	free_devops_mem(&test_file_path);  // Ignore any errors
+	free_devops_mem((void **)&test_file_path);  // Ignore any errors
 	// Pipe
 	remove_a_file(test_pipe_path, true);  // Best effort
-	free_devops_mem(&test_pipe_path);  // Ignore any errors
+	free_devops_mem((void **)&test_pipe_path);  // Ignore any errors
 	// Socket
 	remove_a_file(test_socket_path, true);  // Best effort
-	free_devops_mem(&test_socket_path);  // Ignore any errors
+	free_devops_mem((void **)&test_socket_path);  // Ignore any errors
 	// Symbolic Link
 	set_times_now(test_sym_link, false);  // Ignore any errors
-	free_devops_mem(&test_sym_link);  // Ignore any errors
+	free_devops_mem((void **)&test_sym_link);  // Ignore any errors
 }
 
 
@@ -739,7 +739,7 @@ int main(void)
 
 	// CLEANUP
 	srunner_free(suite_runner);
-	free_devops_mem(&log_abs_path);
+	free_devops_mem((void **)&log_abs_path);
 
 	// DONE
 	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
