@@ -71,6 +71,11 @@ testPathDetails_ptr test_socket_details;  // Heap-allocated struct containing te
 testPathDetails_ptr test_symlink_details;  // Heap-allocated struct with test symbolic link details
 
 /*
+ *	Answers the question, "Is my test_uid a member of the gid_club GID?"
+ */
+bool compare_compatibility(uid_t test_uid, gid_t gid_club);
+
+/*
  *	Compare pathname's actual UID and GID to the expected values.
  */
 void compare_ownership(const char *pathname, uid_t exp_uid, gid_t exp_gid);
@@ -133,6 +138,57 @@ void teardown(void);
 void teardown_struct(testPathDetails_ptr* old_struct);
 
 
+bool compare_compatibility(uid_t test_uid, gid_t gid_club)
+{
+	// LOCAL VARIABLES
+	int errnum = 0;             // Errno values
+	bool is_member = false;     // True if username is a member of gid_club
+	gid_t *compat_gids = NULL;  // Compatible GIDs
+	gid_t *tmp_gid = NULL;      // Iterating pointer
+	gid_t last_gid = 0;         // Last GID we saw in the array
+
+	// COMPARE IT
+	compat_gids = get_shell_compatible_gid(&errnum);
+	ck_assert_msg(0 == errnum, "get_shell_compatible_gid() failed with [%d] %s",
+		          errnum, strerror(errnum));
+	ck_assert_msg(NULL != compat_gids, "get_shell_compatible_gid() silently failed with NULL");
+	if (compat_gids)
+	{
+		tmp_gid = compat_gids;
+		while(1)
+		{
+			if (gid_club == *tmp_gid)
+			{
+				is_member = true;  // We're in!
+				break;  // We got our answer
+			}
+			else if (test_uid == *tmp_gid)
+			{
+				break;  // End of the array?  Bail to be safe.
+			}
+			else
+			{
+				last_gid = *tmp_gid;  // Store the current, soon to be last, GID
+				tmp_gid++;  // Advance to next GID in the array
+				if (last_gid == *tmp_gid)
+				{
+					break;  // Edge of the cliff... BAIL!
+				}
+			}
+		}
+	}
+
+	// CLEANUP
+	if (compat_gids)
+	{
+		free_devops_mem((void **)&compat_gids);
+	}
+
+	// DONE
+	return is_member;
+}
+
+
 void compare_ownership(const char *pathname, uid_t exp_uid, gid_t exp_gid)
 {
 	// LOCAL VARIABLES
@@ -164,17 +220,46 @@ void compare_ownership(const char *pathname, uid_t exp_uid, gid_t exp_gid)
 int determine_exp_return(const char *pathname, uid_t exp_uid, gid_t exp_gid)
 {
 	// LOCAL VARIABLES
-	int exp_return = 0;  // Expected return value
+	int errnum = 0;                            // Errno values
+	int exp_return = 0;                        // Expected return value
+	uid_t my_uid = get_shell_my_uid(&errnum);  // My UID
+	uid_t path_owner = 0;                      // UID of pathname
 
 	// INPUT VALIDATION
+	ck_assert_msg(0 == errnum, "get_shell_my_uid() failed with [%d] %s",
+		          errnum, strerror(errnum));
 	if (!pathname || !(*pathname))
 	{
 		exp_return = EINVAL;
 	}
-	else
+	else if (0 != my_uid)
 	{
-		// TO DO: DON'T DO NOW... WRITE THE MAGIC HERE
+		path_owner = get_owner(pathname, &errnum);
+		ck_assert_msg(0 == errnum, "get_owner(%s) failed with [%d] %s", pathname,
+			          errnum, strerror(errnum));
+		// From chown(2)... Only a privileged process may change the UID of a file: UID 0
+		if (CSSO_SKIP_UID != exp_uid)
+		{
+			exp_return = EPERM;  // Permission error
+		}
+		// From chown(2)... A privileged process may change the GID arbitrarily: UID 0
+		else if (CSSO_SKIP_GID != exp_gid)
+		{
+			// The UID of a file may change the file's GID to any GID of which that UID is a member.
+			if (my_uid == path_owner)
+			{
+				// Is my UID a member of the exp_gid GID?
+				if (false == compare_compatibility(my_uid, exp_gid))
+				{
+					exp_return = EPERM;
+				}
+			}
+		}
 	}
+	// TO DO: DON'T DO NOW... Implement devops code to check CAP_CHOWN capability because...
+	// From chown(2)...
+	// Only a privileged process may change the UID of a file: CAP_CHOWN capability
+	// A privileged process may change the GID arbitrarily: CAP_CHOWN capability
 
 	// DONE
 	return exp_return;
@@ -374,6 +459,8 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 	{
 		compare_ownership(id_check, exp_uid, exp_gid);
 	}
+	FPRINTF_ERR("set_ownership(%s, %u, %u) returned [%d] '%s'",
+		        pathname, new_uid, new_gid, actual_ret, strerror(actual_ret));  // DEBUGGING
 
 	// DONE
 	return;
@@ -575,36 +662,34 @@ void teardown_struct(testPathDetails_ptr* old_struct)
 // /**************************************************************************************************/
 
 
-// START_TEST(test_n01_directory)
-// {
-// 	// LOCAL VARIABLES
-// 	bool follow = true;           // Follow symlinks
-// 	int exp_result = 0;           // Expected results
-// 	time_t new_sec = 0x600DC0DE;  // Seconds test input
-// 	long new_nsec = 0xD06F00D;    // Nanoseconds test input
-// 	// Absolute path for test input as resolved against the repo name
-// 	char *input_abs_path = test_dir_path;
+START_TEST(test_n01_directory)
+{
+	// LOCAL VARIABLES
+	bool follow = true;             // Test case input
+	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	gid_t new_gid = get_new_gid();  // Test case input
+	// Absolute path for test input as resolved against the repo name
+	char *input_abs_path = test_dir_details->pathname;
 
-// 	// RUN TEST
-// 	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
-// }
-// END_TEST
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, new_uid, new_gid);
+}
+END_TEST
 
 
-// START_TEST(test_n02_named_pipe)
-// {
-// 	// LOCAL VARIABLES
-// 	bool follow = true;         // Follow symlinks
-// 	int exp_result = 0;         // Expected results
-// 	time_t new_sec = 0xBAD71E;  // Seconds test input
-// 	long new_nsec = 0x347F00D;  // Nanoseconds test input
-// 	// Absolute path for test input as resolved against the repo name
-// 	char *input_abs_path = test_pipe_path;
+START_TEST(test_n02_named_pipe)
+{
+	// LOCAL VARIABLES
+	bool follow = true;             // Test case input
+	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	gid_t new_gid = get_new_gid();  // Test case input
+	// Absolute path for test input as resolved against the repo name
+	char *input_abs_path = test_pipe_details->pathname;
 
-// 	// RUN TEST
-// 	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
-// }
-// END_TEST
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, new_uid, new_gid);
+}
+END_TEST
 
 
 START_TEST(test_n03_regular_file)
@@ -615,7 +700,6 @@ START_TEST(test_n03_regular_file)
 	gid_t new_gid = get_new_gid();  // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_file_details->pathname;
-	FPRINTF_ERR("TEST N03 GOT A GID OF %u\n", new_gid);  // DEBUGGING
 
 	// RUN TEST
 	run_test_case(input_abs_path, NULL, follow, new_uid, new_gid);
@@ -971,8 +1055,8 @@ Suite *set_ownership_suite(void)
 	// tcase_add_checked_fixture(tc_error, setup, teardown);
 	// tcase_add_checked_fixture(tc_boundary, setup, teardown);
 	// tcase_add_checked_fixture(tc_special, setup, teardown);
-	// tcase_add_test(tc_normal, test_n01_directory);
-	// tcase_add_test(tc_normal, test_n02_named_pipe);
+	tcase_add_test(tc_normal, test_n01_directory);
+	tcase_add_test(tc_normal, test_n02_named_pipe);
 	tcase_add_test(tc_normal, test_n03_regular_file);
 	// tcase_add_test(tc_normal, test_n04_socket);
 	// tcase_add_test(tc_normal, test_n05_symbolic_link_follow);
