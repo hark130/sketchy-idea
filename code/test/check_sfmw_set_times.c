@@ -251,7 +251,7 @@ void teardown(void)
 	set_times_now(test_dir_path, false);  // Ignore any errors
 	free_devops_mem((void **)&test_dir_path);  // Ignore any errors
 	// File
-	// set_times_now(test_file_path, false);  // Ignore any errors
+	set_times_now(test_file_path, false);  // Ignore any errors
 	free_devops_mem((void **)&test_file_path);  // Ignore any errors
 	// Pipe
 	remove_a_file(test_pipe_path, true);  // Best effort
