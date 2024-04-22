@@ -48,6 +48,8 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sfmw_set_ownership.bin; unset 
 
 // Use this to help highlight an errnum that wasn't updated
 #define CANARY_INT (int)0xBADC0DE  // Actually, a reverse canary value
+#define CSSO_SKIP_UID (uid_t)-1  // Do not update the UID
+#define CSSO_SKIP_GID (gid_t)-1  // Do not update the GID
 
 
 /**************************************************************************************************/
@@ -67,6 +69,22 @@ testPathDetails_ptr test_file_details;  // Heap-allocated struct containing test
 testPathDetails_ptr test_pipe_details;  // Heap-allocated struct containing test pipe details
 testPathDetails_ptr test_socket_details;  // Heap-allocated struct containing test socket details
 testPathDetails_ptr test_symlink_details;  // Heap-allocated struct with test symbolic link details
+
+/*
+ *	Compare pathname's actual UID and GID to the expected values.
+ */
+void compare_ownership(const char *pathname, uid_t exp_uid, gid_t exp_gid);
+
+/*
+ *	Programatically determine what the expected return value will be.
+ */
+int determine_exp_return(const char *pathname, uid_t exp_uid, gid_t exp_gid);
+
+/*
+ *	Programmatically determine a new GID for pathname.  Priority order:
+ *		CSSO_DEF_GID, get_shell_compatible_gid(), the GID of the owning process.
+ */
+gid_t get_new_gid(void);
 
 /*
  *	Set the ownership, UID and GID, of the test_*_details globals as specified.  If take_over is
@@ -94,9 +112,15 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 void setup(void);
 
 /*
- *	Allocate memory for a testPathDetails struct and populate it.
+ *	Allocate memory for a testPathDetails struct and populate it.  Ignores ENOENT errors.
  */
 testPathDetails_ptr setup_struct(const char *pathname);
+
+/*
+ *	Update new_struct with the owner and group for new_struct->pathname.  Does not ignore errors
+ *	if must_succeed is true.  Always returns the error received.
+ */
+int setup_struct_owners(testPathDetails_ptr new_struct, bool must_succeed);
 
 /*
  *	Delete the named pipe and raw socket files.  Then, free the heap memory arrays.
@@ -107,6 +131,105 @@ void teardown(void);
  *	Free all allocate memory in the testPathDetails struct in a gently tolerant way.
  */
 void teardown_struct(testPathDetails_ptr* old_struct);
+
+
+void compare_ownership(const char *pathname, uid_t exp_uid, gid_t exp_gid)
+{
+	// LOCAL VARIABLES
+	int errnum = 0;      // Errno values
+	uid_t curr_uid = 0;  // Current UID
+	gid_t curr_gid = 0;  // Current GID
+
+	// COMPARE IT
+	// 1. Get current ownership
+	// UID
+	curr_uid = get_owner(pathname, &errnum);
+	ck_assert_msg(0 == errnum, "get_owner(%s) failed with [%d] %s", pathname,
+		          errnum, strerror(errnum));
+	// GID
+	curr_gid = get_group(pathname, &errnum);
+	ck_assert_msg(0 == errnum, "get_group(%s) failed with [%d] %s", pathname,
+		          errnum, strerror(errnum));
+	// 2. Compare ownership
+	ck_assert_msg(curr_uid == exp_uid, "%s has a UID of %u but was expected to have %u",
+				  pathname, curr_uid, exp_uid);
+	ck_assert_msg(curr_gid == exp_gid, "%s has a GID of %u but was expected to have %u",
+				  pathname, curr_gid, exp_gid);
+
+	// DONE
+	return;
+}
+
+
+int determine_exp_return(const char *pathname, uid_t exp_uid, gid_t exp_gid)
+{
+	// LOCAL VARIABLES
+	int exp_return = 0;  // Expected return value
+
+	// INPUT VALIDATION
+	if (!pathname || !(*pathname))
+	{
+		exp_return = EINVAL;
+	}
+	else
+	{
+		// TO DO: DON'T DO NOW... WRITE THE MAGIC HERE
+	}
+
+	// DONE
+	return exp_return;
+}
+
+
+gid_t get_new_gid(void)
+{
+	// LOCAL VARIABLES
+	int errnum = 0;             // Errno values
+	gid_t new_gid = 0;          // New GID for a test case
+	gid_t *compat_gids = NULL;  // Array of compatible GIDs
+	bool got_one = false;       // Flow control variable
+
+	// PRIORITIES
+	// 1. CSSO_DEF_GID
+#ifdef CSSO_DEF_GID
+	new_gid = CSSO_DEF_GID;  // Use the test-runner-determined default GID
+	got_one = true;  // We got one!
+#endif  /* CSSO_DEF_GID */
+	// 2. get_shell_compatible_gid()
+	if (false == got_one)
+	{
+		compat_gids = get_shell_compatible_gid(&errnum);
+		ck_assert_msg(0 == errnum, "get_shell_compatible_gid() failed with [%d] %s",
+			          errnum, strerror(errnum));
+		ck_assert_msg(NULL != compat_gids, "get_shell_compatible_gid() silently failed with NULL");
+		if (compat_gids)
+		{
+			new_gid = compat_gids[0];  // There's at least one so just use the first one
+			got_one = true;  // We got one!
+		}
+	}
+	// 3. My GID
+	if (false == got_one)
+	{
+		new_gid = get_shell_my_gid(&errnum);  // Just use my GID
+		ck_assert_msg(0 == errnum, "get_shell_my_gid() failed with [%d] %s",
+			          errnum, strerror(errnum));
+		if (!errnum)
+		{
+			got_one = true;  // We finally got one!
+		}
+	}
+
+	// DONE
+	if (compat_gids)
+	{
+		errnum = free_devops_mem((void **)&compat_gids);
+		ck_assert_msg(0 == errnum, "free_devops_mem(&compatible_GID_array) failed with [%d] %s",
+			          errnum, strerror(errnum));
+	}
+	ck_assert_msg(true == got_one, "The call to get_new_gid() failed to produce a GID");
+	return new_gid;
+}
 
 
 void reset_global_ownership(bool take_over)
@@ -143,6 +266,7 @@ void reset_global_ownership(bool take_over)
 				tmp_uid = test_structs[i]->orig_owner;
 				tmp_gid = test_structs[i]->orig_group;
 			}
+			FPRINTF_ERR("reset_global_ownership() IS SETTING %s OWNERSHIP TO UID %u AND GID %u\n", test_structs[i]->pathname, tmp_uid, tmp_gid);  // DEBUGGING
 			// Reset owner
 			errnum = set_owner_id(test_structs[i]->pathname, tmp_uid, follow_sym);
 			if (EPERM == errnum)
@@ -199,31 +323,60 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 				   uid_t new_uid, gid_t new_gid)
 {
 	// LOCAL VARIABLES
-	int errnum = CANARY_INT;          // Errno values
-	// uid_t old_uid = 0;                // Original UID
-	// gid_t old_gid = 0;                // Original GID
+	int actual_ret = 0;               // Return value of the tested function
+	int exp_return = 0;               // Expected return value for this test input
+	uid_t exp_uid = new_uid;          // Expected UID
+	gid_t exp_gid = new_gid;          // Expected GID
 	// uid_t curr_uid = 0;               // Current UID
 	// gid_t curr_gid = 0;               // Current GID
-	// const char *id_check = pathname;  // Filename to check *IDs for
+	const char *id_check = pathname;  // Filename to check *IDs for
 
-	// CHECK IT
+	// SETUP
 	// Should we use target_name instead?
 	if (pathname && *pathname && true == follow_sym)
 	{
-		if (true == is_sym_link(pathname, &errnum))
+		if (true == is_sym_link(pathname, &actual_ret))
 		{
-			// id_check = target_name;
+			id_check = target_name;
 		}
 		else
 		{
-			ck_assert_msg(0 == errnum, "is_sym_link(%s) failed with [%d] %s",
-						  pathname, errnum, strerror(errnum));
+			ck_assert_msg(0 == actual_ret, "is_sym_link(%s) failed with [%d] %s",
+						  pathname, actual_ret, strerror(actual_ret));
 		}
 	}
-	errnum = CANARY_INT;  // Reset temp variable
+	actual_ret = CANARY_INT;  // Reset temp variable
+	// Which IDs should we expect?
+	if (CSSO_SKIP_UID == new_uid)
+	{
+		exp_uid = get_owner(id_check, &actual_ret);
+		ck_assert_msg(0 == actual_ret, "get_owner(%s) failed with [%d] %s",
+					  id_check, actual_ret, strerror(actual_ret));
+	}
+	if (CSSO_SKIP_GID == new_gid)
+	{
+		exp_gid = get_group(id_check, &actual_ret);
+		ck_assert_msg(0 == actual_ret, "get_group(%s) failed with [%d] %s",
+					  id_check, actual_ret, strerror(actual_ret));
+	}
 
 	// RUN IT
+	// 1. Determine expected results
+	exp_return = determine_exp_return(id_check, new_uid, new_gid);
+	// 2. Call the function
+	actual_ret = set_ownership(pathname, new_uid, new_gid, follow_sym);
+	// 3. Compare actual results to expected results
+	ck_assert_msg(exp_return == actual_ret, "set_ownership(%s, %u, %u) returned [%d] '%s' "
+				  "instead of [%d] '%s", pathname, new_uid, new_gid, actual_ret,
+				  strerror(actual_ret), exp_return, strerror(exp_return));
+	// No need to compare ownership if the expected result is "error"
+	if (0 == exp_return)
+	{
+		compare_ownership(id_check, exp_uid, exp_gid);
+	}
 
+	// DONE
+	return;
 }
 
 
@@ -251,7 +404,13 @@ void setup(void)
 		errnum = make_a_pipe(test_pipe_details->pathname);
 		ck_assert_msg(0 == errnum, "make_a_pipe(%s) failed with [%d] %s",
 					  test_pipe_details->pathname, errnum, strerror(errnum));
-		errnum = CANARY_INT;  // Reset temp variable
+		errnum = setup_struct_owners(test_pipe_details, true);
+		ck_assert_msg(0 == errnum, "setup_struct_owners(%s struct) failed with [%d] %s",
+					  test_pipe_details->pathname, errnum, strerror(errnum));
+	}
+	else
+	{
+		ck_abort_msg("The setup() test fixture did not make the named pipe");
 	}
 	// Raw Socket
 	if (test_socket_details && test_socket_details->pathname)
@@ -260,7 +419,13 @@ void setup(void)
 		errnum = make_a_socket(test_socket_details->pathname);
 		ck_assert_msg(0 == errnum, "make_a_socket(%s) failed with [%d] %s",
 					  test_socket_details->pathname, errnum, strerror(errnum));
-		errnum = CANARY_INT;  // Reset temp variable
+		errnum = setup_struct_owners(test_socket_details, true);
+		ck_assert_msg(0 == errnum, "setup_struct_owners(%s struct) failed with [%d] %s",
+					  test_socket_details->pathname, errnum, strerror(errnum));
+	}
+	else
+	{
+		ck_abort_msg("The setup() test fixture did not make the socket");
 	}
 
 	// RESET OWNERSHIP
@@ -293,19 +458,12 @@ testPathDetails_ptr setup_struct(const char *pathname)
 	if (!errnum)
 	{
 		temp_struct->pathname = temp_pathname;
-	}
-	// orig_owner
-	if (!errnum)
-	{
-		temp_struct->orig_owner = get_owner(temp_pathname, &errnum);
-		ck_assert_msg(0 == errnum, "get_owner(%s) failed with [%d] %s",
-					  temp_pathname, errnum, strerror(errnum));
-	}
-	// orig_group
-	if (!errnum)
-	{
-		temp_struct->orig_group = get_group(temp_pathname, &errnum);
-		ck_assert_msg(0 == errnum, "get_group(%s) failed with [%d] %s",
+		errnum = setup_struct_owners(temp_struct, false);
+		if (ENOENT == errnum)
+		{
+			errnum = 0;  // Ignore "file/dir missing" errors
+		}
+		ck_assert_msg(0 == errnum, "setup_struct_owners(%s struct) failed with [%d] %s",
 					  temp_pathname, errnum, strerror(errnum));
 	}
 
@@ -318,15 +476,64 @@ testPathDetails_ptr setup_struct(const char *pathname)
 }
 
 
+int setup_struct_owners(testPathDetails_ptr new_struct, bool must_succeed)
+{
+	// LOCAL VARIABLES
+	int errnum = 0;              // Errno values
+	char *temp_pathname = NULL;  // Temp storage for new_struct->pathname
+
+	// INPUT VALIDATION
+	if (!new_struct)
+	{
+		errnum = EINVAL;  // NULL struct pointer
+	}
+	else
+	{
+		temp_pathname = new_struct->pathname;
+	}
+
+	// SETUP OWNERS
+	// orig_owner
+	if (!errnum)
+	{
+		new_struct->orig_owner = get_owner(temp_pathname, &errnum);
+		if (true == must_succeed)
+		{
+			ck_assert_msg(0 == errnum, "get_owner(%s) failed with [%d] %s",
+						  temp_pathname, errnum, strerror(errnum));
+		}
+	}
+	// orig_group
+	if (!errnum)
+	{
+		new_struct->orig_group = get_group(temp_pathname, &errnum);
+		if (true == must_succeed)
+		{
+			ck_assert_msg(0 == errnum, "get_group(%s) failed with [%d] %s",
+						  temp_pathname, errnum, strerror(errnum));
+		}
+	}
+
+	// DONE
+	return errnum;
+}
+
+
 void teardown(void)
 {
+	// RESET OWNERSHIP
+	reset_global_ownership(false);
+
+	// CLEANUP
 	// Directory
 	teardown_struct(&test_dir_details);  // Ignore any errors
 	// File
 	teardown_struct(&test_file_details);  // Ignore any errors
 	// Pipe
+	remove_a_file(test_pipe_details->pathname, true);  // Best effort
 	teardown_struct(&test_pipe_details);  // Ignore any errors
 	// Socket
+	remove_a_file(test_socket_details->pathname, true);  // Best effort
 	teardown_struct(&test_socket_details);  // Ignore any errors
 	// Symbolic Link
 	teardown_struct(&test_symlink_details);  // Ignore any errors
@@ -400,20 +607,20 @@ void teardown_struct(testPathDetails_ptr* old_struct)
 // END_TEST
 
 
-// START_TEST(test_n03_regular_file)
-// {
-// 	// LOCAL VARIABLES
-// 	bool follow = true;         // Follow symlinks
-// 	int exp_result = 0;         // Expected results
-// 	time_t new_sec = 0xB00000;  // Seconds test input
-// 	long new_nsec = 0xC0010FF;  // Nanoseconds test input
-// 	// Absolute path for test input as resolved against the repo name
-// 	char *input_abs_path = test_file_path;
+START_TEST(test_n03_regular_file)
+{
+	// LOCAL VARIABLES
+	bool follow = true;             // Test case input
+	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	gid_t new_gid = get_new_gid();  // Test case input
+	// Absolute path for test input as resolved against the repo name
+	char *input_abs_path = test_file_details->pathname;
+	FPRINTF_ERR("TEST N03 GOT A GID OF %u\n", new_gid);  // DEBUGGING
 
-// 	// RUN TEST
-// 	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
-// }
-// END_TEST
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, new_uid, new_gid);
+}
+END_TEST
 
 
 // START_TEST(test_n04_socket)
@@ -750,51 +957,51 @@ void teardown_struct(testPathDetails_ptr* old_struct)
 // END_TEST
 
 
-// Suite *set_ownership_suite(void)
-// {
-// 	// LOCAL VARIABLES
-// 	Suite *suite = suite_create("SFMW_Set_Ttimes");  // Test suite
-// 	TCase *tc_normal = tcase_create("Normal");       // Normal test cases
-// 	TCase *tc_error = tcase_create("Error");         // Error test cases
-// 	TCase *tc_boundary = tcase_create("Boundary");   // Boundary test cases
-// 	TCase *tc_special = tcase_create("Special");     // Special test cases
+Suite *set_ownership_suite(void)
+{
+	// LOCAL VARIABLES
+	Suite *suite = suite_create("SFMW_Set_Ownership");  // Test suite
+	TCase *tc_normal = tcase_create("Normal");       // Normal test cases
+	// TCase *tc_error = tcase_create("Error");         // Error test cases
+	// TCase *tc_boundary = tcase_create("Boundary");   // Boundary test cases
+	// TCase *tc_special = tcase_create("Special");     // Special test cases
 
-// 	// SETUP TEST CASES
-// 	tcase_add_checked_fixture(tc_normal, setup, teardown);
-// 	tcase_add_checked_fixture(tc_error, setup, teardown);
-// 	tcase_add_checked_fixture(tc_boundary, setup, teardown);
-// 	tcase_add_checked_fixture(tc_special, setup, teardown);
-// 	tcase_add_test(tc_normal, test_n01_directory);
-// 	tcase_add_test(tc_normal, test_n02_named_pipe);
-// 	tcase_add_test(tc_normal, test_n03_regular_file);
-// 	tcase_add_test(tc_normal, test_n04_socket);
-// 	tcase_add_test(tc_normal, test_n05_symbolic_link_follow);
-// 	tcase_add_test(tc_error, test_e01_null_filename);
-// 	tcase_add_test(tc_error, test_e02_empty_filename);
-// 	tcase_add_test(tc_boundary, test_b01_sec_min_value);
-// 	tcase_add_test(tc_boundary, test_b02_sec_almost_epoch);
-// 	tcase_add_test(tc_boundary, test_b03_sec_epoch_time);
-// 	tcase_add_test(tc_boundary, test_b04_sec_barely_past_epoch);
-// 	tcase_add_test(tc_boundary, test_b05_sec_static_now);
-// 	tcase_add_test(tc_boundary, test_b06_sec_max_value);
-// 	tcase_add_test(tc_boundary, test_b07_nsec_low_very_bad);
-// 	tcase_add_test(tc_boundary, test_b08_nsec_low_barely_bad);
-// 	tcase_add_test(tc_boundary, test_b09_nsec_low_barely_good);
-// 	tcase_add_test(tc_boundary, test_b10_nsec_high_barely_good);
-// 	tcase_add_test(tc_boundary, test_b11_nsec_high_barely_bad);
-// 	tcase_add_test(tc_boundary, test_b12_nsec_high_very_bad);
-// 	tcase_add_test(tc_special, test_s01_missing_filename);
-// 	tcase_add_test(tc_special, test_s02_symbolic_link_nofollow);
-// 	tcase_add_test(tc_special, test_s03_block_device);
-// 	tcase_add_test(tc_special, test_s04_character_device);
-// 	tcase_add_test(tc_special, test_s05_sec_min_value_edge_case);
-// 	suite_add_tcase(suite, tc_normal);
-// 	suite_add_tcase(suite, tc_error);
-// 	suite_add_tcase(suite, tc_boundary);
-// 	suite_add_tcase(suite, tc_special);
+	// SETUP TEST CASES
+	tcase_add_checked_fixture(tc_normal, setup, teardown);
+	// tcase_add_checked_fixture(tc_error, setup, teardown);
+	// tcase_add_checked_fixture(tc_boundary, setup, teardown);
+	// tcase_add_checked_fixture(tc_special, setup, teardown);
+	// tcase_add_test(tc_normal, test_n01_directory);
+	// tcase_add_test(tc_normal, test_n02_named_pipe);
+	tcase_add_test(tc_normal, test_n03_regular_file);
+	// tcase_add_test(tc_normal, test_n04_socket);
+	// tcase_add_test(tc_normal, test_n05_symbolic_link_follow);
+	// tcase_add_test(tc_error, test_e01_null_filename);
+	// tcase_add_test(tc_error, test_e02_empty_filename);
+	// tcase_add_test(tc_boundary, test_b01_sec_min_value);
+	// tcase_add_test(tc_boundary, test_b02_sec_almost_epoch);
+	// tcase_add_test(tc_boundary, test_b03_sec_epoch_time);
+	// tcase_add_test(tc_boundary, test_b04_sec_barely_past_epoch);
+	// tcase_add_test(tc_boundary, test_b05_sec_static_now);
+	// tcase_add_test(tc_boundary, test_b06_sec_max_value);
+	// tcase_add_test(tc_boundary, test_b07_nsec_low_very_bad);
+	// tcase_add_test(tc_boundary, test_b08_nsec_low_barely_bad);
+	// tcase_add_test(tc_boundary, test_b09_nsec_low_barely_good);
+	// tcase_add_test(tc_boundary, test_b10_nsec_high_barely_good);
+	// tcase_add_test(tc_boundary, test_b11_nsec_high_barely_bad);
+	// tcase_add_test(tc_boundary, test_b12_nsec_high_very_bad);
+	// tcase_add_test(tc_special, test_s01_missing_filename);
+	// tcase_add_test(tc_special, test_s02_symbolic_link_nofollow);
+	// tcase_add_test(tc_special, test_s03_block_device);
+	// tcase_add_test(tc_special, test_s04_character_device);
+	// tcase_add_test(tc_special, test_s05_sec_min_value_edge_case);
+	suite_add_tcase(suite, tc_normal);
+	// suite_add_tcase(suite, tc_error);
+	// suite_add_tcase(suite, tc_boundary);
+	// suite_add_tcase(suite, tc_special);
 
-// 	return suite;
-// }
+	return suite;
+}
 
 
 int main(void)
@@ -806,20 +1013,20 @@ int main(void)
 	// Absolute path for log_rel_path as resolved against the repo name
 	char *log_abs_path = resolve_to_repo(SKID_REPO_NAME, log_rel_path, false, &errnum);
 	int number_failed = 0;
-	// Suite *suite = NULL;
-	// SRunner *suite_runner = NULL;
+	Suite *suite = NULL;
+	SRunner *suite_runner = NULL;
 
-	// // SETUP
-	// suite = set_ownership_suite();
-	// suite_runner = srunner_create(suite);
-	// srunner_set_log(suite_runner, log_abs_path);
+	// SETUP
+	suite = set_ownership_suite();
+	suite_runner = srunner_create(suite);
+	srunner_set_log(suite_runner, log_abs_path);
 
-	// // RUN IT
-	// srunner_run_all(suite_runner, CK_NORMAL);
-	// number_failed = srunner_ntests_failed(suite_runner);
+	// RUN IT
+	srunner_run_all(suite_runner, CK_NORMAL);
+	number_failed = srunner_ntests_failed(suite_runner);
 
-	// // CLEANUP
-	// srunner_free(suite_runner);
+	// CLEANUP
+	srunner_free(suite_runner);
 	free_devops_mem((void **)&log_abs_path);
 
 	// DONE
