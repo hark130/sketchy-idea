@@ -3,7 +3,7 @@
  *
  *  Copy/paste the following from the repo's top-level directory...
 
-make -C code dist/check_sfmw_set_ownership.bin
+make -C code dist/check_sfmw_set_ownership.bin && \
 code/dist/check_sfmw_set_ownership.bin && CK_FORK=no valgrind --leak-check=full --show-leak-kinds=all code/dist/check_sfmw_set_ownership.bin
 
  *
@@ -418,31 +418,34 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 
 	// SETUP
 	// Should we use target_name instead?
-	if (pathname && *pathname && true == follow_sym)
+	if (pathname && *pathname)
 	{
-		if (true == is_sym_link(pathname, &actual_ret))
+		if (true == follow_sym)
 		{
-			id_check = target_name;
+			if (true == is_sym_link(pathname, &actual_ret))
+			{
+				id_check = target_name;
+			}
+			else
+			{
+				ck_assert_msg(0 == actual_ret, "is_sym_link(%s) failed with [%d] %s",
+							  pathname, actual_ret, strerror(actual_ret));
+			}
 		}
-		else
+		actual_ret = CANARY_INT;  // Reset temp variable
+		// Which IDs should we expect?
+		if (CSSO_SKIP_UID == new_uid)
 		{
-			ck_assert_msg(0 == actual_ret, "is_sym_link(%s) failed with [%d] %s",
-						  pathname, actual_ret, strerror(actual_ret));
+			exp_uid = get_owner(id_check, &actual_ret);
+			ck_assert_msg(0 == actual_ret, "get_owner(%s) failed with [%d] %s",
+						  id_check, actual_ret, strerror(actual_ret));
 		}
-	}
-	actual_ret = CANARY_INT;  // Reset temp variable
-	// Which IDs should we expect?
-	if (CSSO_SKIP_UID == new_uid)
-	{
-		exp_uid = get_owner(id_check, &actual_ret);
-		ck_assert_msg(0 == actual_ret, "get_owner(%s) failed with [%d] %s",
-					  id_check, actual_ret, strerror(actual_ret));
-	}
-	if (CSSO_SKIP_GID == new_gid)
-	{
-		exp_gid = get_group(id_check, &actual_ret);
-		ck_assert_msg(0 == actual_ret, "get_group(%s) failed with [%d] %s",
-					  id_check, actual_ret, strerror(actual_ret));
+		if (CSSO_SKIP_GID == new_gid)
+		{
+			exp_gid = get_group(id_check, &actual_ret);
+			ck_assert_msg(0 == actual_ret, "get_group(%s) failed with [%d] %s",
+						  id_check, actual_ret, strerror(actual_ret));
+		}
 	}
 
 	// RUN IT
@@ -707,71 +710,67 @@ START_TEST(test_n03_regular_file)
 END_TEST
 
 
-// START_TEST(test_n04_socket)
-// {
-// 	// LOCAL VARIABLES
-// 	bool follow = true;       // Follow symlinks
-// 	int exp_result = 0;       // Expected results
-// 	time_t new_sec = 0xD34D;  // Seconds test input
-// 	long new_nsec = 0xBEEF;   // Nanoseconds test input
-// 	// Absolute path for test input as resolved against the repo name
-// 	char *input_abs_path = test_socket_path;
+START_TEST(test_n04_socket)
+{
+	// LOCAL VARIABLES
+	bool follow = true;             // Test case input
+	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	gid_t new_gid = get_new_gid();  // Test case input
+	// Absolute path for test input as resolved against the repo name
+	char *input_abs_path = test_socket_details->pathname;
 
-// 	// RUN TEST
-// 	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
-// }
-// END_TEST
-
-
-// START_TEST(test_n05_symbolic_link_follow)
-// {
-// 	// LOCAL VARIABLES
-// 	bool follow = true;       // Follow symlinks
-// 	int exp_result = 0;       // Expected results
-// 	time_t new_sec = 0xFEED;  // Seconds test input
-// 	long new_nsec = 0xFACE;   // Nanoseconds test input
-// 	// Absolute path for test input as resolved against the repo name
-// 	char *input_abs_path = test_sym_link;
-// 	// Absolute path for actual_rel_path as resolved against the repo name
-// 	char *actual_abs_path = test_file_path;
-
-// 	// RUN TEST
-// 	run_test_case(input_abs_path, actual_abs_path, follow, exp_result, new_sec, new_nsec);
-// }
-// END_TEST
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, new_uid, new_gid);
+}
+END_TEST
 
 
-// /**************************************************************************************************/
-// /**************************************** ERROR TEST CASES ****************************************/
-// /**************************************************************************************************/
-// START_TEST(test_e01_null_filename)
-// {
-// 	// LOCAL VARIABLES
-// 	bool follow = true;           // Follow symlinks
-// 	int exp_result = EINVAL;      // Expected results
-// 	time_t new_sec = 0x7E57;      // Seconds test input
-// 	long new_nsec = 0xC0DE;       // Nanoseconds test input
-// 	char *input_abs_path = NULL;  // Test case input
+START_TEST(test_n05_symbolic_link_follow)
+{
+	// LOCAL VARIABLES
+	bool follow = true;             // Test case input
+	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	gid_t new_gid = get_new_gid();  // Test case input
+	// Absolute path for test input as resolved against the repo name
+	char *input_abs_path = test_symlink_details->pathname;
+	// Absolute path for actual_rel_path as resolved against the repo name
+	char *actual_abs_path = test_file_details->pathname;
 
-// 	// RUN TEST
-// 	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
-// }
-// END_TEST
+	// RUN TEST
+	run_test_case(input_abs_path, actual_abs_path, follow, new_uid, new_gid);
+}
+END_TEST
 
 
-// START_TEST(test_e02_empty_filename)
-// {
-// 	// LOCAL VARIABLES
-// 	bool follow = true;                          // Follow symlinks
-// 	int exp_result = EINVAL;                     // Expected results
-// 	time_t new_sec = 0x7E57;                     // Seconds test input
-// 	long new_nsec = 0xC0DE;                      // Nanoseconds test input
-// 	char input_abs_path[] = { "\0 NOT HERE!" };  // Test case input
+/**************************************************************************************************/
+/**************************************** ERROR TEST CASES ****************************************/
+/**************************************************************************************************/
+START_TEST(test_e01_null_filename)
+{
+	// LOCAL VARIABLES
+	bool follow = true;             // Test case input
+	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	gid_t new_gid = get_new_gid();  // Test case input
+	char *input_abs_path = NULL;    // Test case input
 
-// 	// RUN TEST
-// 	run_test_case(input_abs_path, NULL, follow, exp_result, new_sec, new_nsec);
-// }
-// END_TEST
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, new_uid, new_gid);
+}
+END_TEST
+
+
+START_TEST(test_e02_empty_filename)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                          // Test case input
+	uid_t new_uid = CSSO_SKIP_UID;               // Test case input
+	gid_t new_gid = get_new_gid();               // Test case input
+	char input_abs_path[] = { "\0 NOT HERE!" };  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, new_uid, new_gid);
+}
+END_TEST
 
 
 // /**************************************************************************************************/
@@ -1046,22 +1045,22 @@ Suite *set_ownership_suite(void)
 	// LOCAL VARIABLES
 	Suite *suite = suite_create("SFMW_Set_Ownership");  // Test suite
 	TCase *tc_normal = tcase_create("Normal");       // Normal test cases
-	// TCase *tc_error = tcase_create("Error");         // Error test cases
+	TCase *tc_error = tcase_create("Error");         // Error test cases
 	// TCase *tc_boundary = tcase_create("Boundary");   // Boundary test cases
 	// TCase *tc_special = tcase_create("Special");     // Special test cases
 
 	// SETUP TEST CASES
 	tcase_add_checked_fixture(tc_normal, setup, teardown);
-	// tcase_add_checked_fixture(tc_error, setup, teardown);
+	tcase_add_checked_fixture(tc_error, setup, teardown);
 	// tcase_add_checked_fixture(tc_boundary, setup, teardown);
 	// tcase_add_checked_fixture(tc_special, setup, teardown);
 	tcase_add_test(tc_normal, test_n01_directory);
 	tcase_add_test(tc_normal, test_n02_named_pipe);
 	tcase_add_test(tc_normal, test_n03_regular_file);
-	// tcase_add_test(tc_normal, test_n04_socket);
-	// tcase_add_test(tc_normal, test_n05_symbolic_link_follow);
-	// tcase_add_test(tc_error, test_e01_null_filename);
-	// tcase_add_test(tc_error, test_e02_empty_filename);
+	tcase_add_test(tc_normal, test_n04_socket);
+	tcase_add_test(tc_normal, test_n05_symbolic_link_follow);
+	tcase_add_test(tc_error, test_e01_null_filename);
+	tcase_add_test(tc_error, test_e02_empty_filename);
 	// tcase_add_test(tc_boundary, test_b01_sec_min_value);
 	// tcase_add_test(tc_boundary, test_b02_sec_almost_epoch);
 	// tcase_add_test(tc_boundary, test_b03_sec_epoch_time);
@@ -1080,7 +1079,7 @@ Suite *set_ownership_suite(void)
 	// tcase_add_test(tc_special, test_s04_character_device);
 	// tcase_add_test(tc_special, test_s05_sec_min_value_edge_case);
 	suite_add_tcase(suite, tc_normal);
-	// suite_add_tcase(suite, tc_error);
+	suite_add_tcase(suite, tc_error);
 	// suite_add_tcase(suite, tc_boundary);
 	// suite_add_tcase(suite, tc_special);
 
