@@ -327,6 +327,25 @@ long get_sys_block_size(int *errnum);
 
 /*
  *  Description:
+ *      Answers the question, "Does pathname exist?".  Any invalid input is treated as a "no".
+ *      The following errno values are also treated as a "no":
+ *			ENOENT is obvious... file flat out doesn't exist.
+ *			ENAMETOOLONG means pathname is too long to it *can't* exist.
+ *			ENOTDIR means part of the path prefix of pathname is not a dir so it *can't* exist.
+ *		EACCES is tricky because it could be inconclusive.  Permission could be denied for one
+ *		of the directories in the path prefix of pathname.  Still, this function treats EACCES
+ *		as a "yes" because this is devops code (but prints a DEBUG warning).
+ *
+ *  Args:
+ *      pathname: Absolute or relative pathname to check.
+ *
+ *  Returns:
+ *      True if pathname exists.  False otherwise.
+ */
+bool is_path_there(const char *pathname);
+
+/*
+ *  Description:
  *      Use mknod() to create a named pipe.
  *
  *  Args:

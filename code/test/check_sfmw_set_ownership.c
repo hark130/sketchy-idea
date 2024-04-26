@@ -232,6 +232,10 @@ int determine_exp_return(const char *pathname, uid_t exp_uid, gid_t exp_gid)
 	{
 		exp_return = EINVAL;
 	}
+	else if (false == is_path_there(pathname))
+	{
+		exp_return = ENOENT;
+	}
 	else if (0 != my_uid)
 	{
 		path_owner = get_owner(pathname, &errnum);
@@ -418,7 +422,7 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 
 	// SETUP
 	// Should we use target_name instead?
-	if (pathname && *pathname)
+	if (pathname && *pathname && true == is_path_there(pathname))
 	{
 		if (true == follow_sym)
 		{
@@ -745,6 +749,8 @@ END_TEST
 /**************************************************************************************************/
 /**************************************** ERROR TEST CASES ****************************************/
 /**************************************************************************************************/
+
+
 START_TEST(test_e01_null_filename)
 {
 	// LOCAL VARIABLES
@@ -766,6 +772,20 @@ START_TEST(test_e02_empty_filename)
 	uid_t new_uid = CSSO_SKIP_UID;               // Test case input
 	gid_t new_gid = get_new_gid();               // Test case input
 	char input_abs_path[] = { "\0 NOT HERE!" };  // Test case input
+
+	// RUN TEST
+	run_test_case(input_abs_path, NULL, follow, new_uid, new_gid);
+}
+END_TEST
+
+
+START_TEST(test_e03_missing_filename)
+{
+	// LOCAL VARIABLES
+	bool follow = true;                             // Test case input
+	uid_t new_uid = CSSO_SKIP_UID;                  // Test case input
+	gid_t new_gid = get_new_gid();                  // Test case input
+	char input_abs_path[] = { "/file/not/found" };  // Test case input
 
 	// RUN TEST
 	run_test_case(input_abs_path, NULL, follow, new_uid, new_gid);
@@ -1061,6 +1081,7 @@ Suite *set_ownership_suite(void)
 	tcase_add_test(tc_normal, test_n05_symbolic_link_follow);
 	tcase_add_test(tc_error, test_e01_null_filename);
 	tcase_add_test(tc_error, test_e02_empty_filename);
+	tcase_add_test(tc_error, test_e03_missing_filename);
 	// tcase_add_test(tc_boundary, test_b01_sec_min_value);
 	// tcase_add_test(tc_boundary, test_b02_sec_almost_epoch);
 	// tcase_add_test(tc_boundary, test_b03_sec_epoch_time);

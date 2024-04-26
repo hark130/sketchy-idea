@@ -881,6 +881,43 @@ long get_sys_block_size(int *errnum)
 }
 
 
+bool is_path_there(const char *pathname)
+{
+	// LOCAL VARIABLES
+	bool is_there = false;  // Does pathname exist?
+	int errnum = ENOERR;    // Errno value
+	struct stat statbuf;    // Used in the call to stat()
+
+	// INPUT VALIDATION
+	if (pathname && *pathname)
+	{
+		if(stat(pathname, &statbuf))
+		{
+			errnum = errno;
+			// ENOENT is obvious... file flat out doesn't exist.
+			// ENAMETOOLONG means pathname is too long to it *can't* exist.
+			// ENOTDIR means part of the path prefix of pathname is not a dir so it *can't* exist.
+			if (ENOENT != errnum && ENAMETOOLONG != errnum && ENOTDIR != errnum)
+			{
+				if (EACCES == errnum)
+				{
+					// Permission denied might refer to a directory in pathname's path prefix
+					PRINT_WARNG(The errno value of EACCESS is inconclusive);  // Just a warning
+				}
+				is_there = true;  // Other errors means it's there, even if there's a problem
+			}
+		}
+		else
+		{
+			is_there = true;  // Found it
+		}
+	}
+
+	// DONE
+	return is_there;
+}
+
+
 int make_a_pipe(const char *pathname)
 {
 	// LOCAL VARIABLES
