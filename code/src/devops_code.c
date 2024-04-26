@@ -826,7 +826,7 @@ gid_t get_shell_user_gid(const char *username, int *errnum)
 		results = run_command_append(command, username, output, sizeof(output) / sizeof(*output));
 		if (results)
 		{
-			PRINT_ERROR(The call to run_command() failed);
+			PRINT_ERROR(The call to run_command_append() failed);
 			PRINT_ERRNO(results);
 		}
 	}
@@ -844,6 +844,42 @@ gid_t get_shell_user_gid(const char *username, int *errnum)
 	return users_gid;
 }
 
+
+uid_t get_shell_user_uid(const char *username, int *errnum)
+{
+	// LOCAL VARIABLES
+	uid_t users_uid = 0;            // Username's UID
+	int results = ENOERR;           // Local errno value
+	char command[] = { "id -u " };  // The base shell command
+	char output[512] = { 0 };       // Output from the command
+
+	// INPUT VALIDATION
+	results = validate_err(errnum);
+
+	// GET IT
+	// Execute command
+	if (ENOERR == results)
+	{
+		results = run_command_append(command, username, output, sizeof(output) / sizeof(*output));
+		if (results)
+		{
+			PRINT_ERROR(The call to run_command_append() failed);
+			PRINT_ERRNO(results);
+		}
+	}
+	// Convert results
+	if (ENOERR == results)
+	{
+		users_uid = atoi(output);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = results;
+	}
+	return users_uid;
+}
 
 
 long get_sys_block_size(int *errnum)

@@ -312,6 +312,23 @@ gid_t get_shell_user_gid(const char *username, int *errnum);
 
 /*
  *  Description:
+ *      Get the username's UID by executing the following command in a shell:
+ *          id -u <username>
+ *      This is intended as a double-do to facilitate testing of skid_file_metadata_write's
+ *      set_ownership() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      username: The name to fetch the UID for.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      UID on success, 0 on error.  The only true indication of an error is the errnum value
+ *      since 0 is a valid UID.
+ */
+uid_t get_shell_user_uid(const char *username, int *errnum);
+
+/*
+ *  Description:
  *      Get the actual block size of the filesystem mounted in current directory by executing:
  *          stat -fc %s .
  *      This is intended as a double-do to validate the results of skid_file_metadata_read's
