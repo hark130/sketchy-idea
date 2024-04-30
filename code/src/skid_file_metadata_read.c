@@ -349,19 +349,19 @@ dev_t get_file_device_id(const char *pathname, int *errnum)
 }
 
 
-mode_t get_file_perms(const char *filename, int *errnum)
+mode_t get_file_perms(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
 	mode_t perm_mask = S_ISUID | S_ISGID | S_ISVTX | S_IRWXU | S_IRWXG | S_IRWXO;  // Perm bitmask
 	mode_t retval = 0;                                                             // File perms
-	int err = validate_sfmr_input(filename, errnum);                               // Errno value
+	int err = validate_sfmr_input(pathname, errnum);                               // Errno value
 	struct stat stat_struct;                                                       // stat struct
 
 	// GET IT
 	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(filename, &stat_struct, errnum);
+		err = call_stat(pathname, &stat_struct, errnum);
 	}
 	// Get it
 	if (!err)

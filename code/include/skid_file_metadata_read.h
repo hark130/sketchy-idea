@@ -185,14 +185,14 @@ dev_t get_file_device_id(const char *pathname, int *errnum);
  *		important, use is_sym_link() and lstat() instead.
  *
  *  Args:
- *      filename: Absolute or relative filename to check.
+ *      pathname: Absolute or relative pathname to check.
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *      
  *  Returns:
- *		Just the file permission bits from filename's mode on success.  Returns 0 on failure
+ *		Just the file permission bits from pathname's mode on success.  Returns 0 on failure
  *		and updates errnum.
  */
-mode_t get_file_perms(const char *filename, int *errnum);
+mode_t get_file_perms(const char *pathname, int *errnum);
 
 /*
  *  Description:
