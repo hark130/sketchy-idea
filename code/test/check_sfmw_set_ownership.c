@@ -20,17 +20,14 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sfmw_set_ownership.bin; unset 
  */
 
 #include <check.h>						// START_TEST(), END_TEST
-#include <limits.h>						// PATH_MAX
-#include <stdio.h>						// printf()
 #include <stdlib.h>
-#include <unistd.h>						// get_current_dir_name(), usleep()
 // Local includes
 #include "devops_code.h"				// resolve_to_repo(), SKID_REPO_NAME
 #ifndef SKID_DEBUG
 #define SKID_DEBUG
 #endif  /* SKID_DEBUG */
 #include "skid_debug.h"     			// FPRINTF_ERR()
-#include "skid_file_metadata_read.h"	// get_access_time()
+#include "skid_file_metadata_read.h"	// get_group(), get_owner()
 #include "skid_file_metadata_write.h"	// set_ownership()
 
 
@@ -41,7 +38,7 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sfmw_set_ownership.bin; unset 
 //	programmatically determine a compatible GID (see: "grep `whoami` /etc/group")
 // UID PRO TIP: Take care if you choose a UID other than "id -u" because you'll need to enable
 //	the CAP_CHOWN capability (see: capabilities(7)) or elevate privileges.
-// #define CSSO_DEF_UID 1234          // Check skid_file_metadata_write default owner ID
+#define CSSO_DEF_UID 1234          // Check skid_file_metadata_write default owner ID
 // GID PRO TIP: If you choose a GID, choose an ID for a group in grep `whoami` /etc/group
 // #define CSSO_DEF_GID CSSO_DEF_UID  // Check skid_file_metadata_write default group ID
 
@@ -90,6 +87,12 @@ int determine_exp_return(const char *pathname, uid_t exp_uid, gid_t exp_gid, boo
  *		CSSO_DEF_GID, get_shell_compatible_gid(), the GID of the owning process.
  */
 gid_t get_new_gid(void);
+
+/*
+ *	Programmatically determine a new UID for pathname.  If CSSO_DEF_UID isn't defined, returns
+ *	CSSO_SKIP_UID.
+ */
+uid_t get_new_uid(void);
 
 /*
  *	Set the ownership, UID and GID, of the test_*_details globals as specified.  If take_over is
@@ -319,6 +322,21 @@ gid_t get_new_gid(void)
 	}
 	ck_assert_msg(true == got_one, "The call to get_new_gid() failed to produce a GID");
 	return new_gid;
+}
+
+
+uid_t get_new_uid(void)
+{
+	// LOCAL VARIABLES
+	uid_t new_uid = CSSO_SKIP_UID;  // New UID for a test case
+
+	// GET ONE?
+#ifdef CSSO_DEF_UID
+	new_uid = CSSO_DEF_UID;  // Use the test-runner-determined default UID
+#endif  /* CSSO_DEF_UID */
+
+	// DONE
+	return new_uid;
 }
 
 
@@ -669,7 +687,7 @@ START_TEST(test_n01_directory)
 {
 	// LOCAL VARIABLES
 	bool follow = true;             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = get_new_gid();  // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_dir_details->pathname;
@@ -684,7 +702,7 @@ START_TEST(test_n02_named_pipe)
 {
 	// LOCAL VARIABLES
 	bool follow = true;             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = get_new_gid();  // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_pipe_details->pathname;
@@ -699,7 +717,7 @@ START_TEST(test_n03_regular_file)
 {
 	// LOCAL VARIABLES
 	bool follow = true;             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = get_new_gid();  // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_file_details->pathname;
@@ -714,7 +732,7 @@ START_TEST(test_n04_socket)
 {
 	// LOCAL VARIABLES
 	bool follow = true;             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = get_new_gid();  // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_socket_details->pathname;
@@ -729,7 +747,7 @@ START_TEST(test_n05_symbolic_link_follow)
 {
 	// LOCAL VARIABLES
 	bool follow = true;             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = get_new_gid();  // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_symlink_details->pathname;
@@ -751,7 +769,7 @@ START_TEST(test_e01_null_filename)
 {
 	// LOCAL VARIABLES
 	bool follow = true;             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = get_new_gid();  // Test case input
 	char *input_abs_path = NULL;    // Test case input
 
@@ -765,7 +783,7 @@ START_TEST(test_e02_empty_filename)
 {
 	// LOCAL VARIABLES
 	bool follow = true;                          // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;               // Test case input
+	uid_t new_uid = get_new_uid();               // Test case input
 	gid_t new_gid = get_new_gid();               // Test case input
 	char input_abs_path[] = { "\0 NOT HERE!" };  // Test case input
 
@@ -779,7 +797,7 @@ START_TEST(test_e03_missing_filename)
 {
 	// LOCAL VARIABLES
 	bool follow = true;                             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;                  // Test case input
+	uid_t new_uid = get_new_uid();                  // Test case input
 	gid_t new_gid = get_new_gid();                  // Test case input
 	char input_abs_path[] = { "/file/not/found" };  // Test case input
 
@@ -799,7 +817,7 @@ START_TEST(test_b01_min_good_system_user_gid)
 {
 	// LOCAL VARIABLES
 	bool follow = true;             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = 0;              // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_file_details->pathname;
@@ -815,7 +833,7 @@ START_TEST(test_b02_max_good_system_user_gid)
 {
 	// LOCAL VARIABLES
 	bool follow = true;             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = 99;             // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_file_details->pathname;
@@ -831,7 +849,7 @@ START_TEST(test_b03_min_good_application_user_gid)
 {
 	// LOCAL VARIABLES
 	bool follow = true;             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = 100;            // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_file_details->pathname;
@@ -847,7 +865,7 @@ START_TEST(test_b04_max_good_system_user_gid)
 {
 	// LOCAL VARIABLES
 	bool follow = true;             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = 999;            // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_file_details->pathname;
@@ -863,7 +881,7 @@ START_TEST(test_b05_min_good_regular_user_gid)
 {
 	// LOCAL VARIABLES
 	bool follow = true;             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = 1000;           // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_file_details->pathname;
@@ -879,7 +897,7 @@ START_TEST(test_b06_max_good_debian_gid)
 {
 	// LOCAL VARIABLES
 	bool follow = true;             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = 59999;          // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_file_details->pathname;
@@ -895,7 +913,7 @@ START_TEST(test_b07_max_good_solaris_gid)
 {
 	// LOCAL VARIABLES
 	bool follow = true;             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = 60000;          // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_file_details->pathname;
@@ -911,7 +929,7 @@ START_TEST(test_b08_max_good_linux_gid)
 {
 	// LOCAL VARIABLES
 	bool follow = true;             // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = 60000;          // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_file_details->pathname;
@@ -931,7 +949,7 @@ START_TEST(test_s01_symbolic_link_no_follow)
 {
 	// LOCAL VARIABLES
 	bool follow = false;            // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;  // Test case input
+	uid_t new_uid = get_new_uid();  // Test case input
 	gid_t new_gid = get_new_gid();  // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_symlink_details->pathname;
@@ -967,7 +985,7 @@ START_TEST(test_s03_nogroup_gid)
 	// LOCAL VARIABLES
 	int errnum = 0;                                          // Errno value
 	bool follow = true;                                      // Test case input
-	uid_t new_uid = CSSO_SKIP_UID;                           // Test case input
+	uid_t new_uid = get_new_uid();                           // Test case input
 	gid_t new_gid = get_shell_user_gid("nobody", &errnum);  // Test case input
 	// Absolute path for test input as resolved against the repo name
 	char *input_abs_path = test_file_details->pathname;
