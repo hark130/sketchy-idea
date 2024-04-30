@@ -222,12 +222,13 @@ mode_t get_file_type(const char *filename, int *errnum);
  *  Args:
  *      pathname: Absolute or relative pathname to the group's ID for.
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *		follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
  *		Returns the owner's UID on success.  Error conditions are indicated by non-zero values
  *		in errnum.
  */
-gid_t get_group(const char *pathname, int *errnum);
+gid_t get_group(const char *pathname, int *errnum, bool follow_sym);
 
 /*
  *  Description:
@@ -306,12 +307,13 @@ int get_mod_timestamp(const char *pathname, time_t *seconds, long *nseconds, boo
  *  Args:
  *      pathname: Absolute or relative pathname to the owner's user ID for.
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *		follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
  *		Returns the owner's UID on success.  Error conditions are indicated by non-zero values
  *		in errnum.
  */
-uid_t get_owner(const char *pathname, int *errnum);
+uid_t get_owner(const char *pathname, int *errnum, bool follow_sym);
 
 /*
  *  Description:

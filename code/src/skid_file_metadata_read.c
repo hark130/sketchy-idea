@@ -399,7 +399,7 @@ mode_t get_file_type(const char *filename, int *errnum)
 }
 
 
-gid_t get_group(const char *pathname, int *errnum)
+gid_t get_group(const char *pathname, int *errnum, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	gid_t retval = 0;                                 // GUID
@@ -410,7 +410,14 @@ gid_t get_group(const char *pathname, int *errnum)
 	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(pathname, &stat_struct, errnum);
+		if (true == follow_sym)
+		{
+			err = call_stat(pathname, &stat_struct, errnum);
+		}
+		else
+		{
+			err = call_lstat(pathname, &stat_struct, errnum);
+		}
 	}
 	// Get it
 	if (!err)
@@ -520,7 +527,7 @@ int get_mod_timestamp(const char *pathname, time_t *seconds, long *nseconds, boo
 }
 
 
-uid_t get_owner(const char *pathname, int *errnum)
+uid_t get_owner(const char *pathname, int *errnum, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	uid_t retval = 0;                                 // UID
@@ -531,7 +538,14 @@ uid_t get_owner(const char *pathname, int *errnum)
 	// Fetch metadata
 	if (!err)
 	{
-		err = call_stat(pathname, &stat_struct, errnum);
+		if (true == follow_sym)
+		{
+			err = call_stat(pathname, &stat_struct, errnum);
+		}
+		else
+		{
+			err = call_lstat(pathname, &stat_struct, errnum);
+		}
 	}
 	// Get it
 	if (!err)
