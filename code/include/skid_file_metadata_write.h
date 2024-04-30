@@ -2,8 +2,27 @@
 #define __SKID_FILE_METADATA_WRITE__
 
 #include <errno.h>		// errno
+#include <fcntl.h>		// S_I* mode macros
 #include <stdbool.h>    // bool, false, true
 #include <sys/types.h>	// time_t
+
+/* We translated the chown(2) macros so you don't have to! */
+// Owner Permissions
+#define SKID_MODE_OWNER_R S_IRUSR  // Read by owner
+#define SKID_MODE_OWNER_W S_IWUSR  // Write by owner
+#define SKID_MODE_OWNER_X S_IXUSR  // Execute/search by owner
+// Group Permissions
+#define SKID_MODE_GROUP_R S_IRGRP  // Read by group
+#define SKID_MODE_GROUP_W S_IWGRP  // Write by group
+#define SKID_MODE_GROUP_X S_IXGRP  // Execute/search by group
+// Other Permissions
+#define SKID_MODE_OTHER_R S_IROTH  // Read by others
+#define SKID_MODE_OTHER_W S_IWOTH  // Write by others
+#define SKID_MODE_OTHER_X S_IXOTH  // Execute/search by others
+// Special Permissions
+#define SKID_MODE_SET_UID S_ISUID  // set-user-ID
+#define SKID_MODE_SET_GID S_ISGID  // set-user-ID
+#define SKID_MODE_STICKYB S_ISVTX  // sticky bit (see: unlink(2), restricted deletion flag)
 
 /*
  *  Description:
@@ -64,6 +83,30 @@ int set_atime_now(const char *pathname, bool follow_sym);
  *		0, on success.  On failure, an errno value.
  */
 int set_group_id(const char *pathname, gid_t new_group, bool follow_sym);
+
+/*
+ *  Description:
+ *		Changes pathname's permission bits to new_mode by calling chmod().  Symbolic links are
+ *		always dereferenced.  The new file mode for pathname is specified in new_mode, which is
+ *		a bit mask created by ORing together zero or more SKID_MODE_* macros (or S_I* macros from
+ *		chmod(2)).
+ *
+ *		IMPORTANT NOTES:
+ *			- The effective UID of the calling process must match the owner of the file, or the
+ *			  process must be privileged.
+ *			- If the calling process is not privileged, and the group of the file does not
+ *			  match the effective group ID of the process or one of its supplementary group IDs,
+ *			  the set-group-ID bit will be turned off, but this will not cause an error to be
+ *			  returned.
+ *
+ *  Args:
+ *      pathname: Absolute or relative pathname to modify the group of.
+ *		new_mode: The new mode for pathname.
+ *
+ *  Returns:
+ *		0, on success.  On failure, an errno value.
+ */
+int set_mode(const char *pathname, mode_t new_mode);
 
 /*
  *  Description:

@@ -239,6 +239,30 @@ int set_group_id(const char *pathname, gid_t new_group, bool follow_sym)
 }
 
 
+int set_mode(const char *pathname, mode_t new_mode)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // 0 on success, errno on failure
+
+	// INPUT VALIDATION
+	result = validate_pathname(pathname);
+
+	// SET IT
+	if (ENOERR == result)
+	{
+		if (chmod(pathname, new_mode))
+		{
+			result = errno;
+			PRINT_ERROR(The call to chmod() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+
+	// DONE
+	return result;
+}
+
+
 int set_mtime(const char *pathname, bool follow_sym, time_t seconds, long nseconds)
 {
 	// LOCAL VARIABLES
