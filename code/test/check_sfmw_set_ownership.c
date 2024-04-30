@@ -78,12 +78,12 @@ bool compare_compatibility(uid_t test_uid, gid_t gid_club);
 /*
  *	Compare pathname's actual UID and GID to the expected values.
  */
-void compare_ownership(const char *pathname, uid_t exp_uid, gid_t exp_gid);
+void compare_ownership(const char *pathname, uid_t exp_uid, gid_t exp_gid, bool follow_sym);
 
 /*
  *	Programatically determine what the expected return value will be.
  */
-int determine_exp_return(const char *pathname, uid_t exp_uid, gid_t exp_gid);
+int determine_exp_return(const char *pathname, uid_t exp_uid, gid_t exp_gid, bool follow_sym);
 
 /*
  *	Programmatically determine a new GID for pathname.  Priority order:
@@ -190,7 +190,7 @@ bool compare_compatibility(uid_t test_uid, gid_t gid_club)
 }
 
 
-void compare_ownership(const char *pathname, uid_t exp_uid, gid_t exp_gid)
+void compare_ownership(const char *pathname, uid_t exp_uid, gid_t exp_gid, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	int errnum = 0;      // Errno values
@@ -200,11 +200,11 @@ void compare_ownership(const char *pathname, uid_t exp_uid, gid_t exp_gid)
 	// COMPARE IT
 	// 1. Get current ownership
 	// UID
-	curr_uid = get_owner(pathname, &errnum);
+	curr_uid = get_owner(pathname, &errnum, follow_sym);
 	ck_assert_msg(0 == errnum, "get_owner(%s) failed with [%d] %s", pathname,
 		          errnum, strerror(errnum));
 	// GID
-	curr_gid = get_group(pathname, &errnum);
+	curr_gid = get_group(pathname, &errnum, follow_sym);
 	ck_assert_msg(0 == errnum, "get_group(%s) failed with [%d] %s", pathname,
 		          errnum, strerror(errnum));
 	// 2. Compare ownership
@@ -218,7 +218,7 @@ void compare_ownership(const char *pathname, uid_t exp_uid, gid_t exp_gid)
 }
 
 
-int determine_exp_return(const char *pathname, uid_t exp_uid, gid_t exp_gid)
+int determine_exp_return(const char *pathname, uid_t exp_uid, gid_t exp_gid, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	int errnum = 0;                            // Errno values
@@ -239,7 +239,7 @@ int determine_exp_return(const char *pathname, uid_t exp_uid, gid_t exp_gid)
 	}
 	else if (0 != my_uid)
 	{
-		path_owner = get_owner(pathname, &errnum);
+		path_owner = get_owner(pathname, &errnum, follow_sym);
 		ck_assert_msg(0 == errnum, "get_owner(%s) failed with [%d] %s", pathname,
 			          errnum, strerror(errnum));
 		// From chown(2)... Only a privileged process may change the UID of a file: UID 0
@@ -439,13 +439,13 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 		// Which IDs should we expect?
 		if (CSSO_SKIP_UID == new_uid)
 		{
-			exp_uid = get_owner(id_check, &actual_ret);
+			exp_uid = get_owner(id_check, &actual_ret, false);
 			ck_assert_msg(0 == actual_ret, "get_owner(%s) failed with [%d] %s",
 						  id_check, actual_ret, strerror(actual_ret));
 		}
 		if (CSSO_SKIP_GID == new_gid)
 		{
-			exp_gid = get_group(id_check, &actual_ret);
+			exp_gid = get_group(id_check, &actual_ret, false);
 			ck_assert_msg(0 == actual_ret, "get_group(%s) failed with [%d] %s",
 						  id_check, actual_ret, strerror(actual_ret));
 		}
@@ -453,7 +453,7 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 
 	// RUN IT
 	// 1. Determine expected results
-	exp_return = determine_exp_return(id_check, new_uid, new_gid);
+	exp_return = determine_exp_return(id_check, new_uid, new_gid, follow_sym);
 	// 2. Call the function
 	actual_ret = set_ownership(pathname, new_uid, new_gid, follow_sym);
 	// 3. Compare actual results to expected results
@@ -463,7 +463,7 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 	// No need to compare ownership if the expected result is "error"
 	if (0 == exp_return)
 	{
-		compare_ownership(id_check, exp_uid, exp_gid);
+		compare_ownership(id_check, exp_uid, exp_gid, follow_sym);
 	}
 	FPRINTF_ERR("set_ownership(%s, %u, %u) returned [%d] '%s'",
 		        pathname, new_uid, new_gid, actual_ret, strerror(actual_ret));  // DEBUGGING
@@ -589,7 +589,7 @@ int setup_struct_owners(testPathDetails_ptr new_struct, bool must_succeed)
 	// orig_owner
 	if (!errnum)
 	{
-		new_struct->orig_owner = get_owner(temp_pathname, &errnum);
+		new_struct->orig_owner = get_owner(temp_pathname, &errnum, false);
 		if (true == must_succeed)
 		{
 			ck_assert_msg(0 == errnum, "get_owner(%s) failed with [%d] %s",
@@ -599,7 +599,7 @@ int setup_struct_owners(testPathDetails_ptr new_struct, bool must_succeed)
 	// orig_group
 	if (!errnum)
 	{
-		new_struct->orig_group = get_group(temp_pathname, &errnum);
+		new_struct->orig_group = get_group(temp_pathname, &errnum, false);
 		if (true == must_succeed)
 		{
 			ck_assert_msg(0 == errnum, "get_group(%s) failed with [%d] %s",
