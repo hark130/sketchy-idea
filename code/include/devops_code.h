@@ -149,6 +149,7 @@ mode_t get_shell_file_perms(const char *pathname, int *errnum);
  *          stat -c %g <pathname>
  *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_group() without having to hard-code brittle expected return values.
+ *		This usage of the stat command does *not* follow symbolic links.
  *
  *  Args:
  *      pathname: The pathname, relative or absolute, to fetch the group ID for.
@@ -265,6 +266,7 @@ char *get_shell_my_username(int *errnum);
  *          stat -c %u <pathname>
  *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_owner() without having to hard-code brittle expected return values.
+ *		This usage of the stat command does *not* follow symbolic links.
  *
  *  Args:
  *      pathname: The pathname, relative or absolute, to fetch the owner ID for.
