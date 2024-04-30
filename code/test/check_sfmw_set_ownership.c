@@ -38,7 +38,7 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sfmw_set_ownership.bin; unset 
 //	programmatically determine a compatible GID (see: "grep `whoami` /etc/group")
 // UID PRO TIP: Take care if you choose a UID other than "id -u" because you'll need to enable
 //	the CAP_CHOWN capability (see: capabilities(7)) or elevate privileges.
-#define CSSO_DEF_UID 1234          // Check skid_file_metadata_write default owner ID
+// #define CSSO_DEF_UID 1234          // Check skid_file_metadata_write default owner ID
 // GID PRO TIP: If you choose a GID, choose an ID for a group in grep `whoami` /etc/group
 // #define CSSO_DEF_GID CSSO_DEF_UID  // Check skid_file_metadata_write default group ID
 
