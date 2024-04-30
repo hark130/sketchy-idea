@@ -1406,6 +1406,43 @@ int run_path_command(const char *command, const char *pathname, char *output, si
 }
 
 
+int set_shell_perms(const char *pathname, mode_t new_perms)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;                     // Errno value
+	char base_cmd[64] = { "chmod " };        // The base command
+	size_t base_cmd_len = strlen(base_cmd);  // Default length of the base command
+
+	// INPUT VALIDATION
+	result = validate_name(pathname);
+
+	// FORMAT BASE COMMAND
+	if (ENOERR == result)
+	{
+		result = snprintf(base_cmd + base_cmd_len,
+			              (sizeof(base_cmd) / sizeof(*base_cmd)) - base_cmd_len, "%o ", new_perms);
+		if (result < 0)
+		{
+			PRINT_ERROR(The call to snprintf() encountered an unspecified error);
+		}
+		else
+		{
+			result = ENOERR;  // snprintf() was just reporting on the characters it printed
+		}
+	}
+
+	// EXECUTE COMMAND
+	if (ENOERR == result)
+	{
+		FPRINTF_ERR("The set_shell_perms(%s, %o) created the '%s' base command\n", pathname, new_perms, base_cmd);  // DEBUGGING
+		result = run_path_command(base_cmd, pathname, NULL, 0);  // Ignore the output
+	}
+
+	// DONE
+	return result;
+}
+
+
 /**************************************************************************************************/
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/

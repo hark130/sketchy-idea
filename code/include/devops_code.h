@@ -505,4 +505,20 @@ int run_command_append(const char *base_cmd, const char *cmd_suffix, char *outpu
  */
 int run_path_command(const char *command, const char *pathname, char *output, size_t output_len);
 
+/*
+ *  Description:
+ *      Set pathname's permissions by executing the following command in a shell:
+ *          chmod <new_perms> <pathname>
+ *      This is intended as a double-do to facilitate testing of skid_file_metadata_write's
+ *      set_mode()-family of functions.
+ *
+ *  Args:
+ *      pathname: The pathname, absolute or relative, to set the permissions for.
+ *      new_perms: The new permissions, as an octal number, to set for pathname.
+ *
+ *  Returns:
+ *      0 on success, errno on error.
+ */
+int set_shell_perms(const char *pathname, mode_t new_perms);
+
 #endif  /* __SKID_DEVOPS__ */
