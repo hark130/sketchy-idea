@@ -29,11 +29,12 @@
  *      
  *  Args:
  *      pathname: The path to fetch the IDs for.
+ *		follow_sym_links: Follow symbolic links.
  *      
  *  Returns:
  *      On success, 0.  Errno or -1 on failure.
  */
-int print_all_ids(const char *pathname);
+int print_all_ids(const char *pathname, bool follow_sym_links);
 
 
 int main(int argc, char *argv[])
@@ -64,7 +65,7 @@ int main(int argc, char *argv[])
 	if (!exit_code)
 	{
 		puts("BEFORE");
-		exit_code = print_all_ids(pathname);
+		exit_code = print_all_ids(pathname, follow_sym_links);
 	}
 	// Set time
 	if (!exit_code)
@@ -80,7 +81,7 @@ int main(int argc, char *argv[])
 	if (!exit_code)
 	{
 		puts("AFTER");
-		exit_code = print_all_ids(pathname);
+		exit_code = print_all_ids(pathname, follow_sym_links);
 	}
 
 	// DONE
@@ -88,7 +89,7 @@ int main(int argc, char *argv[])
 }
 
 
-int print_all_ids(const char *pathname)
+int print_all_ids(const char *pathname, bool follow_sym_links)
 {
 	// LOCAL VARIABLES
 	int result = 0;  	 // Store errno and/or results here
@@ -99,7 +100,7 @@ int print_all_ids(const char *pathname)
 	// UID
 	if (!result)
 	{
-		curr_uid = get_owner(pathname, &result);
+		curr_uid = get_owner(pathname, &result, follow_sym_links);
 		if (result)
 		{
 			PRINT_ERROR(The call to get_owner() failed);
@@ -109,7 +110,7 @@ int print_all_ids(const char *pathname)
 	// GID
 	if (!result)
 	{
-		curr_gid = get_group(pathname, &result);
+		curr_gid = get_group(pathname, &result, follow_sym_links);
 		if (result)
 		{
 			PRINT_ERROR(The call to get_group() failed);
