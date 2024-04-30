@@ -1268,7 +1268,6 @@ int run_command(const char *command, char *output, size_t output_len)
 	// Setup read-only pipe
 	if (ENOERR == result)
 	{
-		FPRINTF_ERR("About to call popen(%s)\n", command);  // DEBUGGING
 		process = popen(command, "r");
 		if (NULL == process)
 		{
@@ -1538,17 +1537,14 @@ gid_t *parse_compatible_groups(char *username, int *errnum)
 				*tmp_next = '\0';  // Truncate that entry
 				tmp_next++;  // Advance to the next entry
 			}
-			// FPRINTF_ERR("LINE N: %s\nLINE N+1: %s\n", tmp_curr, tmp_next);  // DEBUGGING
 			// At this point, tmp_curr is line N and tmp_next is line N+1 (if there is one)
 			if (true == parse_group_user_list(username, tmp_curr, &tmp_gid))
 			{
-				FPRINTF_ERR("parse_group_user_list(%s, %s, %p) just returned true and provided a GID of %u\n", username, tmp_curr, &tmp_gid, tmp_gid);  // DEBUGGING
 				if (gid_index < (sizeof(local_gids) / sizeof(*local_gids)))
 				{
 					// Save the user's GID for the last index
 					if (tmp_gid != users_gid)
 					{
-						FPRINTF_ERR("About to store %u in local_gids[%d]\n", tmp_gid, gid_index);  // DEBUGGING
 						local_gids[gid_index] = tmp_gid;
 						gid_index++;  // Advance to next index
 					}
@@ -1564,10 +1560,8 @@ gid_t *parse_compatible_groups(char *username, int *errnum)
 		}
 	}
 	// Truncate the local array
-	FPRINTF_ERR("About to truncate the local array and results is [%d] %s\n", results, strerror(results));  // DEBUGGING
 	if (!results)
 	{
-		FPRINTF_ERR("The tmp_gid is %u\n", tmp_gid);  // DEBUGGING
 		if (gid_index < (sizeof(local_gids) / sizeof(*local_gids)))
 		{
 			// Save the user's GID for the last index
@@ -1587,10 +1581,8 @@ gid_t *parse_compatible_groups(char *username, int *errnum)
 	// Store those GIDs in a heap-allocated array of gid_t values
 	if (!results)
 	{
-		FPRINTF_ERR("Storing GIDs in the heap buffer and gid_index is currently %d\n", gid_index);  // DEBUGGING
 		for (int i = 0; i < gid_index; i++)
 		{
-			FPRINTF_ERR("Storing %u in gid_arr[%d]\n", local_gids[i], i);  // DEBUGGING
 			gid_arr[i] = local_gids[i];
 		}
 	}
@@ -1652,15 +1644,12 @@ bool parse_group_user_list(char *username, char *group_entry, gid_t *found_gid)
 		if (strlen(tmp_ptr) >= name_len)
 		{
 			found_ptr = strstr(tmp_ptr, username);
-			FPRINTF_ERR("strstr('%s', '%s') returned '%s'\n", tmp_ptr, username, found_ptr);  // DEBUGGING
 			if (found_ptr)
 			{
-				FPRINTF_ERR("The character value following '%s' is %d\n", username, found_ptr[name_len]);  // DEBUGGING
 				// Attempting to avoid false positives (e.g., "phil" in ":phillip")
 				if ('\0' == found_ptr[name_len] || '\n' == found_ptr[name_len]
 					|| ',' == found_ptr[name_len])
 				{
-					FPRINTF_ERR("FOUND ONE!\n");  // DEBUGGING
 					found_one = true;
 				}
 			}
@@ -1670,13 +1659,11 @@ bool parse_group_user_list(char *username, char *group_entry, gid_t *found_gid)
 	if (!results && true == found_one)
 	{
 		results = read_group_field(group_entry, 2, gid_str, SKID_MAX_ID_LEN);
-		FPRINTF_ERR("The call to read_group_field(%s, %d, %s, %d) resulted in [%d] '%s'\n", group_entry, 2, gid_str, SKID_MAX_ID_LEN, results, strerror(results));  // DEBUGGING
 	}
 	// Store the matching GID
 	if (!results && true == found_one)
 	{
 		*found_gid = atoi(gid_str);
-		FPRINTF_ERR("Just stored %u in *found_gid\n", *found_gid);  // DEBUGGING
 	}
 
 	// DONE

@@ -356,7 +356,6 @@ void reset_global_ownership(bool take_over)
 				tmp_uid = test_structs[i]->orig_owner;
 				tmp_gid = test_structs[i]->orig_group;
 			}
-			FPRINTF_ERR("reset_global_ownership() IS SETTING %s OWNERSHIP TO UID %u AND GID %u\n", test_structs[i]->pathname, tmp_uid, tmp_gid);  // DEBUGGING
 			// Reset owner
 			errnum = set_owner_id(test_structs[i]->pathname, tmp_uid, follow_sym);
 			if (EPERM == errnum)
@@ -465,8 +464,6 @@ void run_test_case(const char *pathname, const char *target_name, bool follow_sy
 	{
 		compare_ownership(id_check, exp_uid, exp_gid, follow_sym);
 	}
-	FPRINTF_ERR("set_ownership(%s, %u, %u) returned [%d] '%s'",
-		        pathname, new_uid, new_gid, actual_ret, strerror(actual_ret));  // DEBUGGING
 
 	// DONE
 	return;
