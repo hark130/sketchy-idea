@@ -45,6 +45,25 @@ int add_mode(const char *pathname, mode_t more_mode);
 
 /*
  *  Description:
+ *		Removes the less_mode permission bits from pathname by fetching the current mode,
+ *		removing less_mode bits, and then calling set_mode() with the new mode.
+ *		Symbolic links are always dereferenced.  The additional permissions for pathname are
+ *		specified in less_mode, which is a bit mask created by ORing together zero or more
+ *		SKID_MODE_* macros (or S_I* macros from chmod(2)).
+ *
+ *		See set_mode() for important notes.
+ *
+ *  Args:
+ *      pathname: Absolute or relative pathname to modify the group of.
+ *		less_mode: The permission flags to remove from pathname's mode.
+ *
+ *  Returns:
+ *		0, on success.  On failure, an errno value.
+ */
+int remove_mode(const char *pathname, mode_t less_mode);
+
+/*
+ *  Description:
  *		Changes the file metadata of pathname's access time to the provided values using
  *		utimensat().
  *

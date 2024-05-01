@@ -192,6 +192,38 @@ int add_mode(const char *pathname, mode_t more_mode)
 }
 
 
+int remove_mode(const char *pathname, mode_t less_mode)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // 0 on success, errno on failure
+	mode_t old_mode = 0;  // Read this with get_file_perms()
+	mode_t new_mode = 0;  // Set this with set_mode()
+
+	// INPUT VALIDATION
+	result = validate_pathname(pathname);
+
+	// ADD IT UP
+	// 1. Get current mode
+	if (ENOERR == result)
+	{
+		old_mode = get_file_perms(pathname, &result);
+	}
+	// 2. Remove less_mode
+	if (ENOERR == result)
+	{
+		new_mode = old_mode & (~less_mode);
+	}
+	// 3. Call set_mode()
+	if (ENOERR == result)
+	{
+		result = set_mode(pathname, new_mode);
+	}
+
+	// DONE
+	return result;
+}
+
+
 int set_atime(const char *pathname, bool follow_sym, time_t seconds, long nseconds)
 {
 	// LOCAL VARIABLES
