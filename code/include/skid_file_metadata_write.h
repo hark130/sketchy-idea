@@ -26,6 +26,25 @@
 
 /*
  *  Description:
+ *		Adds to pathname's permission bits by fetching the current mode, ORing more_mode,
+ *		and then calling set_mode() with the new mode.  Symbolic links are always dereferenced.
+ *		The additional permissions for pathname are specified in more_mode, which is
+ *		a bit mask created by ORing together zero or more SKID_MODE_* macros (or S_I* macros from
+ *		chmod(2)).
+ *
+ *		See set_mode() for important notes.
+ *
+ *  Args:
+ *      pathname: Absolute or relative pathname to modify the group of.
+ *		more_mode: The additional permission flags to add to pathname's mode.
+ *
+ *  Returns:
+ *		0, on success.  On failure, an errno value.
+ */
+int add_mode(const char *pathname, mode_t more_mode);
+
+/*
+ *  Description:
  *		Changes the file metadata of pathname's access time to the provided values using
  *		utimensat().
  *
