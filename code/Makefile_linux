@@ -57,6 +57,8 @@ RAW_OBJ_FILES := $(addsuffix $(OBJ_FILE_EXT),$(BASE_SRC_NAMES))
 # CHECK UNIT TEST VARIABLES
 # Prefix for *all* Check unit test files
 CHECK_PREFIX = check_
+# Prefix for all skid_file_link library unit tests
+CHECK_SFL_PREFIX = $(CHECK_PREFIX)sfl_
 # Prefix for all skid_file_metadata_read library unit tests
 CHECK_SFMR_PREFIX = $(CHECK_PREFIX)sfmr_
 # Prefix for all skid_file_metadata_write library unit tests
@@ -77,6 +79,8 @@ CHECK_CC_ARGS = -lcheck -lm -lsubunit -lrt -lpthread
 MAN_TEST_PREFIX = test_
 # Prefix for all devops_code library manual tests
 MAN_TEST_DEVOPS_PREFIX = $(MAN_TEST_PREFIX)devops_code_
+# Prefix for all skid_file_link library manual tests
+MAN_TEST_SFL_PREFIX = $(MAN_TEST_PREFIX)sfl_
 # Prefix for all skid_file_metadata_read library manual tests
 MAN_TEST_SFMR_PREFIX = $(MAN_TEST_PREFIX)sfmr_
 # Prefix for all skid_file_metadata_read library manual tests
@@ -162,6 +166,12 @@ _validate_glibc:
 	@ldd --version > $(NULL)
 	@echo "        $(CHECK) $(shell ldd --version | head -n 1)"
 
+# CHECK: Linking skid_file_link library unit test binaries
+$(DIST_DIR)$(CHECK_SFL_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFL_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_link$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Linking Check unit test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
+
 # CHECK: Linking skid_file_metadata_read library unit test binaries
 $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
 	@#echo "$@ needs $^"  # DEBUGGING
@@ -182,6 +192,11 @@ $(DIST_DIR)$(CHECK_PREFIX)%$(OBJ_FILE_EXT): $(TEST_DIR)$(CHECK_PREFIX)%$(SRC_FIL
 
 # MANUAL TEST: Linking devops_code library manual test binaries
 $(DIST_DIR)$(MAN_TEST_DEVOPS_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_DEVOPS_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
+	@echo "    Linking manual test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# MANUAL TEST: Linking skid_file_link library manual test binaries
+$(DIST_DIR)$(MAN_TEST_SFL_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFL_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_link$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
