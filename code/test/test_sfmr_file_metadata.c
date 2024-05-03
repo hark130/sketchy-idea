@@ -35,7 +35,7 @@
  *  Returns:
  *		The time, on success.  0 on error, and errnum is set.
  */
-typedef time_t (*GetTime)(const char *pathname, int *errnum);
+typedef time_t (*GetTime)(const char *pathname, int *errnum, bool);
 
 
 /*
@@ -59,11 +59,13 @@ int print_file_type(const char *pathname);
  *      get_time_func: Function pointer to a get_*_time() function.
  *		func_type: The answer to "...pathname's _____ is..." (e.g., access, change, modification)
  *      pathname: The path to fetch a time for.
+ *		follow_sym: If true, follows symlinks to evaluate the target.
  *
  *  Returns:
  *      On success, 0.  Errno or -1 on failure.
  */
-int print_formatted_time(GetTime get_time_func, const char *func_type, const char *pathname);
+int print_formatted_time(GetTime get_time_func, const char *func_type, const char *pathname,
+	                     bool follow_sym);
 
 
 /*
@@ -72,27 +74,27 @@ int print_formatted_time(GetTime get_time_func, const char *func_type, const cha
  *
  *  Args:
  *      pathname: The path to fetch ownership for.
+ *		follow_sym: Follow symbolic links.
  *
  *  Returns:
  *      On success, 0.  Errno on failure.
  */
-int print_ownership(const char *pathname);
+int print_ownership(const char *pathname, bool follow_sym);
 
 
 int main(int argc, char *argv[])
 {
 	// LOCAL VARIABLES
-	int exit_code = 0;               // Store errno and/or results here
-	char tmp_time_str[512] = { 0 };  // Temp storage buffer for human-readable time string
-	time_t tmp_time = 0;             // Return value from get_*_time()
-	dev_t tmp_dev = 0;               // Temp variable for library return values
-	ino_t tmp_ino = 0;               // Temp variable for library return values
-	mode_t tmp_mode = 0;             // Temp variable for library return values
-	nlink_t tmp_link = 0;            // Temp variable for library return values
-	blksize_t tmp_blksize = 0;       // Temp variable for library return values
-	off_t tmp_off = 0;               // Temp variable for library return values
-	blkcnt_t tmp_blkcnt = 0;         // Temp variable for library return values
-	char *pathname = NULL;           // Get this from argv[1]
+	int exit_code = 0;          // Store errno and/or results here
+	dev_t tmp_dev = 0;          // Temp variable for library return values
+	ino_t tmp_ino = 0;          // Temp variable for library return values
+	mode_t tmp_mode = 0;        // Temp variable for library return values
+	nlink_t tmp_link = 0;       // Temp variable for library return values
+	blksize_t tmp_blksize = 0;  // Temp variable for library return values
+	off_t tmp_off = 0;          // Temp variable for library return values
+	blkcnt_t tmp_blkcnt = 0;    // Temp variable for library return values
+	char *pathname = NULL;      // Get this from argv[1]
+	bool follow_sym = false;    // Do not follow symbolic links
 
 	// INPUT VALIDATION
 	if (argc != 2)
@@ -196,7 +198,7 @@ int main(int argc, char *argv[])
 	// Owner and Group IDs
 	if (!exit_code)
 	{
-		exit_code = print_ownership(pathname);
+		exit_code = print_ownership(pathname, follow_sym);
 	}
 	// Preferred Block Size
 	if (!exit_code)
@@ -237,23 +239,23 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			printf("Blocks Allocated: %ld.\n", tmp_off);
+			printf("Blocks Allocated: %ld.\n", tmp_blkcnt);
 		}
 	}
 	// Access Time (atime)
 	if (!exit_code)
 	{
-		exit_code = print_formatted_time(get_access_time, "access", pathname);
+		exit_code = print_formatted_time(get_access_time, "access", pathname, false);
 	}
 	// Change Time (ctime)
 	if (!exit_code)
 	{
-		exit_code = print_formatted_time(get_change_time, "status change", pathname);
+		exit_code = print_formatted_time(get_change_time, "status change", pathname, false);
 	}
 	// Modification Time (mtime)
 	if (!exit_code)
 	{
-		exit_code = print_formatted_time(get_mod_time, "modification", pathname);
+		exit_code = print_formatted_time(get_mod_time, "modification", pathname, false);
 	}
 
 	// DONE
@@ -325,7 +327,7 @@ int print_file_type(const char *pathname)
 }
 
 
-int print_formatted_time(GetTime get_time_func, const char *func_type, const char *pathname)
+int print_formatted_time(GetTime get_time_func, const char *func_type, const char *pathname, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	int result = 0;              // Store errno and/or results here
@@ -342,7 +344,7 @@ int print_formatted_time(GetTime get_time_func, const char *func_type, const cha
 	// Get the time
 	if (!result)
 	{
-		answer = (*get_time_func)(pathname, &result);
+		answer = (*get_time_func)(pathname, &result, follow_sym);
 	}
 	// Format the time
 	if (!result)
@@ -360,7 +362,7 @@ int print_formatted_time(GetTime get_time_func, const char *func_type, const cha
 }
 
 
-int print_ownership(const char *pathname)
+int print_ownership(const char *pathname, bool follow_sym)
 {
 	// LOCAL VARIABLES
 	int result = 0;     // Store errno and/or results here
@@ -369,7 +371,7 @@ int print_ownership(const char *pathname)
 
 	// PRINT IT
 	// Get the owner ID
-	tmp_uid = get_owner(pathname, &result);
+	tmp_uid = get_owner(pathname, &result, follow_sym);
 	if (result)
 	{
 		PRINT_ERROR(The call to get_owner() failed);
@@ -382,7 +384,7 @@ int print_ownership(const char *pathname)
 	// Get the group ID
 	if (!result)
 	{
-		tmp_gid = get_group(pathname, &result);
+		tmp_gid = get_group(pathname, &result, follow_sym);
 		if (result)
 		{
 			PRINT_ERROR(The call to get_group() failed);

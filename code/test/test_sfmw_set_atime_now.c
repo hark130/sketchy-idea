@@ -1,28 +1,24 @@
 /*
- *	Manually test skid_file_metadata_read.h's get_*_time() functions.
+ *	Manually test skid_file_metadata_write.h's set_atime_now() functions.
  *
  *	Copy/paste the following...
 
-./code/dist/test_sfmr_get_file_times.bin /dev/loop0                               # Block device
-./code/dist/test_sfmr_get_file_times.bin /dev/null                                # Char device
-./code/dist/test_sfmr_get_file_times.bin ./code/test/test_input/                  # Directory
-./code/dist/test_sfmr_get_file_times.bin ./code/test/test_input/regular_file.txt  # Regular file
-./code/dist/test_sfmr_get_file_times.bin /var/run/dbus/system_bus_socket          # Socket
-./code/dist/test_sfmr_get_file_times.bin ./code/test/test_input/sym_link.txt      # Sym link
+./code/dist/test_sfmw_set_atime_now.bin ./code/test/test_input/                  # Directory
+./code/dist/test_sfmw_set_atime_now.bin ./code/test/test_input/regular_file.txt  # Regular file
 
- *	NOTE: A symbolic link identifies as a regular file here because stat() follows symbolic links.
- *		Use lstat() to positively identify symbolic links.
+ *
  */
 
 // Standard includes
-#include <errno.h>                    // EINVAL
-#include <stdio.h>                    // fprintf(), printf()
-#include <stdlib.h>					  // exit()
-#include <sys/sysmacros.h>			  // major(), minor()
+#include <errno.h>                     // EINVAL
+#include <stdio.h>                     // fprintf(), printf()
+#include <stdlib.h>					   // exit()
+#include <sys/sysmacros.h>			   // major(), minor()
 // Local includes
-#define SKID_DEBUG                    // The DEBUG output is doing double duty as test output
-#include "skid_debug.h"               // PRINT_ERRNO(), PRINT_ERROR()
-#include "skid_file_metadata_read.h"  // get_*_time()
+#define SKID_DEBUG                     // The DEBUG output is doing double duty as test output
+#include "skid_debug.h"                // PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_file_metadata_read.h"   // get_*_time()
+#include "skid_file_metadata_write.h"  // set_atime_now()
 
 
 /*
@@ -37,6 +33,20 @@
  *		The time, on success.  0 on error, and errnum is set.
  */
 typedef time_t (*GetTime)(const char *pathname, int *errnum, bool follow_sym);
+
+
+/*
+ *  Description:
+ *		Print the human readable atime, ctime, and mtime for pathname.
+ *      
+ *  Args:
+ *      pathname: The path to fetch times for.
+ *		follow_sym: If true, follows symlinks to evaluate the target.
+ *      
+ *  Returns:
+ *      On success, 0.  Errno or -1 on failure.
+ */
+int print_all_times(const char *pathname, bool follow_sym);
 
 
 /*
@@ -59,8 +69,9 @@ int print_formatted_time(GetTime get_time_func, const char *func_type, const cha
 int main(int argc, char *argv[])
 {
 	// LOCAL VARIABLES
-	int exit_code = 0;               // Store errno and/or results here
-	char *pathname = NULL;           // Get this from argv[1]
+	int exit_code = 0;              // Store errno and/or results here
+	char *pathname = NULL;          // Get this from argv[1]
+	bool follow_sym_links = false;  // Follow symbolic links
 
 	// INPUT VALIDATION
 	if (argc != 2)
@@ -74,24 +85,53 @@ int main(int argc, char *argv[])
 	}
 
 	// GET IT
-	// Access Time (atime)
+	// Before
 	if (!exit_code)
 	{
-		exit_code = print_formatted_time(get_access_time, "access", pathname, false);
+		puts("BEFORE");
+		exit_code = print_all_times(pathname, follow_sym_links);
 	}
-	// Change Time (ctime)
+	// Set time
 	if (!exit_code)
 	{
-		exit_code = print_formatted_time(get_change_time, "change", pathname, false);
+		exit_code = set_atime_now(pathname, follow_sym_links);
 	}
-	// Modification Time (mtime)
+	// After
 	if (!exit_code)
 	{
-		exit_code = print_formatted_time(get_mod_time, "modification", pathname, false);
+		puts("AFTER");
+		exit_code = print_all_times(pathname, follow_sym_links);
 	}
 
 	// DONE
 	exit(exit_code);
+}
+
+
+int print_all_times(const char *pathname, bool follow_sym)
+{
+	// LOCAL VARIABLES
+	int result = 0;  // Store errno and/or results here
+
+	// GET IT
+	// Access Time (atime)
+	if (!result)
+	{
+		result = print_formatted_time(get_access_time, "access", pathname, follow_sym);
+	}
+	// Change Time (ctime)
+	if (!result)
+	{
+		result = print_formatted_time(get_change_time, "change", pathname, follow_sym);
+	}
+	// Modification Time (mtime)
+	if (!result)
+	{
+		result = print_formatted_time(get_mod_time, "modification", pathname, follow_sym);
+	}
+
+	// DONE
+	return result;
 }
 
 

@@ -6,7 +6,8 @@
 #define __SKID_DEVOPS__
 
 #include <stdbool.h>    // bool, false, true
-#include <stddef.h>		// size_t
+#include <stddef.h>     // size_t
+#include <unistd.h>     // useconds_t
 
 // Baseline dir level to standardize file-based test input paths
 #define SKID_REPO_NAME (const char *)"sketchy-idea"  // The name of this repo
@@ -25,7 +26,7 @@
  *		Caller is respsonsible for freeing the return value with free_devops_mem().
  *		NULL on error (check errnum).
  */
-char *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum);
+void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum);
 
 /*
  *  Description:
@@ -37,7 +38,7 @@ char *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum);
  *  Returns:
  *      0 on success, errno on error.
  */
-int free_devops_mem(char **old_array);
+int free_devops_mem(void **old_array);
 
 /*
  *  Description:
@@ -71,6 +72,28 @@ time_t get_shell_atime(const char *pathname, int *errnum);
  *      The only way to detect errors in execution is to check errnum an errno value (non-zero).
  */
 blkcnt_t get_shell_block_count(const char *pathname, int *errnum);
+
+/*
+ *  Description:
+ *      Using devops_code run_command-family functions:
+ *          1. Get the current user's username (using get_shell_my_username())
+ *          2. Parse /etc/group for all GIDs "my username" is a member of
+ *          3. Store those GIDs in a heap-allocated array of gid_t values
+ *          4. Terminate the array with "my username"'s GID (using get_shell_*() functionality)
+ *      This is intended as a double-do to facilitate testing of skid_file_metadata_write's
+ *      set_ownership() without having to hard-code brittle expected return values.
+ *      The caller is responsible for using free_devops_mem() to free the array of gid_t's
+ *      returned by this function.
+ *
+ *  Args:
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      A "my GID"-terminated heap-allocated array of compatible GIDs on success.
+ *      NULL on error.  Check errnum for actual errno value.
+ */
+gid_t *get_shell_compatible_gid(int *errnum);
+
 
 /*
  *  Description:
@@ -126,6 +149,7 @@ mode_t get_shell_file_perms(const char *pathname, int *errnum);
  *          stat -c %g <pathname>
  *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_group() without having to hard-code brittle expected return values.
+ *		This usage of the stat command does *not* follow symbolic links.
  *
  *  Args:
  *      pathname: The pathname, relative or absolute, to fetch the group ID for.
@@ -189,10 +213,60 @@ time_t get_shell_mtime(const char *pathname, int *errnum);
 
 /*
  *  Description:
+ *      Get the current user's GID by executing the following command in a shell:
+ *          id -g
+ *      This is intended as a double-do to facilitate testing of skid_file_metadata_write's
+ *      set_ownership() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      GID on success, 0 on error.  The only true indication of an error is the errnum value
+ *      since 0 is a valid GID.
+ */
+gid_t get_shell_my_gid(int *errnum);
+
+/*
+ *  Description:
+ *      Get the current user's UID by executing the following command in a shell:
+ *          id -u
+ *      This is intended as a double-do to facilitate testing of skid_file_metadata_write's
+ *      set_ownership() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      UID on success, 0 on error.  The only true indication of an error is the errnum value
+ *      since 0 is a valid UID.
+ */
+uid_t get_shell_my_uid(int *errnum);
+
+/*
+ *  Description:
+ *      Get the current user's username by executing the following command in a shell:
+ *          whoami
+ *      This is intended as a double-do and not meant to be "production code".
+ *      Also, the caller is responsible for using free_devops_mem() to free the memory address
+ *      returned by this function.
+ *
+ *  Args:
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      Heap-allocated string containing the username on success, NULL on error.
+ *      Check errnum for actual errno value on error.
+ */
+char *get_shell_my_username(int *errnum);
+
+/*
+ *  Description:
  *      Get the ID of pathname's owner by executing the following command in a shell:
  *          stat -c %u <pathname>
  *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_owner() without having to hard-code brittle expected return values.
+ *		This usage of the stat command does *not* follow symbolic links.
  *
  *  Args:
  *      pathname: The pathname, relative or absolute, to fetch the owner ID for.
@@ -223,6 +297,40 @@ off_t get_shell_size(const char *pathname, int *errnum);
 
 /*
  *  Description:
+ *      Get the username's GID by executing the following command in a shell:
+ *          id -g <username>
+ *      This is intended as a double-do to facilitate testing of skid_file_metadata_write's
+ *      set_ownership() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      username: The name to fetch the GID for.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      GID on success, 0 on error.  The only true indication of an error is the errnum value
+ *      since 0 is a valid GID.
+ */
+gid_t get_shell_user_gid(const char *username, int *errnum);
+
+/*
+ *  Description:
+ *      Get the username's UID by executing the following command in a shell:
+ *          id -u <username>
+ *      This is intended as a double-do to facilitate testing of skid_file_metadata_write's
+ *      set_ownership() without having to hard-code brittle expected return values.
+ *
+ *  Args:
+ *      username: The name to fetch the UID for.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      UID on success, 0 on error.  The only true indication of an error is the errnum value
+ *      since 0 is a valid UID.
+ */
+uid_t get_shell_user_uid(const char *username, int *errnum);
+
+/*
+ *  Description:
  *      Get the actual block size of the filesystem mounted in current directory by executing:
  *          stat -fc %s .
  *      This is intended as a double-do to validate the results of skid_file_metadata_read's
@@ -235,6 +343,25 @@ off_t get_shell_size(const char *pathname, int *errnum);
  *      Filesystem block size on success, -1 on error.  Check errnum for actual errno value.
  */
 long get_sys_block_size(int *errnum);
+
+/*
+ *  Description:
+ *      Answers the question, "Does pathname exist?".  Any invalid input is treated as a "no".
+ *      The following errno values are also treated as a "no":
+ *			ENOENT is obvious... file flat out doesn't exist.
+ *			ENAMETOOLONG means pathname is too long to it *can't* exist.
+ *			ENOTDIR means part of the path prefix of pathname is not a dir so it *can't* exist.
+ *		EACCES is tricky because it could be inconclusive.  Permission could be denied for one
+ *		of the directories in the path prefix of pathname.  Still, this function treats EACCES
+ *		as a "yes" because this is devops code (but prints a DEBUG warning).
+ *
+ *  Args:
+ *      pathname: Absolute or relative pathname to check.
+ *
+ *  Returns:
+ *      True if pathname exists.  False otherwise.
+ */
+bool is_path_there(const char *pathname);
 
 /*
  *  Description:
@@ -262,6 +389,33 @@ int make_a_pipe(const char *pathname);
  *      0 on success, errno on error.
  */
 int make_a_socket(const char *filename);
+
+/*
+ *  Description:
+ *      Call usleep() to sleep for a number of microseconds.
+ *
+ *  Args:
+ *      num_microsecs: The number of microseconds to sleep.
+ *
+ *  Returns:
+ *      0 on success, errno on error.
+ */
+int micro_sleep(useconds_t num_microsecs);
+
+/*
+ *  Description:
+ *      Read the contents of filename into a heap-allocated buffer.  The caller is responsible
+ *      for using free_devops_mem() to free the memory address returned by this function.
+ *
+ *  Args:
+ *      filename: The relative or absolute path of a filename to read.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      Pointer to a heap-allocated buffer, which contains the contents of filename, on success.
+ *      Returns NULL on error.  Check errnum for errno value (or -1 on unspecified error).
+ */
+char *read_a_file(const char *filename, int *errnum);
 
 /*
  *  Description:
@@ -315,6 +469,26 @@ int run_command(const char *command, char *output, size_t output_len);
 
 /*
  *  Description:
+ *      Uses popen to execute base_cmd + cmd_suffix in a read-only process and read the results
+ *      into output.  If there needs to be a space between base_cmd and cmd_suffix, ensure
+ *      base_cmd has a trailing space.
+ *
+ *  Args:
+ *      base_cmd: The preface command to execute.
+ *      cmd_suffix: Optional; The suffix to add to base_cmd prior to execution.  If NULL or
+ *          empty, just the base_cmd will be executed.
+ *      output: Optional; [Out] The output from command will be read into this buffer, if a valid
+ *          pointer.
+ *      output_len: Optional; If output is to be used, this value indicates the size of output.
+ *
+ *  Returns:
+ *      0 on success, errno on error.
+ */
+int run_command_append(const char *base_cmd, const char *cmd_suffix, char *output,
+                       size_t output_len);
+
+/*
+ *  Description:
  *      Uses popen to execute command + pathname in a read-only process and read the results
  *      into output.  If there needs to be a space between command and pathname, ensure
  *      command has a trailing space.
@@ -330,5 +504,21 @@ int run_command(const char *command, char *output, size_t output_len);
  *      0 on success, errno on error.
  */
 int run_path_command(const char *command, const char *pathname, char *output, size_t output_len);
+
+/*
+ *  Description:
+ *      Set pathname's permissions by executing the following command in a shell:
+ *          chmod <new_perms> <pathname>
+ *      This is intended as a double-do to facilitate testing of skid_file_metadata_write's
+ *      set_mode()-family of functions.
+ *
+ *  Args:
+ *      pathname: The pathname, absolute or relative, to set the permissions for.
+ *      new_perms: The new permissions, as an octal number, to set for pathname.
+ *
+ *  Returns:
+ *      0 on success, errno on error.
+ */
+int set_shell_perms(const char *pathname, mode_t new_perms);
 
 #endif  /* __SKID_DEVOPS__ */

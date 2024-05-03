@@ -71,7 +71,7 @@ START_TEST(test_n03_directory)
     ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
 
     // CLEANUP
-    free_devops_mem(&input_abs_path);
+    free_devops_mem((void **)&input_abs_path);
 }
 END_TEST
 
@@ -104,7 +104,7 @@ START_TEST(test_n04_named_pipe)
 
     // CLEANUP
     remove_a_file(input_abs_path, true);
-    free_devops_mem(&input_abs_path);
+    free_devops_mem((void **)&input_abs_path);
 }
 END_TEST
 
@@ -132,7 +132,7 @@ START_TEST(test_n05_regular_file)
     ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
 
     // CLEANUP
-    free_devops_mem(&input_abs_path);
+    free_devops_mem((void **)&input_abs_path);
 }
 END_TEST
 
@@ -166,7 +166,7 @@ START_TEST(test_n06_socket)
 
     // CLEANUP
     remove_a_file(input_abs_path, true);
-    free_devops_mem(&input_abs_path);
+    free_devops_mem((void **)&input_abs_path);
 }
 END_TEST
 
@@ -194,7 +194,7 @@ START_TEST(test_n07_symbolic_link)
     ck_assert_int_eq(0, errnum);  // The out param should be zeroized on success
 
     // CLEANUP
-    free_devops_mem(&input_abs_path);
+    free_devops_mem((void **)&input_abs_path);
 }
 END_TEST
 
