@@ -33,21 +33,16 @@ SKID_MF_ARGS = --directory=$(CODE_DIR)
 ##### MAKEFILE RULES #####
 ##########################
 all:
-	@clear
 	$(CALL_MAKE) $(SKID_MF_ARGS)
 
 clean:
-	@clear
 	$(CALL_MAKE) $(SKID_MF_ARGS) clean
 
 compile:
-	@clear
 	$(CALL_MAKE) $(SKID_MF_ARGS) compile
 
 test:
-	@clear
 	$(CALL_MAKE) $(SKID_MF_ARGS) test
 
 validate:
-	@clear
 	$(CALL_MAKE) $(SKID_MF_ARGS) validate
