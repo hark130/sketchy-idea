@@ -41,11 +41,11 @@ for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && b
 
 ### Save the output
 
+"Export" shell scripts can be found in `./devops/scripts/*.sh`
+Example:
+
 ```
-date > output.txt && echo >> output.txt && \
-make >> output.txt && echo >> output.txt && \
-for check_bin in $(ls code/dist/check_*.bin); do CK_FORK=no valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 $check_bin >> output.txt 2>&1; [[ $? -ne 0 ]] && break || continue; done && echo >> output.txt && \
-for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' >> output.txt
+./devops/scripts/13-2_export.sh > devops/files/13-2_output.txt 2>&1
 ```
 
 ### Check unit test framework
