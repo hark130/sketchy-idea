@@ -39,6 +39,15 @@ for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && b
 
 ## NOTES
 
+### Save the output
+
+"Export" shell scripts can be found in `./devops/scripts/*.sh`
+Example:
+
+```
+./devops/scripts/13-2_export.sh > devops/files/13-2_output.txt 2>&1
+```
+
 ### Check unit test framework
 
 * Convient function-like [test macros](https://libcheck.github.io/check/doc/check_html/check_4.html#Convenience-Test-Functions)
