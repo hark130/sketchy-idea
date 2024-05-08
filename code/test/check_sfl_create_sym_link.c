@@ -106,7 +106,7 @@ void run_test_case(const char *src_input, const char *dst_input, int exp_return)
 	if (0 == exp_return)
 	{
 		ck_assert_msg(true == is_sym_link(dst_input, &errnum),
-			          "'%s' did *not* register as a symbolic link", dst_input);
+			          "'%s' did *not* register as a symbolic link\n", dst_input);
 		ck_assert_msg(0 == errnum, "is_sym_link(%s) failed with [%d] '%s'\n",
 			          dst_input, errnum, strerror(errnum));
 	}
