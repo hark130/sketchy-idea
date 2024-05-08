@@ -45,7 +45,8 @@ for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && b
 Example:
 
 ```
-./devops/scripts/13-2_export.sh > devops/files/13-2_output.txt 2>&1
+./devops/scripts/13-2_export.sh > ./devops/files/13-2_output.txt 2>&1
+./devops/scripts/13-4_export.sh > ./devops/files/13-4_output.txt 2>&1
 ```
 
 ### Check unit test framework
