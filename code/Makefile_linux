@@ -196,7 +196,7 @@ $(DIST_DIR)$(MAN_TEST_DEVOPS_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_DEVO
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
 # MANUAL TEST: Linking skid_file_link library manual test binaries
-$(DIST_DIR)$(MAN_TEST_SFL_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFL_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_link$(OBJ_FILE_EXT)
+$(DIST_DIR)$(MAN_TEST_SFL_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFL_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_link$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
