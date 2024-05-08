@@ -19,9 +19,9 @@
 #include <string.h>  // strerror()
 #define DEBUG_ERROR_STR "<<<ERROR>>>"
 #define DEBUG_WARNG_STR "¿¿¿WARNING???"
-#define PRINT_ERRNO(errorNum) if (errorNum) { fprintf(stderr, "%s - %s - %s() - %d - Returned errno: %s\n", DEBUG_ERROR_STR, __FILE__, __FUNCTION_NAME__, __LINE__, strerror(errorNum)); };
-#define PRINT_ERROR(msg) do { fprintf(stderr, "%s - %s - %s() - %d - %s!\n", DEBUG_ERROR_STR, __FILE__, __FUNCTION_NAME__, __LINE__, #msg); } while (0);
-#define PRINT_WARNG(msg) do { fprintf(stderr, "%s - %s - %s() - %d - %s!\n", DEBUG_WARNG_STR, __FILE__, __FUNCTION_NAME__, __LINE__, #msg); } while (0);
+#define PRINT_ERRNO(errorNum) if (errorNum) { fprintf(stderr, "%s - %s - %s() - line %d - Returned errno [%d]: %s\n", DEBUG_ERROR_STR, __FILE__, __FUNCTION_NAME__, __LINE__, errorNum, strerror(errorNum)); };
+#define PRINT_ERROR(msg) do { fprintf(stderr, "%s - %s - %s() - line %d - %s!\n", DEBUG_ERROR_STR, __FILE__, __FUNCTION_NAME__, __LINE__, #msg); } while (0);
+#define PRINT_WARNG(msg) do { fprintf(stderr, "%s - %s - %s() - line %d - %s!\n", DEBUG_WARNG_STR, __FILE__, __FUNCTION_NAME__, __LINE__, #msg); } while (0);
 #define FPRINTF_ERR(...) do { fprintf(stderr, __VA_ARGS__); } while (0);
 #else
 #define DEBUG_ERROR_STR ""
