@@ -167,7 +167,7 @@ _validate_glibc:
 	@echo "        $(CHECK) $(shell ldd --version | head -n 1)"
 
 # CHECK: Linking skid_file_link library unit test binaries
-$(DIST_DIR)$(CHECK_SFL_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFL_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_link$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
+$(DIST_DIR)$(CHECK_SFL_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFL_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_link$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Linking Check unit test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
