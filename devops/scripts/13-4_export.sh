@@ -73,14 +73,14 @@ TEST_DEST_SYM_FILE="./code/test/test_output/sym_file"          # Destination fil
 BOOKEND="***"                                                  # Formatting
 TEMP_RET=0                                                     # Temporary exit code var
 
-# # 1. Stores the date
-# date && \
-# # 2. Runs the build system (which also executes the Check-based unit tests)
-# make && echo && \
-# # 3. Executes the unit tests with Valgrind
-# for check_bin in $(ls code/dist/check_*.bin); do CK_FORK=no valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 $check_bin; [[ $? -ne 0 ]] && break || continue; done && echo && \
-# # 4. Counts the number of unit tests (by running them again)
-# for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
+# 1. Stores the date
+date && \
+# 2. Runs the build system (which also executes the Check-based unit tests)
+make && echo && \
+# 3. Executes the unit tests with Valgrind
+for check_bin in $(ls code/dist/check_*.bin); do CK_FORK=no valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 $check_bin; [[ $? -ne 0 ]] && break || continue; done && echo && \
+# 4. Counts the number of unit tests (by running them again)
+for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
 # 5. Misc.
 # A. Pre-Cleanup
 rm --force $TEST_DEST_SYM_DIR  # Remove pre-existing symbolic link
@@ -104,7 +104,7 @@ TEMP_RET=$?
 if [ $TEMP_RET -eq 0 ]
 then
     run_manual_test_command "ls -l $TEST_DEST_SYM_FILE"
-    run_manual_test_command "head -n 1 $TEST_DEST_SYM_FILE"
+    run_manual_test_command "head -n 4 $TEST_DEST_SYM_FILE"
 else
     echo "Exited with: $TEMP_RET"
 fi
