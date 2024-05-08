@@ -53,4 +53,4 @@ dkms.conf
 
 # Repo directories
 dist/
-code/test/test_output/*.log
+code/test/test_output/
