@@ -25,7 +25,7 @@ run_manual_test_command()
     # DO IT
     # Echo
     printf "The full command is '%s'\n" "$@"
-    echo
+    printf "Command output:\n"
     # Execute
     bash -c "$@"
     EXIT_CODE=$?
@@ -58,7 +58,7 @@ run_manual_test_command_verbose()
     bash -c "$BASE_CMD"
     echo
     # Call run_manual_test_command()
-    run_manual_test_command $FULL_CMD
+    run_manual_test_command "$FULL_CMD"
     EXIT_CODE=$?
 
     # DONE
@@ -87,8 +87,9 @@ rm --force $TEST_DEST_SYM_DIR  # Remove pre-existing symbolic link
 rm --force $TEST_DEST_SYM_FILE  # Remove pre-existing symbolic link
 # B. Manual Test Code
 # Create symbolic link (dir)
+printf "%s Create Symbolic Link (dir) %s\n" "$BOOKEND" "$BOOKEND"
 run_manual_test_command_verbose "./code/dist/test_sfl_create_sym_link.bin $TEST_SOURCE_DIR $TEST_DEST_SYM_DIR"
-TEMP_RET = $?
+TEMP_RET=$?
 if [ $TEMP_RET -eq 0 ]
 then
     run_manual_test_command "ls -l $TEST_DEST_SYM_DIR"
@@ -97,12 +98,13 @@ else
     echo "Exited with: $TEMP_RET"
 fi
 # Create symbolic link (file)
+printf "%s Create Symbolic Link (file) %s\n" "$BOOKEND" "$BOOKEND"
 run_manual_test_command_verbose "./code/dist/test_sfl_create_sym_link.bin $TEST_SOURCE_FILE $TEST_DEST_SYM_FILE"
-TEMP_RET = $?
+TEMP_RET=$?
 if [ $TEMP_RET -eq 0 ]
 then
     run_manual_test_command "ls -l $TEST_DEST_SYM_FILE"
-    run_manual_test_command "ls $TEST_DEST_SYM_FILE"
+    run_manual_test_command "head -n 1 $TEST_DEST_SYM_FILE"
 else
     echo "Exited with: $TEMP_RET"
 fi
