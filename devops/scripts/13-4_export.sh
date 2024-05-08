@@ -110,4 +110,5 @@ else
 fi
 
 # C. Post-Cleanup
-
+rm --force $TEST_DEST_SYM_DIR  # Remove symbolic link
+rm --force $TEST_DEST_SYM_FILE  # Remove symbolic link
