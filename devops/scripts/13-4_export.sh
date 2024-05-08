@@ -7,7 +7,7 @@
 # 2. Runs the build system (which also executes the Check-based unit tests)
 # 3. Executes the unit tests with Valgrind
 # 4. Counts the number of unit tests (by running them again)
-# 5. Misc. (e.g., executing bespoke manual test code)
+# 5. Misc. (e.g., executing bespoke manual test code highlighting features/functionality)
 
 #
 # PURPOSE:
@@ -70,6 +70,7 @@ TEST_SOURCE_DIR="$CWD/code/test/test_input/"                   # Input directory
 TEST_SOURCE_FILE="$CWD/code/test/test_input/regular_file.txt"  # Input file
 TEST_DEST_SYM_DIR="./code/test/test_output/sym_dir"            # Destination dir symbolic link
 TEST_DEST_SYM_FILE="./code/test/test_output/sym_file"          # Destination file symbolic link
+TEST_DEST_HARD_FILE="./code/test/test_output/hard_file"        # Destination file hard link
 BOOKEND="***"                                                  # Formatting
 TEMP_RET=0                                                     # Temporary exit code var
 
@@ -82,10 +83,11 @@ for check_bin in $(ls code/dist/check_*.bin); do CK_FORK=no valgrind --leak-chec
 # 4. Counts the number of unit tests (by running them again)
 for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
 # 5. Misc.
-# A. Pre-Cleanup
+# 5.A. Symbolic Links
+# 5.A.i. Pre-Cleanup
 rm --force $TEST_DEST_SYM_DIR  # Remove pre-existing symbolic link
 rm --force $TEST_DEST_SYM_FILE  # Remove pre-existing symbolic link
-# B. Manual Test Code
+# 5.A.ii. Manual Test Code
 # Create symbolic link (dir)
 printf "%s Create Symbolic Link (dir) %s\n" "$BOOKEND" "$BOOKEND"
 run_manual_test_command_verbose "./code/dist/test_sfl_create_sym_link.bin $TEST_SOURCE_DIR $TEST_DEST_SYM_DIR"
@@ -108,7 +110,26 @@ then
 else
     echo "Exited with: $TEMP_RET"
 fi
-
-# C. Post-Cleanup
+# 5.A.iii. Post-Cleanup
 rm --force $TEST_DEST_SYM_DIR  # Remove symbolic link
 rm --force $TEST_DEST_SYM_FILE  # Remove symbolic link
+
+# 5.B. Hard Links
+# 5.B.i. Pre-Cleanup
+rm --force $TEST_DEST_HARD_FILE  # Remove pre-existing symbolic link
+# 5.B.ii. Manual Test Code
+# Create hard link (file)
+printf "%s Create Hard Link (file) %s\n" "$BOOKEND" "$BOOKEND"
+run_manual_test_command_verbose "./code/dist/test_sfl_create_hard_link.bin $TEST_SOURCE_FILE $TEST_DEST_HARD_FILE"
+TEMP_RET=$?
+if [ $TEMP_RET -eq 0 ]
+then
+    printf "Compare inode numbers between '%s' and '%s'...\n" $TEST_SOURCE_FILE $TEST_DEST_HARD_FILE
+    run_manual_test_command "ls -li $TEST_SOURCE_FILE"
+    run_manual_test_command "ls -li $TEST_DEST_HARD_FILE"
+else
+    echo "Exited with: $TEMP_RET"
+fi
+
+# 5.B.iii. Post-Cleanup
+rm --force $TEST_DEST_HARD_FILE  # Remove symbolic link
