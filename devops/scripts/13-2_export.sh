@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script was made to help automate exporting the output for 13-2's output into a single
+# This script was made to help automate exporting 13-2's output into a single
 # text file to use as "proof" for my mentor.  It performs the following:
 #
 # 1. Stores the date
