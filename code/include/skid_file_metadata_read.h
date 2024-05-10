@@ -4,7 +4,7 @@
 #include <errno.h>      // errno
 #include <stdbool.h>    // bool, false, true
 #include <sys/types.h>
-#include <sys/stat.h>
+#include <sys/stat.h>	// mode_t
 #include <unistd.h>
 
 /*
