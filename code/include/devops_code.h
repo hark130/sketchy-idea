@@ -94,7 +94,6 @@ blkcnt_t get_shell_block_count(const char *pathname, int *errnum);
  */
 gid_t *get_shell_compatible_gid(int *errnum);
 
-
 /*
  *  Description:
  *      Get the pathname's raw status change time by executing the following command in a shell:
