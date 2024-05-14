@@ -954,6 +954,85 @@ bool is_path_there(const char *pathname)
 }
 
 
+char *join_dir_to_path(const char *dirname, const char *pathname, bool must_exist, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = validate_standard_args(dirname, errnum);  // Results of execution
+	char *joined_path = NULL;                              // dirname/pathname
+	size_t total_len = 0;                                  // Total length of dirname/pathanme
+	bool add_delim = false;                                // Add a / if necessary
+	bool append_path = false;                              // Pathname is optional
+
+	// INPUT VALIDATION
+	// pathname
+	if (ENOERR == result && pathname && *pathname)
+	{
+		append_path = true;  // It's there so let's append it
+	}
+	// dirname + must_exist
+	if (ENOERR == result && true == must_exist)
+	{
+		if (false == is_path_there(dirname))
+		{
+			FPRINTF_ERR("%s - Unable to locate %s\n", DEBUG_ERROR_STR, dirname);
+			result = ENOENT;  // Missing dirname
+		}
+	}
+
+	// JOIN IT
+	// Determine length
+	if (ENOERR == result)
+	{
+		total_len = strlen(dirname);
+		// Only add a delimiter if we need to
+		if ('/' != dirname[total_len - 1] && true == append_path)
+		{
+			total_len++;  // Leave a space for the delimiter
+			add_delim = true;  // TO DO: DON'T DO NOW... add a / later
+			total_len += strlen(pathname);
+		}
+	}
+	// Allocate
+	if (ENOERR == result)
+	{
+		joined_path = alloc_devops_mem(total_len + 1, sizeof(char), &result);
+		if (result)
+		{
+			PRINT_ERROR(The call to alloc_devops_mem() failed);
+		}
+	}
+	// Concatenate
+	if (ENOERR == result)
+	{
+		// dirname
+		strncpy(joined_path, dirname, strlen(dirname));
+		// pathname
+		if (true == append_path)
+		{
+			// delimiter
+			if (true == add_delim)
+			{
+				joined_path[strlen(joined_path)] = '/';
+			}
+			strncat(joined_path, pathname, total_len - strlen(joined_path) + 1);
+		}
+	}
+
+	// CLEANUP
+	if (result && joined_path)
+	{
+		free_devops_mem(&joined_path);  // There was an error so let's cleanup
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return joined_path;
+}
+
+
 int make_a_pipe(const char *pathname)
 {
 	// LOCAL VARIABLES
@@ -1196,39 +1275,25 @@ char *resolve_to_repo(const char *repo_name, const char *rel_filename, bool must
 	{
 		result = truncate_dir(cwd, repo_name, sizeof(cwd));
 	}
-	// 3. Join repo_dir to rel_filename (Optional)
+	// Allocate and check
 	if (ENOERR == result && tmp_file && *tmp_file)
 	{
-		// First, advance past any leading delimiters or periods
-		while (*tmp_file == '/' || *tmp_file == '.')
+		// 3. Join repo_dir to rel_filename (Optional)
+		if (tmp_file && *tmp_file)
 		{
-			tmp_file++;
+			// First, advance past any leading delimiters or periods
+			while (*tmp_file == '/' || *tmp_file == '.')
+			{
+				tmp_file++;
+			}
 		}
-		// Next, append rel_filename to cwd
-		if (*tmp_file)
+		// 4. Check must_exist
+		abs_file = join_dir_to_path(cwd, tmp_file, must_exist, &result);
+		if (result)
 		{
-			strncat(cwd, tmp_file, sizeof(cwd) - strlen(cwd));
-		}
-	}
-	// 4. Check must_exist
-	if (ENOERR == result && must_exist == true)
-	{
-		if (stat(cwd, &sb))
-		{
-			result = errno;
-			PRINT_WARNG(The status of the resolved path is uncertain);
+			PRINT_ERROR(The call to join_dir_to_path() failed);
 			PRINT_ERRNO(result);
 		}
-	}
-	// 5. Allocate heap memory
-	if (ENOERR == result)
-	{
-		abs_file = alloc_devops_mem(strlen(cwd) + 1, sizeof(*cwd), &result);
-	}
-	// 6. Copy the local absolute path into the heap memory
-	if (ENOERR == result)
-	{
-		strncpy(abs_file, cwd, strlen(cwd));
 	}
 
 	// CLEANUP
