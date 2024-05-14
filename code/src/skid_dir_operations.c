@@ -24,6 +24,22 @@
 /**************************************************************************************************/
 
 
+int create_dir(const char *dirname, mode_t mode)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // Results of execution
+
+	// INPUT VALIDATION
+	// TO DO: DON'T DO NOW
+
+	// DELETE IT
+	// TO DO: DON'T DO NOW
+
+	// DONE
+	return result;
+}
+
+
 int delete_dir(const char *dirname)
 {
 	// LOCAL VARIABLES
