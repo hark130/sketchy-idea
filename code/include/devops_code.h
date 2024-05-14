@@ -344,9 +344,9 @@ uid_t get_shell_user_uid(const char *username, int *errnum);
 long get_sys_block_size(int *errnum);
 
 /*
- *  Description:
- *      Answers the question, "Does pathname exist?".  Any invalid input is treated as a "no".
- *      The following errno values are also treated as a "no":
+ *	Description:
+ *		Answers the question, "Does pathname exist?".  Any invalid input is treated as a "no".
+ *		The following errno values are also treated as a "no":
  *			ENOENT is obvious... file flat out doesn't exist.
  *			ENAMETOOLONG means pathname is too long to it *can't* exist.
  *			ENOTDIR means part of the path prefix of pathname is not a dir so it *can't* exist.
@@ -354,13 +354,33 @@ long get_sys_block_size(int *errnum);
  *		of the directories in the path prefix of pathname.  Still, this function treats EACCES
  *		as a "yes" because this is devops code (but prints a DEBUG warning).
  *
- *  Args:
- *      pathname: Absolute or relative pathname to check.
+ *	Args:
+ *		pathname: Absolute or relative pathname to check.
  *
- *  Returns:
- *      True if pathname exists.  False otherwise.
+ *	Returns:
+ *		True if pathname exists.  False otherwise.
  */
 bool is_path_there(const char *pathname);
+
+/*
+ *	Description:
+ *		Allocate heap-memory and concatenate dirname/pathname, adding a delimiter if necessary.
+ *		The caller is responsible for using free_devops_mem() to free the memory address returned
+ *		by this function.
+ *
+ *	Args:
+ *		dirname: The absolute or relative directory name which contains pathname.
+ *		pathname: Optional; Absolute or relative pathname to join to dirname.  This function
+ *			will add a delimiter between dirname/pathname if pathname is defined.  Ignored if NULL
+ *			or empty.
+ *		must_exist: If true, dirname must exist.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Heap-allocated memory address containing dirname/pathname, on success.
+ *		Returns NULL on error.  Check errnum for errno value.
+ */
+char *join_dir_to_path(const char *dirname, const char *pathname, bool must_exist, int *errnum);
 
 /*
  *  Description:
