@@ -53,4 +53,18 @@ int delete_file(const char *filename);
  */
 int empty_file(const char *filename);
 
+/*
+ *	Description:
+ *		Read the contents of filename into a heap-allocated buffer.  It is the caller's
+ *		responsibility to free the buffer with free_skid_mem().
+ *
+ *	Args:
+ *		filename: Absolute or relative filename to read.
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Pointer, on success.  NULL on error (check errnum for details).
+ */
+char *read_file(const char *filename, int *errnum);
+
 #endif  /* __SKID_FILE_OPERATIONS__ */

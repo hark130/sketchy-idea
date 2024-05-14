@@ -37,6 +37,22 @@ void close_stream(FILE **stream);
 bool is_file(const char *filename);
 
 /*
+ *	Description:
+ *		Reads a maximum of buff_size bytes from stream into contents.  This function does not
+ *		close stream.  It also does not clear any errors it encountered: end-of-file indicator,
+ *		error indicator.
+ *
+ *	Args:
+ *		stream: Open FILE pointer to read from.
+ *		contents: [Out] The buffer to read stream into.
+ *		buff_size: The maximum number of bytes to read into contents.
+ *
+ *	Returns:
+ *		0, on success.  On failure, an errno value (or -1 for an unspecified error).
+ */
+int read_stream(FILE *stream, char *contents, size_t buff_size);
+
+/*
  *  Description:
  *      Validates the pathname arguments on behalf of this library.
  *
@@ -149,6 +165,83 @@ int empty_file(const char *filename)
 }
 
 
+char *read_file(const char *filename, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;    // Results of execution
+	char *contents = NULL;  // File contents
+	off_t file_size = 0;    // File size in bytes
+	FILE *fp = NULL;        // File pointer to filename
+
+	// INPUT VALIDATION
+	if (false == is_file(filename))
+	{
+		result = ENOENT;  // No such file
+	}
+	else if (!errnum)
+	{
+		result = EINVAL;  // Bad input
+	}
+
+	// READ IT
+	// Size it
+	if (ENOERR == result)
+	{
+		file_size = get_size(filename, &result);
+		if (result)
+		{
+			PRINT_ERROR(The call to get_size() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+	// Allocate it
+	if (ENOERR == result)
+	{
+		contents = alloc_skid_mem(file_size + 1, 1, &result);
+		if (result)
+		{
+			PRINT_ERROR(The call to alloc_skid_mem() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+	// Open it
+	if (ENOERR == result)
+	{
+		fp = fopen(filename, "r");
+		if (!fp)
+		{
+			result = errno;
+			PRINT_ERROR(The call to fopen() failed);
+			PRINT_ERRNO(errnum);
+		}
+	}
+	// Read it
+	if (ENOERR == result)
+	{
+		result = read_stream(fp, contents, file_size);
+		if (result)
+		{
+			PRINT_ERROR(The call to read_stream() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+
+	// CLEANUP
+	close_stream(&fp);  // Best effort
+	if (result && contents)
+	{
+		free_skid_mem(&contents);  // Free the memory since there was an error
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return contents;
+}
+
+
 /**************************************************************************************************/
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
@@ -187,6 +280,43 @@ bool is_file(const char *filename)
 
 	// DONE
 	return is_a_file;
+}
+
+
+int read_stream(FILE *stream, char *contents, size_t buff_size)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;    // The results of validation
+	size_t bytes_read = 0;  // Return value from fread()
+
+	// INPUT VALIDATION
+	if (!stream || !contents || buff_size <= 0)
+	{
+		result = EINVAL;  // Bad input
+	}
+
+	// READ IT
+	if (ENOERR == result)
+	{
+		bytes_read = fread(contents, buff_size, 1, stream);
+		if (feof(stream))
+		{
+			// Great news.  Continue...
+			FPRINTF_ERR("%s - Read to the EOF in read_stream()\n", DEBUG_INFO_STR);
+		}
+		if (ferror(stream))
+		{
+			PRINT_ERROR(The call to fread() failed with an unspecified error);
+			result = EIO;  // Seems accurate
+		}
+		else
+		{
+			FPRINTF_ERR("%s - Read %zu bytes in read_stream()\n", DEBUG_INFO_STR, bytes_read);
+		}
+	}
+
+	// DONE
+	return result;
 }
 
 
