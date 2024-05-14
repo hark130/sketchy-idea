@@ -260,6 +260,20 @@ uid_t get_shell_my_uid(int *errnum);
 char *get_shell_my_username(int *errnum);
 
 /*
+ *	Description:
+ *		Get the current nanoseconds by executing the following command in a shell:
+ *      	date '+%N'
+ *		This is intended to help create unique directory names to unit test the dir_ops library.
+ *
+ *	Args:
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Raw time on success, 0 on error.  Check errnum for actual errno value.
+ */
+long get_shell_nsec_now(int *errnum);
+
+/*
  *  Description:
  *      Get the ID of pathname's owner by executing the following command in a shell:
  *          stat -c %u <pathname>
@@ -293,6 +307,20 @@ uid_t get_shell_owner(const char *pathname, int *errnum);
  *      On success, errnum will be zeroized.
  */
 off_t get_shell_size(const char *pathname, int *errnum);
+
+/*
+ *	Description:
+ *		Get the current time, in seconds from epoch, by executing the following command in a shell:
+ *      	date '+%s'
+ *		This is intended to help create unique directory names to unit test the dir_ops library.
+ *
+ *	Args:
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Raw time on success, 0 on error.  Check errnum for actual errno value.
+ */
+time_t get_shell_time_now(int *errnum);
 
 /*
  *  Description:

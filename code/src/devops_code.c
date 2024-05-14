@@ -745,6 +745,38 @@ char *get_shell_my_username(int *errnum)
 }
 
 
+long get_shell_nsec_now(int *errnum)
+{
+	// LOCAL VARIABLES
+	long retval = 0;                     // Shell command results, converted
+	int err_num = ENOERR;                // Local errno value
+	char base_cmd[] = { "date '+%N'" };  // The base command
+	char output[512] = { 0 };            // Output from the command
+
+	// INPUT VALIDATION
+	err_num = validate_err(errnum);
+
+	// GET IT
+	// Execute command
+	if (!err_num)
+	{
+		err_num = run_command(base_cmd, output, sizeof(output));
+	}
+	// Convert results to time_t
+	if (!err_num)
+	{
+		retval = atoi(output);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = err_num;
+	}
+	return retval;
+}
+
+
 uid_t get_shell_owner(const char *pathname, int *errnum)
 {
 	// LOCAL VARIABLES
@@ -805,6 +837,38 @@ off_t get_shell_size(const char *pathname, int *errnum)
 		*errnum = err_num;
 	}
 	return result;
+}
+
+
+time_t get_shell_time_now(int *errnum)
+{
+	// LOCAL VARIABLES
+	time_t retval = 0;                   // Shell command results, converted
+	int err_num = ENOERR;                // Local errno value
+	char base_cmd[] = { "date '+%s'" };  // The base command
+	char output[512] = { 0 };            // Output from the command
+
+	// INPUT VALIDATION
+	err_num = validate_err(errnum);
+
+	// GET IT
+	// Execute command
+	if (!err_num)
+	{
+		err_num = run_command(base_cmd, output, sizeof(output));
+	}
+	// Convert results to time_t
+	if (!err_num)
+	{
+		retval = atoi(output);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = err_num;
+	}
+	return retval;
 }
 
 
