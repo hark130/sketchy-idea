@@ -7,6 +7,39 @@
 #include <sys/stat.h>	// mode_t
 #include <unistd.h>
 
+
+/*
+ *  Description:
+ *		Format the time_val into a standardized, human-readble string in output:
+ *		"YYYY-MM-DD HH:MM:SS".
+ *
+ *  Args:
+ *      output: [Out] Buffer to format the time into.
+ *		output_size: The size, in bytes, of output.
+ *		time_val: The time value to format.
+ *
+ *  Returns:
+ *		0 on success.  Returns errno value or -1 on failure.
+ */
+int format_time(char *output, size_t output_size, time_t time_val);
+
+
+/*
+ *  Description:
+ *		Format the time_val into a standardized, human-readble string in output:
+ *		"YYYYMMDD_HHMMSS".
+ *
+ *  Args:
+ *      output: [Out] Buffer to format the time into.
+ *		output_size: The size, in bytes, of output.
+ *		time_val: The time value to format.
+ *
+ *  Returns:
+ *		0 on success.  Returns errno value or -1 on failure.
+ */
+int format_time_terse(char *output, size_t output_size, time_t time_val);
+
+
 /*
  *  Description:
  *		Fetches the access time (atime) for pathname by reading the st_atime member from the
@@ -348,21 +381,6 @@ ino_t get_serial_num(const char *pathname, int *errnum);
  *		in errnum.
  */
 off_t get_size(const char *pathname, int *errnum);
-
-
-/*
- *  Description:
- *		Format the time_val into a standardized, human-readble string in output.
- *
- *  Args:
- *      output: [Out] Buffer to format the time into.
- *		output_size: The size, in bytes, of output.
- *		time_val: The time value to format.
- *
- *  Returns:
- *		0 on success.  Returns errno value or -1 on failure.
- */
-int format_time(char *output, size_t output_size, time_t time_val);
 
 
 /*
