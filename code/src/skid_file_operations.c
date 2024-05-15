@@ -2,9 +2,15 @@
  *	This library defines functionality to create, delete, and empty Linux files.
  */
 
-#define SKID_DEBUG					// Enable DEBUGGING output
+#define SKID_DEBUG					// Enable DEBUG logging
 
-#include "skid_file_operations.h"	// bool, empty_file(), false, true
+#include <errno.h>						// errno
+#include <stdio.h>						// fclose(), fopen(), fread(), fwrite()
+#include <unistd.h>						// unlink()
+#include "skid_debug.h"					// PRINT_ERROR()
+#include "skid_file_metadata_read.h"	// get_size()
+#include "skid_file_operations.h"		// bool, empty_file(), false, true
+#include "skid_memory.h"				// alloc_skid_mem()
 #ifndef ENOERR
 #define ENOERR ((int)0)
 #endif  /* ENOERR */
@@ -107,7 +113,7 @@ int create_file(const char *filename, const char *contents, bool overwrite)
 		{
 			result = errno;
 			PRINT_ERROR(The call to fopen() failed);
-			PRINT_ERRNO(errnum);
+			PRINT_ERRNO(result);
 		}
 	}
 	// Write to it
@@ -140,7 +146,7 @@ int delete_file(const char *filename)
 		{
 			result = errno;
 			PRINT_ERROR(The call to unlink() failed);
-			PRINT_ERRNO(errnum);
+			PRINT_ERRNO(result);
 		}
 	}
 
@@ -212,7 +218,7 @@ char *read_file(const char *filename, int *errnum)
 		{
 			result = errno;
 			PRINT_ERROR(The call to fopen() failed);
-			PRINT_ERRNO(errnum);
+			PRINT_ERRNO(result);
 		}
 	}
 	// Read it
@@ -230,7 +236,7 @@ char *read_file(const char *filename, int *errnum)
 	close_stream(&fp);  // Best effort
 	if (result && contents)
 	{
-		free_skid_mem(&contents);  // Free the memory since there was an error
+		free_skid_mem((void **)&contents);  // Free the memory since there was an error
 	}
 
 	// DONE
