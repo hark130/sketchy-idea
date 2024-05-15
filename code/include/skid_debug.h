@@ -1,6 +1,6 @@
 /*
  *	#define SKID_DEBUG
- *	...in order to enable DEBUGGING output.
+ *	...in order to enable DEBUG logging.
  */
 
 #ifndef __SKID_DEBUG_H__
