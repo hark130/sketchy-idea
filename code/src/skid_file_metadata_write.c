@@ -3,7 +3,7 @@
  */
 
 #define _POSIX_C_SOURCE 200809L		  	// Expose utimensat()
-// #define SKID_DEBUG                    // Enable DEBUGGING output
+// #define SKID_DEBUG                    // Enable DEBUG logging
 
 #include <fcntl.h>					  	// AT_FDCWD
 #include "skid_debug.h"				  	// PRINT_ERRNO()

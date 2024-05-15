@@ -2,7 +2,7 @@
  *	This library defines functionality to create links to Linux files.
  */
 
-// #define SKID_DEBUG                    // Enable DEBUGGING output
+// #define SKID_DEBUG                    // Enable DEBUG logging
 
 #include "skid_debug.h"				  	// PRINT_ERRNO()
 #include <errno.h>						// errno
