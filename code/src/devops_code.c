@@ -2,6 +2,8 @@
  *  This library contains non-releasable, unit-test-specific, miscellaneous helper code.
  */
 
+#define SKID_DEBUG			// Enable DEBUG logging
+
 #include <errno.h>          // errno
 #include <limits.h>         // PATH_MAX
 #include <stdio.h>          // remove()
@@ -1049,10 +1051,13 @@ char *join_dir_to_path(const char *dirname, const char *pathname, bool must_exis
 	{
 		total_len = strlen(dirname);
 		// Only add a delimiter if we need to
-		if ('/' != dirname[total_len - 1] && true == append_path)
+		if (true == append_path)
 		{
-			total_len++;  // Leave a space for the delimiter
-			add_delim = true;  // TO DO: DON'T DO NOW... add a / later
+			if ('/' != dirname[total_len - 1])
+			{
+				total_len++;  // Leave a space for the delimiter
+				add_delim = true;  // Add a delimiter later
+			}
 			total_len += strlen(pathname);
 		}
 	}
@@ -1078,14 +1083,14 @@ char *join_dir_to_path(const char *dirname, const char *pathname, bool must_exis
 			{
 				joined_path[strlen(joined_path)] = '/';
 			}
-			strncat(joined_path, pathname, total_len - strlen(joined_path) + 1);
+			strncat(joined_path, pathname, total_len + 1);
 		}
 	}
 
 	// CLEANUP
 	if (result && joined_path)
 	{
-		free_devops_mem(&joined_path);  // There was an error so let's cleanup
+		free_devops_mem((void **)&joined_path);  // There was an error so let's cleanup
 	}
 
 	// DONE
@@ -1318,8 +1323,6 @@ char *resolve_to_repo(const char *repo_name, const char *rel_filename, bool must
 	char cwd[PATH_MAX + 1] = { 0 };        // Current working directory
 	const char *tmp_file = rel_filename;   // Temp pointer to rel_filename
 	char *abs_file = NULL;                 // repo_dir/rel_filename
-	struct stat sb;                        // Used by stat()
-
 
 	// INPUT VALIDATION
 	result = validate_standard_args(repo_name, errnum);
@@ -1401,10 +1404,10 @@ int run_command(const char *command, char *output, size_t output_len)
 		if (NULL == process)
 		{
 			result = errno;
+			PRINT_ERROR(The call to popen() did not succeed);
+			FPRINTF_ERR("It was popen(%s) that failed with %d\n", command, result);
+			PRINT_ERRNO(result);
 		}
-		PRINT_ERROR(The call to popen() did not succeed);
-		FPRINTF_ERR("It was popen(%s) that failed with %d\n", command, result);
-		PRINT_ERRNO(result);
 	}
 	// Get the data
 	if (ENOERR == result)
@@ -1563,7 +1566,6 @@ int set_shell_perms(const char *pathname, mode_t new_perms)
 	// EXECUTE COMMAND
 	if (ENOERR == result)
 	{
-		FPRINTF_ERR("The set_shell_perms(%s, %o) created the '%s' base command\n", pathname, new_perms, base_cmd);  // DEBUGGING
 		result = run_path_command(base_cmd, pathname, NULL, 0);  // Ignore the output
 	}
 
