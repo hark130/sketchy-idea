@@ -198,10 +198,108 @@ START_TEST(test_n01_abs_dir)
 END_TEST
 
 
+// Enable this test case once *any* library is capable of deleting the directory this test created.
+START_TEST(test_n02_rel_dir)
+{
+	// LOCAL VARIABLES
+	int exp_return = 0;   // Expected return value for this test case
+	bool cleanup = true;  // Remove directory after test case has run
+	// Test case input: directory name
+	char *input_abs_path = get_test_dir_name();  // MAKE THIS A RELATIVE DIRECTORY
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_0775;
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+
+	// CLEANUP
+	// Delete the test directory
+	exp_return = delete_dir(input_abs_path);
+	ck_assert_msg(0 == exp_return, "The delete_dir(%s) call errored with [%d] '%s'\n",
+				  input_abs_path, exp_return, strerror(exp_return));
+	free_devops_mem((void **)&input_abs_path);
+}
+END_TEST
+
+
+// Enable this test case once *any* library is capable of deleting the directory this test created.
+START_TEST(test_n03_just_a_dir)
+{
+	// LOCAL VARIABLES
+	int exp_return = 0;   // Expected return value for this test case
+	bool cleanup = true;  // Remove directory after test case has run
+	// Test case input: directory name
+	char *input_abs_path = get_test_dir_name();  // MAKE THIS JUST A DIRECTORY NAME
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_0775;
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+
+	// CLEANUP
+	// Delete the test directory
+	exp_return = delete_dir(input_abs_path);
+	ck_assert_msg(0 == exp_return, "The delete_dir(%s) call errored with [%d] '%s'\n",
+				  input_abs_path, exp_return, strerror(exp_return));
+	free_devops_mem((void **)&input_abs_path);
+}
+END_TEST
+
+
 /**************************************************************************************************/
 /**************************************** ERROR TEST CASES ****************************************/
 /**************************************************************************************************/
 
+
+START_TEST(test_e01_null_dirname)
+{
+	// LOCAL VARIABLES
+	int exp_return = EINVAL;  // Expected return value for this test case
+	bool cleanup = false;     // Remove directory after test case has run
+	// Test case input: directory name
+	char *input_abs_path = NULL;
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_0775;
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+}
+END_TEST
+
+
+START_TEST(test_e02_empty_dirname)
+{
+	// LOCAL VARIABLES
+	int exp_return = EINVAL;  // Expected return value for this test case
+	bool cleanup = false;     // Remove directory after test case has run
+	// Test case input: directory name
+	char *input_abs_path = "\0 EMPTY STRING";
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_0775;
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+
+	// CLEANUP
+	free_devops_mem((void **)&input_abs_path);
+}
+END_TEST
+
+
+START_TEST(test_e03_missing_dir)
+{
+	// LOCAL VARIABLES
+	int exp_return = ENOENT;  // Expected return value for this test case
+	bool cleanup = false;     // Remove directory after test case has run
+	// Test case input: directory name
+	char *input_abs_path = "/not/found/here";
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_0775;
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+}
+END_TEST
 
 
 /**************************************************************************************************/
@@ -229,6 +327,11 @@ Suite *create_dir_suite(void)
 
 	// SETUP TEST CASES
 	tcase_add_test(tc_normal, test_n01_abs_dir);
+	tcase_add_test(tc_normal, test_n02_rel_dir);  // Enable this test after delete_dir()
+	tcase_add_test(tc_normal, test_n03_just_a_dir);  // Enable this test after delete_dir()
+	tcase_add_test(tc_normal, test_e01_null_dirname);
+	tcase_add_test(tc_normal, test_e02_empty_dirname);
+	tcase_add_test(tc_normal, test_e03_missing_dir);
 	suite_add_tcase(suite, tc_normal);
 	// suite_add_tcase(suite, tc_error);
 	// suite_add_tcase(suite, tc_boundary);
