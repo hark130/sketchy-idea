@@ -311,7 +311,7 @@ off_t get_shell_size(const char *pathname, int *errnum);
 /*
  *	Description:
  *		Get the current time, in seconds from epoch, by executing the following command in a shell:
- *      	date '+%s'
+ *			date '+%s'
  *		This is intended to help create unique directory names to unit test the dir_ops library.
  *
  *	Args:
@@ -321,6 +321,21 @@ off_t get_shell_size(const char *pathname, int *errnum);
  *		Raw time on success, 0 on error.  Check errnum for actual errno value.
  */
 time_t get_shell_time_now(int *errnum);
+
+/*
+ *	Description:
+ *		Get the current user's umask by executing the following command in a shell:
+ *			umask
+ *		This is intended to help programmatically determine expected results of directory
+ *		permissions created by create_dir().
+ *
+ *	Args:
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		The umask value on success, 0 on error.  Check errnum for actual errno value.
+ */
+mode_t get_shell_umask(int *errnum);
 
 /*
  *  Description:

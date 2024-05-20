@@ -874,6 +874,38 @@ time_t get_shell_time_now(int *errnum)
 }
 
 
+mode_t get_shell_umask(int *errnum)
+{
+	// LOCAL VARIABLES
+	mode_t retval = 0;              // Shell command results, converted
+	int err_num = ENOERR;           // Local errno value
+	char base_cmd[] = { "umask" };  // The base command
+	char output[512] = { 0 };       // Output from the command
+
+	// INPUT VALIDATION
+	err_num = validate_err(errnum);
+
+	// GET IT
+	// Execute command
+	if (!err_num)
+	{
+		err_num = run_command(base_cmd, output, sizeof(output));
+	}
+	// Convert results to mode_t
+	if (!err_num)
+	{
+		retval = convert_octal_to_decimal(atoi(output));
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = err_num;
+	}
+	return retval;
+}
+
+
 gid_t get_shell_user_gid(const char *username, int *errnum)
 {
 	// LOCAL VARIABLES
