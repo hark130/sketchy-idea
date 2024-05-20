@@ -59,6 +59,11 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sdo_create_dir.bin; unset CK_R
 /**************************************************************************************************/
 
 /*
+ *	Determine the expected mode based on the owning process' umask.
+ */
+mode_t determine_exp_mode(mode_t mode_input);
+
+/*
  *	Create a unique directory name, created from a timestamp and filename, resolved to
  *	WORKING_DIR to use for a test case.  Use free_devops_mem() to free the return value.
  */
@@ -75,6 +80,26 @@ char *resolve_test_input(const char *pathname, const char *base);
  *	(if necessary).
  */
 void run_test_case(char *dir_input, mode_t mode_input, int exp_return, bool cleanup);
+
+
+mode_t determine_exp_mode(mode_t mode_input)
+{
+	// LOCAL VARIABLES
+	int errnum = CANARY_INT;  // Store errno values
+	mode_t result = 0;        // Expected mode
+	mode_t curr_umask = 0;    // The umask of the owning process
+
+	// DETERMINE IT
+	// Get the umask
+	curr_umask = get_shell_umask(&errnum);
+	ck_assert_msg(0 == errnum, "get_shell_umask() failed with [%d] %s\n",
+		          errnum, strerror(errnum));
+	// Determine the expected mode
+	result = mode_input & ~curr_umask & 01777;  // See mkdir(2) + sticky bit
+
+	// DONE
+	return result;
+}
 
 
 char *get_test_dir_name(void)
@@ -143,11 +168,11 @@ char *resolve_test_input(const char *pathname, const char *base)
 void run_test_case(char *dir_input, mode_t mode_input, int exp_return, bool cleanup)
 {
 	// LOCAL VARIABLES
-	int actual_ret = 0;                    // Return value of the tested function
-	int errnum = 0;                        // Catch errno values here
-	mode_t exp_mode = mode_input & 07777;  // Expected mode
-	mode_t actual_mode = 0;                // Actual mode of dir_input, if it was created
-	char *short_dir_input = dir_input;     // Try to restrict long Check unit test messages
+	int actual_ret = 0;                                // Return value of the tested function
+	int errnum = 0;                                    // Catch errno values here
+	mode_t exp_mode = determine_exp_mode(mode_input);  // Expected mode
+	mode_t actual_mode = 0;                            // Actual dir_input mode, if it was created
+	char *short_dir_input = dir_input;                 // Try to restrict long Check unit test msgs
 
 	// SETUP
 	if (short_dir_input && strlen(short_dir_input) >= DEFAULT_MAX_MSG_SIZE)
@@ -308,9 +333,6 @@ START_TEST(test_e02_empty_dirname)
 
 	// RUN TEST
 	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
-
-	// CLEANUP
-	free_devops_mem((void **)&input_abs_path);
 }
 END_TEST
 
@@ -334,9 +356,9 @@ END_TEST
 START_TEST(test_e04_dir_already_exists)
 {
 	// LOCAL VARIABLES
-	int exp_return = EPERM;  // Expected return value for this test case
-	bool cleanup = false;    // Remove directory after test case has run
-	int errnum = 0;          // Store errno values
+	int exp_return = EEXIST;  // Expected return value for this test case
+	bool cleanup = false;     // Remove directory after test case has run
+	int errnum = 0;           // Store errno values
 	// Relative test case input: directory name
 	char input_rel_path[] = { "code/test/test_input/" };
 	// Absolute test case input: directory name
@@ -522,7 +544,7 @@ START_TEST(test_s02_path_contains_non_dir)
 
 	// CLEANUP
 	free_devops_mem((void **)&repo_dir);
-	free_devops_mem((void **)&input_abs_path);
+	free_devops_mem((void **)&input_abs_base);
 }
 END_TEST
 
