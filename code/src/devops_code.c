@@ -1316,6 +1316,33 @@ int remove_a_file(const char *filename, bool ignore_missing)
 }
 
 
+int remove_shell_dir(const char *dirname)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;            // Errno value
+	char command[] = { "rmdir " };  // The base shell command
+	char output[512] = { 0 };       // Output from the command
+
+	// INPUT VALIDATION
+	result = validate_name(dirname);
+
+	// GET IT
+	// Execute command
+	if (ENOERR == result)
+	{
+		result = run_command_append(command, dirname, output, sizeof(output) / sizeof(*output));
+		if (result)
+		{
+			PRINT_ERROR(The call to run_command_append() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+
+	// DONE
+	return result;
+}
+
+
 char *resolve_to_repo(const char *repo_name, const char *rel_filename, bool must_exist, int *errnum)
 {
 	// LOCAL VARIABLES

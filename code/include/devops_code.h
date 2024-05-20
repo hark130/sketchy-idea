@@ -478,6 +478,21 @@ char *read_a_file(const char *filename, int *errnum);
 int remove_a_file(const char *filename, bool ignore_missing);
 
 /*
+ *	Description:
+ *		Remove and empty directory by executing the following command in a shell:
+ *			rmdir <dirname>
+ *		This is intended as a double-do to facilitate testing of skid_dir_operations's
+ *		create_dir() by cleaning up temp directories created at "test time".
+ *
+ *	Args:
+ *		dirname: The name, relative or absolute, of an empty directory to remove.
+ *
+ *	Returns:
+ *		0 on success.  On error, errno value or -1 for an unspecified error.
+ */
+int remove_shell_dir(const char *dirname);
+
+/*
  *  Description:
  *      Translate rel_filename into an absolute filename resolved to the repo_name, as extracted
  *		from the current working directory.  Caller is responsible for calling devops_free().
