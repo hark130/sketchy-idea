@@ -9,11 +9,20 @@
  *		Create a new directory, dirname, with permissions, mode, by calling mkdir().
  *
  *	Notes:
- *		TO DO: DON'T DO NOW...
+ *		The argument mode is modified by the process's umask in the usual way: normally, the mode
+ *		of the created directory is (mode & ~umask & 0777).  Whether other mode bits are
+ *		honored for the created directory depends on the operating system.
+ *
+ *		For Linux, the newly created directory will be owned by the effective user ID of
+ *		the process.  If the directory containing the file has the set-group-ID bit set,
+ *		or if the filesystem is mounted with BSD group semantics the new directory will
+ *		inherit the group ownership from its parent; otherwise it will be owned by the effective
+ *		group ID of the process.  If the parent directory has the set-group-ID bit set, then
+ *		so will the newly created directory.
  *
  *	Args:
  *		dirname: Absolute or relative directory to create.
- *		mode: The permission bits for the new directory.
+ *		mode: Specifies the mode for the new directory.
  *
  *	Returns:
  *		0, on success.  On failure, an errno value.
