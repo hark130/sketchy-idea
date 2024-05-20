@@ -1370,7 +1370,7 @@ char *resolve_to_repo(const char *repo_name, const char *rel_filename, bool must
 		result = truncate_dir(cwd, repo_name, sizeof(cwd));
 	}
 	// Allocate and check
-	if (ENOERR == result && tmp_file && *tmp_file)
+	if (ENOERR == result)
 	{
 		// 3. Join repo_dir to rel_filename (Optional)
 		if (tmp_file && *tmp_file)
@@ -1974,8 +1974,9 @@ int truncate_dir(char *haystack, const char *needle, size_t hay_len)
 			{
 				result = ENOKEY;  // Needle not found in haystack
 			}
-			PRINT_ERROR(The call to strcasestr() did not succeed);
+			PRINT_ERROR(The call to strstr() did not succeed);
 			PRINT_ERRNO(result);
+			FPRINTF_ERR("Failed to find needle '%s' in haystack '%s'\n", needle, haystack);
 		}
 	}
 	// 2. Verify haystack has room
