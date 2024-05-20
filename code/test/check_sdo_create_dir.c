@@ -21,7 +21,7 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sdo_create_dir.bin; unset CK_R
 
 #include <check.h>						// START_TEST(), END_TEST
 #include <stdlib.h>						// EXIT_FAILURE, EXIT_SUCCESS
-#include <linux/limits.h>				// PATH_MAX
+#include <linux/limits.h>				// NAME_MAX, PATH_MAX
 #include <stdio.h>						// sprintf()
 // Local includes
 #include "devops_code.h"				// resolve_to_repo(), SKID_REPO_NAME
@@ -34,7 +34,7 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sdo_create_dir.bin; unset CK_R
 #define BASE_DIR_NAME "create_dir"  // Incorporate this into the auto-generated directory names
 // Try to replicate check/src/check_pack.c's get_max_msg_size() results
 #ifndef DEFAULT_MAX_MSG_SIZE
-#define DEFAULT_MAX_MSG_SIZE 4096  // Try to avoid check_pack.c "Message string too long" errors
+#define DEFAULT_MAX_MSG_SIZE 2048  // Try to avoid check_pack.c "Message string too long" errors
 #endif  /* DEFAULT_MAX_MSG_SIZE */
 // Common Mode Macros
 #define TEST_MODE_0111 (SKID_MODE_OWNER_X | SKID_MODE_GROUP_X | SKID_MODE_OTHER_X)
@@ -447,9 +447,11 @@ START_TEST(test_b04_longest_dir_name)
 	char input_abs_path[PATH_MAX + 1] = { "/tmp/" };
 	// Test case input: mode
 	mode_t input_mode = TEST_MODE_0775;
+	// Base length of input_abs_path
+	size_t abs_path_len = strlen(input_abs_path);
 
 	// SETUP
-	for (int i = strlen(input_abs_path); i < PATH_MAX; i++)
+	for (int i = abs_path_len; i < PATH_MAX && i < (NAME_MAX + abs_path_len); i++)
 	{
 		input_abs_path[i] = 'b';
 	}
@@ -460,7 +462,53 @@ START_TEST(test_b04_longest_dir_name)
 END_TEST
 
 
-START_TEST(test_b05_dir_name_too_long)
+START_TEST(test_b05_dir_name_barely_too_long)
+{
+	// LOCAL VARIABLES
+	int exp_return = ENAMETOOLONG;  // Expected return value for this test case
+	bool cleanup = false;           // Remove directory after test case has run
+	// Test case input: directory name
+	char input_abs_path[PATH_MAX + 1] = { "/tmp/" };
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_0775;
+	// Base length of input_abs_path
+	size_t abs_path_len = strlen(input_abs_path);
+
+	// SETUP
+	for (int i = abs_path_len; i < PATH_MAX && i < (NAME_MAX + abs_path_len + 1); i++)
+	{
+		input_abs_path[i] = 'c';
+	}
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+}
+END_TEST
+
+
+START_TEST(test_b06_dir_name_too_long)
+{
+	// LOCAL VARIABLES
+	int exp_return = ENAMETOOLONG;  // Expected return value for this test case
+	bool cleanup = false;           // Remove directory after test case has run
+	// Test case input: directory name
+	char input_abs_path[PATH_MAX + 1] = { "/tmp/" };
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_0775;
+
+	// SETUP
+	for (int i = strlen(input_abs_path); i < PATH_MAX && i < (NAME_MAX * 2); i++)
+	{
+		input_abs_path[i] = 'd';
+	}
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+}
+END_TEST
+
+
+START_TEST(test_b07_dir_name_way_too_long)
 {
 	// LOCAL VARIABLES
 	int exp_return = ENAMETOOLONG;  // Expected return value for this test case
@@ -473,7 +521,7 @@ START_TEST(test_b05_dir_name_too_long)
 	// SETUP
 	for (int i = strlen(input_abs_path); i < (PATH_MAX * 2); i++)
 	{
-		input_abs_path[i] = 'c';
+		input_abs_path[i] = 'e';
 	}
 
 	// RUN TEST
@@ -644,7 +692,9 @@ Suite *create_dir_suite(void)
 	tcase_add_test(tc_boundary, test_b02_largest_mode);
 	tcase_add_test(tc_boundary, test_b03_shortest_dir_name);
 	tcase_add_test(tc_boundary, test_b04_longest_dir_name);
-	tcase_add_test(tc_boundary, test_b05_dir_name_too_long);
+	tcase_add_test(tc_boundary, test_b05_dir_name_barely_too_long);
+	tcase_add_test(tc_boundary, test_b06_dir_name_too_long);
+	tcase_add_test(tc_boundary, test_b07_dir_name_way_too_long);
 	tcase_add_test(tc_special, test_s01_all_flags_enabled);
 	tcase_add_test(tc_special, test_s02_path_contains_non_dir);
 	tcase_add_test(tc_special, test_s03_special_bits);
