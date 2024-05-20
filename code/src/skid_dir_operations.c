@@ -17,6 +17,15 @@
 /********************************* PRIVATE FUNCTION DECLARATIONS **********************************/
 /**************************************************************************************************/
 
+/*
+ *  Description:
+ *      Validates the pathname arguments on behalf of this library.
+ *  Args:
+ *      pathname: A non-NULL pointer to a non-empty string.
+ *  Returns:
+ *      An errno value indicating the results of validation.  0 on successful validation.
+ */
+int validate_sdo_pathname(const char *pathname);
 
 
 /**************************************************************************************************/
@@ -30,10 +39,18 @@ int create_dir(const char *dirname, mode_t mode)
 	int result = ENOERR;  // Results of execution
 
 	// INPUT VALIDATION
-	// TO DO: DON'T DO NOW
+	result = validate_sdo_pathname(dirname);
 
 	// DELETE IT
-	// TO DO: DON'T DO NOW
+	if (ENOERR == result)
+	{
+		if (mkdir(dirname, mode))
+		{
+			result = errno;
+			PRINT_ERROR(The call to mkdir() failed);
+			PRINT_ERRNO(result);
+		}
+	}
 
 	// DONE
 	return result;
@@ -98,3 +115,24 @@ char **read_dir_contents(const char *dirname, bool recurse, int *errnum)
 /**************************************************************************************************/
 
 
+int validate_sdo_pathname(const char *pathname)
+{
+	// LOCAL VARIABLES
+	int retval = ENOERR;  // The results of validation
+
+	// VALIDATE IT
+	// pathname
+	if (!pathname)
+	{
+		retval = EINVAL;  // Invalid argument
+		PRINT_ERROR(Invalid Argument - Received a null pathname pointer);
+	}
+	else if (!(*pathname))
+	{
+		retval = EINVAL;  // Invalid argument
+		PRINT_ERROR(Invalid Argument - Received an empty pathname);
+	}
+
+	// DONE
+	return retval;
+}
