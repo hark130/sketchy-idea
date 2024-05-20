@@ -24,7 +24,7 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sdo_create_dir.bin; unset CK_R
 #include <linux/limits.h>				// PATH_MAX
 #include <stdio.h>						// sprintf()
 // Local includes
-#include "devops_code.h"				// 
+#include "devops_code.h"				// resolve_to_repo(), SKID_REPO_NAME
 #include "skid_dir_operations.h"		// create_dir()
 #include "skid_file_metadata_read.h"	// is_directory()
 #include "skid_macros.h"				// SKID_MODE_* macros
@@ -32,6 +32,10 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sdo_create_dir.bin; unset CK_R
 #define CANARY_INT (int)0xBADC0DE  // Actually, a reverse canary value
 #define WORKING_DIR "/tmp"  // The working directory for these test cases
 #define BASE_DIR_NAME "create_dir"  // Incorporate this into the auto-generated directory names
+// Try to replicate check/src/check_pack.c's get_max_msg_size() results
+#ifndef DEFAULT_MAX_MSG_SIZE
+#define DEFAULT_MAX_MSG_SIZE 4096  // Try to avoid check_pack.c "Message string too long" errors
+#endif  /* DEFAULT_MAX_MSG_SIZE */
 // Common Mode Macros
 #define TEST_MODE_0111 (SKID_MODE_OWNER_X | SKID_MODE_GROUP_X | SKID_MODE_OTHER_X)
 #define TEST_MODE_0220 (SKID_MODE_OWNER_W | SKID_MODE_GROUP_W )
@@ -62,15 +66,15 @@ char *get_test_dir_name(void);
 
 /*
  *	Resolve paththame to the working directory in a standardized way.  Use free_devops_mem() to
- *	free the return value.
+ *	free the return value.  The base argument is optional and WORKING_DIR will be used by default.
  */
-char *resolve_test_input(const char *pathname);
+char *resolve_test_input(const char *pathname, const char *base);
 
 /*
  *	Make the function call, check the expected return value, validate the results, and cleanup
  *	(if necessary).
  */
-void run_test_case(const char *dir_input, mode_t mode_input, int exp_return, bool cleanup);
+void run_test_case(char *dir_input, mode_t mode_input, int exp_return, bool cleanup);
 
 
 char *get_test_dir_name(void)
@@ -100,19 +104,25 @@ char *get_test_dir_name(void)
 	dir_name[strlen(dir_name)] = '-';  // Separate the timestamp and BASE_DIR_NAME
 	strncat(dir_name, BASE_DIR_NAME, PATH_MAX - strlen(dir_name));
 	// Resolve to WORKING_DIR
-	unique_dir = resolve_test_input(dir_name);
+	unique_dir = resolve_test_input(dir_name, NULL);
 
 	// DONE
 	return unique_dir;
 }
 
 
-char *resolve_test_input(const char *pathname)
+char *resolve_test_input(const char *pathname, const char *base)
 {
 	// LOCAL VARIABLES
-	int errnum = CANARY_INT;              // Errno values
-	const char *base_name = WORKING_DIR;  // Name of the repo
-	char *resolved_name = NULL;           // pathname resolved to repo_name
+	int errnum = CANARY_INT;       // Errno values
+	const char *base_name = base;  // Name of the repo
+	char *resolved_name = NULL;    // pathname resolved to repo_name
+
+	// SETUP
+	if (NULL == base_name || 0x0 == *base_name)
+	{
+		base_name = WORKING_DIR;
+	}
 
 	// RESOLVE IT
 	resolved_name = join_dir_to_path(base_name, pathname, false, &errnum);
@@ -130,43 +140,62 @@ char *resolve_test_input(const char *pathname)
 }
 
 
-void run_test_case(const char *dir_input, mode_t mode_input, int exp_return, bool cleanup)
+void run_test_case(char *dir_input, mode_t mode_input, int exp_return, bool cleanup)
 {
 	// LOCAL VARIABLES
 	int actual_ret = 0;                    // Return value of the tested function
 	int errnum = 0;                        // Catch errno values here
 	mode_t exp_mode = mode_input & 07777;  // Expected mode
 	mode_t actual_mode = 0;                // Actual mode of dir_input, if it was created
+	char *short_dir_input = dir_input;     // Try to restrict long Check unit test messages
 
-	// VALIDATE
-	// TO DO: DON'T DO NOW... implement a remove directory feature (or wait on the sdo lib)
-	ck_assert_msg(false == cleanup, "THE CLEANUP FEATURE HAS NOT YET BEEN IMPLEMENTED!\n");
+	// SETUP
+	if (short_dir_input && strlen(short_dir_input) >= DEFAULT_MAX_MSG_SIZE)
+	{
+		short_dir_input = "<LONG DIR INPUT>";  // Try to keep it short
+	}
+
+	// PRE-CLEANUP
+	if (true == cleanup && true == is_directory(dir_input, &errnum))
+	{
+		errnum = remove_shell_dir(dir_input);
+		ck_assert_msg(0 == errnum, "The first remove_shell_dir(%s) call errored with [%d] '%s'\n",
+					  short_dir_input, errnum, strerror(errnum));
+	}
 
 	// RUN IT
 	// Call the function
 	actual_ret = create_dir(dir_input, mode_input);
 	// Compare actual results to expected results
 	ck_assert_msg(exp_return == actual_ret, "create_dir(%s, %o) returned [%d] '%s' "
-				  "instead of [%d] '%s'\n", dir_input, mode_input, actual_ret,
+				  "instead of [%d] '%s'\n", short_dir_input, mode_input, actual_ret,
 				  strerror(actual_ret), exp_return, strerror(exp_return));
 	// No need to check the results unless the test was expected to succeed
 	if (0 == exp_return)
 	{
 		// 1. Does it exist?
-		ck_assert_msg(true == is_path_there(dir_input), "Unable to locate '%s'\n", dir_input);
+		ck_assert_msg(true == is_path_there(dir_input), "Unable to locate '%s'\n", short_dir_input);
 		// 2. Is it a directory?
 		ck_assert_msg(true == is_directory(dir_input, &errnum), "'%s' is *not* a directory\n",
-			          dir_input);
+			          short_dir_input);
 		ck_assert_msg(0 == errnum, "The is_directory(%s) call errored with [%d] '%s'\n",
-					  dir_input, errnum, strerror(errnum));
+					  short_dir_input, errnum, strerror(errnum));
 		// 3. Verify permissions
 		actual_mode = get_shell_file_perms(dir_input, &errnum);
 		ck_assert_msg(0 == errnum, "The get_shell_file_perms(%s) call errored with [%d] '%s'\n",
-					  dir_input, errnum, strerror(errnum));
+					  short_dir_input, errnum, strerror(errnum));
 		// Compare actual permissions to the mode_input (while ignoring unused test input bits)
 		ck_assert_msg(actual_mode == exp_mode,
 			          "create_dir(%s, %o) failed to set the mode to %o (saw %o instead)\n",
-					  dir_input, mode_input, exp_mode, actual_mode);
+					  short_dir_input, mode_input, exp_mode, actual_mode);
+	}
+
+	// POST-CLEANUP
+	if (true == cleanup)
+	{
+		errnum = remove_shell_dir(dir_input);
+		ck_assert_msg(0 == errnum, "The second remove_shell_dir(%s) call errored with [%d] '%s'\n",
+					  short_dir_input, errnum, strerror(errnum));
 	}
 
 	// DONE
@@ -302,10 +331,133 @@ START_TEST(test_e03_missing_dir)
 END_TEST
 
 
+START_TEST(test_e04_dir_already_exists)
+{
+	// LOCAL VARIABLES
+	int exp_return = EPERM;  // Expected return value for this test case
+	bool cleanup = false;    // Remove directory after test case has run
+	int errnum = 0;          // Store errno values
+	// Relative test case input: directory name
+	char input_rel_path[] = { "code/test/test_input/" };
+	// Absolute test case input: directory name
+	char *input_abs_path = resolve_to_repo(SKID_REPO_NAME, input_rel_path, true, &errnum);
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_0775;
+
+	// VALIDATE
+	ck_assert_msg(0 == errnum, "resolve_to_repo(%s, %s) failed with [%d] %s\n",
+		          SKID_REPO_NAME, input_rel_path, errnum, strerror(errnum));
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+
+	// CLEANUP
+	free_devops_mem((void **)&input_abs_path);
+}
+END_TEST
+
+
 /**************************************************************************************************/
 /************************************** BOUNDARY TEST CASES ***************************************/
 /**************************************************************************************************/
 
+
+START_TEST(test_b01_smallest_mode)
+{
+	// LOCAL VARIABLES
+	int exp_return = 0;    // Expected return value for this test case
+	bool cleanup = false;  // Remove directory after test case has run
+	// Test case input: directory name
+	char *input_abs_path = get_test_dir_name();
+	// Test case input: mode
+	mode_t input_mode = 0;
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+
+	// CLEANUP
+	free_devops_mem((void **)&input_abs_path);
+}
+END_TEST
+
+
+START_TEST(test_b02_largest_mode)
+{
+	// LOCAL VARIABLES
+	int exp_return = 0;    // Expected return value for this test case
+	bool cleanup = false;  // Remove directory after test case has run
+	// Test case input: directory name
+	char *input_abs_path = get_test_dir_name();
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_7777;
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+
+	// CLEANUP
+	free_devops_mem((void **)&input_abs_path);
+}
+END_TEST
+
+
+START_TEST(test_b03_shortest_dir_name)
+{
+	// LOCAL VARIABLES
+	int exp_return = 0;   // Expected return value for this test case
+	bool cleanup = true;  // Remove directory after test case has run
+	// Test case input: directory name
+	char input_abs_path[] = { "/tmp/a" };
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_0775;
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+}
+END_TEST
+
+
+START_TEST(test_b04_longest_dir_name)
+{
+	// LOCAL VARIABLES
+	int exp_return = 0;   // Expected return value for this test case
+	bool cleanup = true;  // Remove directory after test case has run
+	// Test case input: directory name
+	char input_abs_path[PATH_MAX + 1] = { "/tmp/" };
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_0775;
+
+	// SETUP
+	for (int i = strlen(input_abs_path); i < PATH_MAX; i++)
+	{
+		input_abs_path[i] = 'b';
+	}
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+}
+END_TEST
+
+
+START_TEST(test_b05_dir_name_too_long)
+{
+	// LOCAL VARIABLES
+	int exp_return = ENAMETOOLONG;  // Expected return value for this test case
+	bool cleanup = false;           // Remove directory after test case has run
+	// Test case input: directory name
+	char input_abs_path[(PATH_MAX * 2) + 1] = { "/tmp/" };
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_0775;
+
+	// SETUP
+	for (int i = strlen(input_abs_path); i < (PATH_MAX * 2); i++)
+	{
+		input_abs_path[i] = 'c';
+	}
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+}
+END_TEST
 
 
 /**************************************************************************************************/
@@ -313,7 +465,140 @@ END_TEST
 /**************************************************************************************************/
 
 
+// Observed behavior is that, in invalid mode values, "don't care about those" bits are ignored.
+START_TEST(test_s01_all_flags_enabled)
+{
+	// LOCAL VARIABLES
+	int exp_return = 0;    // Expected return value for this test case
+	bool cleanup = false;  // Remove directory after test case has run
+	// Test case input: directory name
+	char *input_abs_path = get_test_dir_name();
+	// Test case input: mode
+	mode_t input_mode = 0xFF;
 
+	// SETUP
+	for (int i = 1; i < sizeof(mode_t); i++)
+	{
+		input_mode <<= 8;  // Make room for the next byte
+		input_mode |= 0xFF;  // Turn on one byte's worth of bits
+	}
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+
+	// CLEANUP
+	free_devops_mem((void **)&input_abs_path);
+}
+END_TEST
+
+
+START_TEST(test_s02_path_contains_non_dir)
+{
+	// LOCAL VARIABLES
+	int exp_return = ENOTDIR;  // Expected return value for this test case
+	bool cleanup = false;      // Remove directory after test case has run
+	int errnum = 0;            // Store errno values
+	// Absolute path to the repo directory
+	char *repo_dir = resolve_to_repo(SKID_REPO_NAME, NULL, true, &errnum);
+	// Relative path of the base test case input
+	char input_rel_base[] = { "code/test/test_input/regular_file.txt" };
+	// Absolute path of the base test case input
+	char *input_abs_base = resolve_test_input(input_rel_base, repo_dir);
+	// Test case input: directory name
+	char input_abs_path[PATH_MAX + 2] = { 0 };
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_0775;
+
+	// VALIDATE
+	ck_assert_msg(0 == errnum, "resolve_to_repo(%s, NULL) failed with [%d] %s\n",
+		          SKID_REPO_NAME, errnum, strerror(errnum));
+
+	// SETUP
+	strncpy(input_abs_path, input_abs_base, PATH_MAX);
+	strncat(input_abs_path, "/special02", PATH_MAX + 1 - strlen(input_abs_path));
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+
+	// CLEANUP
+	free_devops_mem((void **)&repo_dir);
+	free_devops_mem((void **)&input_abs_path);
+}
+END_TEST
+
+
+START_TEST(test_s03_special_bits)
+{
+	// LOCAL VARIABLES
+	int exp_return = 0;    // Expected return value for this test case
+	bool cleanup = false;  // Remove directory after test case has run
+	// Test case input: directory name
+	char *input_abs_path = get_test_dir_name();
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_7764;
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+
+	// CLEANUP
+	free_devops_mem((void **)&input_abs_path);
+}
+END_TEST
+
+
+START_TEST(test_s04_just_the_special_bits)
+{
+	// LOCAL VARIABLES
+	int exp_return = 0;    // Expected return value for this test case
+	bool cleanup = false;  // Remove directory after test case has run
+	// Test case input: directory name
+	char *input_abs_path = get_test_dir_name();
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_7000;
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+
+	// CLEANUP
+	free_devops_mem((void **)&input_abs_path);
+}
+END_TEST
+
+
+// Observed behavior is that, in invalid mode values, "don't care about those" bits are ignored.
+START_TEST(test_s05_bit_field_ignores_invalid_bits)
+{
+	// LOCAL VARIABLES
+	int exp_return = 0;    // Expected return value for this test case
+	bool cleanup = false;  // Remove directory after test case has run
+	// Test case input: directory name
+	char *input_abs_path = get_test_dir_name();
+	// Test case input: mode
+	mode_t input_mode = 077777;
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+
+	// CLEANUP
+	free_devops_mem((void **)&input_abs_path);
+}
+END_TEST
+
+
+START_TEST(test_s06_dirname_in_filename_format)
+{
+	// LOCAL VARIABLES
+	int exp_return = 0;   // Expected return value for this test case
+	bool cleanup = true;  // Remove directory after test case has run
+	// Relative path of the test case input
+	char input_abs_path[] = { "/tmp/regular_file.txt" };
+	// Test case input: mode
+	mode_t input_mode = TEST_MODE_0775;
+
+	// RUN TEST
+	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
+}
+END_TEST
 
 
 Suite *create_dir_suite(void)
@@ -321,21 +606,33 @@ Suite *create_dir_suite(void)
 	// LOCAL VARIABLES
 	Suite *suite = suite_create("SDO_Create_Dir");  // Test suite
 	TCase *tc_normal = tcase_create("Normal");      // Normal test cases
-	// TCase *tc_error = tcase_create("Error");        // Error test cases
-	// TCase *tc_boundary = tcase_create("Boundary");  // Error test cases
-	// TCase *tc_special = tcase_create("Special");    // Special test cases
+	TCase *tc_error = tcase_create("Error");        // Error test cases
+	TCase *tc_boundary = tcase_create("Boundary");  // Error test cases
+	TCase *tc_special = tcase_create("Special");    // Special test cases
 
 	// SETUP TEST CASES
 	tcase_add_test(tc_normal, test_n01_abs_dir);
-	tcase_add_test(tc_normal, test_n02_rel_dir);  // Enable this test after delete_dir()
-	tcase_add_test(tc_normal, test_n03_just_a_dir);  // Enable this test after delete_dir()
-	tcase_add_test(tc_normal, test_e01_null_dirname);
-	tcase_add_test(tc_normal, test_e02_empty_dirname);
-	tcase_add_test(tc_normal, test_e03_missing_dir);
+	tcase_add_test(tc_normal, test_n02_rel_dir);
+	tcase_add_test(tc_normal, test_n03_just_a_dir);
+	tcase_add_test(tc_error, test_e01_null_dirname);
+	tcase_add_test(tc_error, test_e02_empty_dirname);
+	tcase_add_test(tc_error, test_e03_missing_dir);
+	tcase_add_test(tc_error, test_e04_dir_already_exists);
+	tcase_add_test(tc_boundary, test_b01_smallest_mode);
+	tcase_add_test(tc_boundary, test_b02_largest_mode);
+	tcase_add_test(tc_boundary, test_b03_shortest_dir_name);
+	tcase_add_test(tc_boundary, test_b04_longest_dir_name);
+	tcase_add_test(tc_boundary, test_b05_dir_name_too_long);
+	tcase_add_test(tc_special, test_s01_all_flags_enabled);
+	tcase_add_test(tc_special, test_s02_path_contains_non_dir);
+	tcase_add_test(tc_special, test_s03_special_bits);
+	tcase_add_test(tc_special, test_s04_just_the_special_bits);
+	tcase_add_test(tc_special, test_s05_bit_field_ignores_invalid_bits);
+	tcase_add_test(tc_special, test_s06_dirname_in_filename_format);
 	suite_add_tcase(suite, tc_normal);
-	// suite_add_tcase(suite, tc_error);
-	// suite_add_tcase(suite, tc_boundary);
-	// suite_add_tcase(suite, tc_special);
+	suite_add_tcase(suite, tc_error);
+	suite_add_tcase(suite, tc_boundary);
+	suite_add_tcase(suite, tc_special);
 
 	// DONE
 	return suite;
