@@ -252,50 +252,34 @@ START_TEST(test_n01_abs_dir)
 END_TEST
 
 
-// Enable this test case once *any* library is capable of deleting the directory this test created.
 START_TEST(test_n02_rel_dir)
 {
 	// LOCAL VARIABLES
 	int exp_return = 0;   // Expected return value for this test case
 	bool cleanup = true;  // Remove directory after test case has run
 	// Test case input: directory name
-	char *input_abs_path = get_test_dir_name();  // MAKE THIS A RELATIVE DIRECTORY
+	char input_abs_path[] = { "./check_sdo_create_dir_normal_02" };
 	// Test case input: mode
 	mode_t input_mode = TEST_MODE_0775;
 
 	// RUN TEST
 	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
-
-	// CLEANUP
-	// Delete the test directory
-	exp_return = delete_dir(input_abs_path);
-	ck_assert_msg(0 == exp_return, "The delete_dir(%s) call errored with [%d] '%s'\n",
-				  input_abs_path, exp_return, strerror(exp_return));
-	free_devops_mem((void **)&input_abs_path);
 }
 END_TEST
 
 
-// Enable this test case once *any* library is capable of deleting the directory this test created.
 START_TEST(test_n03_just_a_dir)
 {
 	// LOCAL VARIABLES
 	int exp_return = 0;   // Expected return value for this test case
 	bool cleanup = true;  // Remove directory after test case has run
 	// Test case input: directory name
-	char *input_abs_path = get_test_dir_name();  // MAKE THIS JUST A DIRECTORY NAME
+	char input_abs_path[] = { "check_sdo_create_dir_normal_03" };
 	// Test case input: mode
 	mode_t input_mode = TEST_MODE_0775;
 
 	// RUN TEST
 	run_test_case(input_abs_path, input_mode, exp_return, cleanup);
-
-	// CLEANUP
-	// Delete the test directory
-	exp_return = delete_dir(input_abs_path);
-	ck_assert_msg(0 == exp_return, "The delete_dir(%s) call errored with [%d] '%s'\n",
-				  input_abs_path, exp_return, strerror(exp_return));
-	free_devops_mem((void **)&input_abs_path);
 }
 END_TEST
 
