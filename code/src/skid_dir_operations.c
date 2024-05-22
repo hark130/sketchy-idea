@@ -6,8 +6,9 @@
 
 #include "skid_debug.h"				  	// PRINT_ERRNO()
 #include "skid_dir_operations.h"		// delete_dir()
+#include "skid_file_metadata_read.h"	// is_directory()
 #include <errno.h>						// errno
-#include <unistd.h>						// link(), symlink()
+#include <unistd.h>						// link(), rmdir(), symlink()
 #ifndef ENOERR
 #define ENOERR ((int)0)
 #endif  /* ENOERR */
@@ -61,12 +62,29 @@ int delete_dir(const char *dirname)
 {
 	// LOCAL VARIABLES
 	int result = ENOERR;  // Results of execution
+	bool is_dir = false;  // Is dirname a directory that exists?
 
 	// INPUT VALIDATION
-	// TO DO: DON'T DO NOW
+	result = validate_sdo_pathname(dirname);
+	if (ENOERR == result)
+	{
+		is_dir = is_directory(dirname, &result);
+		if (false == is_dir && ENOERR == result)
+		{
+			result = ENOTDIR;  // It exists, just not as a directory
+		}
+	}
 
 	// DELETE IT
-	// TO DO: DON'T DO NOW
+	if (ENOERR == result)
+	{
+		if (rmdir(dirname))
+		{
+			result = errno;
+			PRINT_ERROR(The call to rmdir() failed);
+			PRINT_ERRNO(result);
+		}
+	}
 
 	// DONE
 	return result;
