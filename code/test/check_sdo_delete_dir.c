@@ -133,7 +133,7 @@ void run_test_case(char *dir_input, int exp_return, bool create)
 	mode_t create_mode = TEST_MODE_0775;  // Default mode for directories created here
 
 	// SETUP
-	if (true == create)
+	if (true == create && false == is_path_there(dir_input))
 	{
 		errnum = create_dir(dir_input, create_mode);
 		ck_assert_msg(0 == errnum, "create_dir(%s, %o) failed with [%d] '%s'\n",
