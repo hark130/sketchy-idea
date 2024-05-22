@@ -350,6 +350,30 @@ START_TEST(test_s02_not_a_dir)
 END_TEST
 
 
+START_TEST(test_s03_dir_not_empty)
+{
+	// LOCAL VARIABLES
+	int exp_return = ENOTEMPTY;  // Expected return value for this test case
+	bool create = false;         // Remove directory after test case has run
+	int errnum = 0;              // Store errno values
+	// Relative test case input: directory name
+	char input_rel_path[] = { "code/test/test_input/" };
+	// Absolute test case input: directory name
+	char *input_abs_path = resolve_to_repo(SKID_REPO_NAME, input_rel_path, true, &errnum);
+
+	// VALIDATE
+	ck_assert_msg(0 == errnum, "resolve_to_repo(%s, %s) failed with [%d] %s\n",
+		          SKID_REPO_NAME, input_rel_path, errnum, strerror(errnum));
+
+	// RUN TEST
+	run_test_case(input_abs_path, exp_return, create);
+
+	// CLEANUP
+	free_devops_mem((void **)&input_abs_path);
+}
+END_TEST
+
+
 Suite *delete_dir_suite(void)
 {
 	// LOCAL VARIABLES
@@ -370,6 +394,7 @@ Suite *delete_dir_suite(void)
 	tcase_add_test(tc_boundary, test_b02_longest_dir_name);
 	tcase_add_test(tc_special, test_s01_dirname_in_filename_format);
 	tcase_add_test(tc_special, test_s02_not_a_dir);
+	tcase_add_test(tc_special, test_s03_dir_not_empty);
 	suite_add_tcase(suite, tc_normal);
 	suite_add_tcase(suite, tc_error);
 	suite_add_tcase(suite, tc_boundary);
