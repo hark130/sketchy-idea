@@ -33,9 +33,6 @@ int create_dir(const char *dirname, mode_t mode);
  *	Description:
  *		Remove a directory, dirname, by calling rmdir().  The dirname directory must be empty.
  *
- *	Notes:
- *		TO DO: DON'T DO NOW...
- *
  *	Args:
  *		dirname: Absolute or relative directory to delete.
  *
