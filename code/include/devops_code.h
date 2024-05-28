@@ -11,6 +11,8 @@
 
 // Baseline dir level to standardize file-based test input paths
 #define SKID_REPO_NAME (const char *)"sketchy-idea"  // The name of this repo
+#define SKID_MAX_FILES = 100  						 // Max files create_path_tree() will create
+#define SKID_MAX_DEPTH = 5	  						 // Max depth create_path_tree() will create
 
 /*
  *  Description:
@@ -29,6 +31,42 @@
 void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum);
 
 /*
+ *	Description:
+ *		Recursively create top_dir with a file/dir hierarchy underneath it.
+ *		Each directory will have num_files number of files inside.  There will be
+ *		tree_depth number of sub-directories found within top_dir.  Each level
+ *		will have tree_width number of directories within it.  Directory names and
+ *		filenames will be basic (e.g., dir# and file# respectively).  Files will be
+ *		created with their filename, using top_dir as the root, in an attempt to
+ *		resonably create unique files.  This function will not create more than
+ *		SKID_MAX_FILES number of files.
+ *
+ *	Notes:
+ *		It is the caller's responsibility to free the memory returned by this function.
+ *		Each string pointer must be individually freed.  The array pointer must also be freed.
+ *		Use free_devops_mem() to free individual string pointers (AKA pick-and-choose) or
+ *		use free_path_tree() to free the entire collection.
+ *
+ *	Args:
+ *		top_dir: Top level directory, relative or absolute, to create.  Must not exist.
+ *		num_files: Number of files to create at each directory level.  Values of zero
+ *			will result in an empty directory hierarchy.
+ *		tree_width: Number of directories to create at each level.  Values of zero will
+ *			result in top_dir being devoid of directories.
+ *		tree_depth: Number of sub-directory levels to create within top_dir.  Values of zero
+ *			will result in top_dir being devoid of directories.  This value controls the
+ *			recursive execution of this function.  This function will not support tree_depth
+ *			values that exceed SKID_MAX_DEPTH.
+ *		errnum: [Out] Storage location for error values.  0 on success.  Errno value, or -1 for
+ *			unspecified errors, on failure.
+ *
+ *	Returns:
+ *		A NULL-terminated array of string pointers on success.  NULL on failure (see: errnum).
+ */
+char **create_path_tree(const char *top_dir, int num_files, int tree_width, int tree_depth,
+                        int *ernnum);
+
+/*
  *  Description:
  *      Free a devops-allocated array from heap memory and set the original pointer to NULL.
  *
@@ -39,6 +77,17 @@ void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum);
  *      0 on success, errno on error.
  */
 int free_devops_mem(void **old_array);
+
+/*	Description:
+ *		Free the return value provided by create_path_tree() and set the original pointer to NULL.
+ *
+ *	Args:
+ *		old_path_tree: Pointer to the return value returned by create_path_tree().
+ *
+ *	Returns:
+ *		0 on success, errno on error.
+ */
+int free_path_tree(char ***old_path_tree);
 
 /*
  *  Description:
@@ -527,7 +576,7 @@ int remove_shell_dir(const char *dirname);
  *		NULL on error (check errnum).
  */
 char *resolve_to_repo(const char *repo_name, const char *rel_filename, bool must_exist,
-                      int *errnum);
+					  int *errnum);
 
 /*
  *  Description:
@@ -562,7 +611,7 @@ int run_command(const char *command, char *output, size_t output_len);
  *      0 on success, errno on error.
  */
 int run_command_append(const char *base_cmd, const char *cmd_suffix, char *output,
-                       size_t output_len);
+					   size_t output_len);
 
 /*
  *  Description:

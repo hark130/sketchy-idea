@@ -249,6 +249,41 @@ void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum)
 }
 
 
+char **create_path_tree(const char *top_dir, int num_files, int tree_width, int tree_depth,
+                        int *ernnum)
+{
+	// LOCAL VARIABLES
+	char **path_tree = NULL;  // NULL-terminated, heap-allocated array of string pointers
+	int result = ENOERR;      // Errno value
+
+	// INPUT VALIDATION
+	// TO DO: DON'T DO NOW...
+	// Validate arguments
+	// Calculate number of files
+	// Check arg values against header macros
+
+	// CREATE IT
+	if (ENOERR == result)
+	{
+		// TO DO: DON'T DO NOW...
+		// Validate once and then call a local function that does everything
+	}
+
+	// CLEANUP
+	if (ENOERR != result)
+	{
+		free_path_tree(&path_tree);  // Ignore errors
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return path_tree;
+}
+
+
 int free_devops_mem(void **old_array)
 {
 	// LOCAL VARIABLES
@@ -266,6 +301,41 @@ int free_devops_mem(void **old_array)
 	else
 	{
 		result = EINVAL;  // NULL pointer
+	}
+
+	// DONE
+	return result;
+}
+
+
+int free_path_tree(char ***old_path_tree)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;      // Errno value
+	char **old_array = NULL;  // Pointer to the array
+
+	// INPUT VALIDATION
+	if (NULL == old_path_tree || NULL == *old_path_tree)
+	{
+		result = EINVAL;  // NULL pointer
+	}
+
+	// FREE IT
+	// Free the string pointers
+	if (!result)
+	{
+		old_array = *old_path_tree;  // Array pointer
+		while (NULL != *old_array && ENOERR == result)
+		{
+			result = free_devops_mem((void **)old_array);
+			old_array++;
+		}
+	}
+	// Free the array
+	if (!result)
+	{
+		free_devops_mem((void **)*old_path_tree);
+		*old_path_tree = NULL;
 	}
 
 	// DONE
