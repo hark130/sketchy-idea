@@ -30,6 +30,34 @@
 /**************************************************************************************************/
 /********************************* PRIVATE FUNCTION DECLARATIONS **********************************/
 /**************************************************************************************************/
+
+/*
+ *	Description:
+ *		Calculate base^exp (AKA pow(base, exp)) but using integers.
+ *
+ *	Args:
+ *		base: The base.
+ *		exp: The exponent.
+ *
+ *	Returns:
+ *		Base raised to the power of exp on succes.  UINT_MAX on failure.
+ */
+unsigned int calc_int_pow(unsigned int base, unsigned int exp);
+
+/*
+ *	Description:
+ *		Calculate the number of files that would be created given create_path_tree() dimensions.
+ *		The formula to calculate the total number of files being created, for all valid input,
+ *		tree_width > 1, is theorized to be:
+ *			((tree_width^(tree_depth+1)-1)/(tree_width-1))*num_files
+ *		Any other values are invalid or basic math.
+ *
+ *	Returns:
+ *		The number of files projected to be created by these create_path_tree() dimensions.
+ */
+unsigned int calc_num_files(unsigned int num_files, unsigned int tree_width,
+	                        unsigned int tree_depth);
+
 /*
  *  Description:
  *      Convert octal_value to decimal.
@@ -134,6 +162,26 @@ bool parse_group_user_list(char *username, char *group_entry, gid_t *found_gid);
 int read_group_field(char *group_entry, int field_num, char *field_value, int fv_len);
 
 /*
+ *	Description:
+ *		Create dirname, populate it with files, then recursively create sub-directories.
+ *		Recursion base case is a tree depth of 0.
+ *
+ *	Args:
+ *		string_arr: [Out] A pre-allocated, NULL-terminated array to hold heap-allocated strings.
+ *			Store new strings at the end of the array, replacing the first NULL found.
+ *		dirname: A directory name, relative or absolute, to create.  It must not exist.
+ *		num_files: The number of files to populate inside dirname.  Zero is acceptable.
+ *		tree_width: The number of directories to create within dirname.  Zero is acceptable.
+ *		tree_depth: The number of levels worth of directories to create under dirname.  Zero is
+ *			acceptable.  This value controls the base case.
+ *
+ *	Returns:
+ *		0 on success.  Errno value, or -1 for an unspecified error, on failure.
+ */
+int recurse_path_tree(char **string_arr, const char *dirname, unsigned int num_files,
+					  unsigned int tree_width, unsigned int tree_depth);
+
+/*
  *  Description:
  *      Find needle in haystack.  Truncate the rest of hastack with a trailing "/\0".
  *
@@ -161,6 +209,49 @@ int truncate_dir(char *haystack, const char *needle, size_t hay_len);
  *      0 on success, EINVAL on bad input.
  */
 int strip_newlines(char *string);
+
+/*
+ *	Description:
+ *		Validate the create_path_tree() argument values (stopping just shy of calculating the
+ *		number of files to create).
+ *
+ *	Args:
+ *		See create_path_tree().
+ *
+ *	Returns:
+ *		0 on success, EINVAL on bad input.
+ */
+int validate_cpt_args(const char *top_dir, int num_files, int tree_width, int tree_depth,
+                      int *ernnum);
+
+/*
+ *	Description:
+ *		Validate the create_path_tree() argument values, calculate the number of files to create,
+ *		and then compare that value to SKID_MAX_FILES.
+ *
+ *	Args:
+ *		See create_path_tree().
+ *
+ *	Returns:
+ *		0 on success, EINVAL on bad input, EMFILE is used if the requested number of files
+ *		is larger than SKID_MAX_FILES.
+ */
+int validate_cpt_limits(const char *top_dir, int num_files, int tree_width, int tree_depth,
+                        int *ernnum);
+
+/*
+ *	Description:
+ *		Validate create_path_tree()-specific argument values (stopping just shy of calculating the
+ *		number of files to create).
+ *
+ *	Args:
+ *		See create_path_tree().
+ *
+ *	Returns:
+ *		0 on success, EINVAL on bad input.
+ */
+int validate_cpt_specific_args(const char *top_dir, unsigned int num_files,
+							   unsigned int tree_width, unsigned int tree_depth)
 
 /*
  *  Description:
@@ -249,24 +340,36 @@ void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum)
 }
 
 
-char **create_path_tree(const char *top_dir, int num_files, int tree_width, int tree_depth,
-                        int *ernnum)
+char **create_path_tree(const char *top_dir, unsigned int num_files, unsigned int tree_width,
+	                    unsigned int tree_depth, int *errnum)
 {
 	// LOCAL VARIABLES
-	char **path_tree = NULL;  // NULL-terminated, heap-allocated array of string pointers
-	int result = ENOERR;      // Errno value
+	char **path_tree = NULL;       // NULL-terminated, heap-allocated array of string pointers
+	int result = ENOERR;           // Errno value
+	unsigned int total_paths = 0;  // Total number of files and directories to be created
+	size_t num_elem = 0;           // total_paths conveted to size_t (carefully)
 
 	// INPUT VALIDATION
-	// TO DO: DON'T DO NOW...
-	// Validate arguments
-	// Calculate number of files
-	// Check arg values against header macros
+	result = validate_cpt_limits(top_dir, num_files, tree_width, tree_depth, errnum);
 
 	// CREATE IT
+	// Calculate necessary array size
 	if (ENOERR == result)
 	{
-		// TO DO: DON'T DO NOW...
-		// Validate once and then call a local function that does everything
+		// TO DO: DON'T DO NOW... Pre-calcualte the total number of files and directories + 1
+		total_paths = calc_num_files(num_files, tree_width, tree_depth);
+		// TO DO: DON'T DO NOW... Calcualte and add the total number of directories
+		// TO DO: DON'T DO NOW... Validate that total_paths won't overflow num_elem (and convert)
+	}
+	// Allocate array
+	if (ENOERR == result)
+	{
+		path_tree = (char **)alloc_devops_mem(num_elem + 1, sizeof(char *), &result);
+	}
+	// Recurse
+	if (ENOERR == result)
+	{
+		result = recurse_path_tree(path_tree, top_dir, num_files, tree_width, tree_depth);
 	}
 
 	// CLEANUP
@@ -1706,6 +1809,57 @@ int set_shell_perms(const char *pathname, mode_t new_perms)
 /**************************************************************************************************/
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
+
+
+unsigned int calc_int_pow(unsigned int base, unsigned int exp)
+{
+	// LOCAL VARIABLES
+	unsigned int result = 1;  // base^exp
+
+	// POW
+	while (1)
+	{
+		if (exp & 1)
+		{
+			result *= base;
+		}
+		exp >>= 1;
+		if (0 == exp)
+		{
+			break;
+		}
+		base *= base;
+	}
+
+	// DONE
+	return result;
+}
+
+
+unsigned int calc_num_files(unsigned int num_files, unsigned int tree_width,
+	                        unsigned int tree_depth)
+{
+	// LOCAL VARIABLES
+	unsigned int u_num_files = num_files;    // Unsigned number of files
+	unsigned int u_tree_width = tree_width;  // Unsigned tree width
+	unsigned int u_tree_depth = tree_depth;  // Unsigned tree depth
+	unsigned int file_count = 0;             // Calculated number of files
+
+	// CALCULATE IT
+	if (tree_width <= 1)
+	{
+		file_count = (tree_width + 1) * num_files;
+	}
+	else
+	{
+		file_count = ((calc_int_pow(tree_width, tree_depth+1)-1)/(tree_width-1))*num_files;
+	}
+
+	// DONE
+	return file_count;
+}
+
+
 int convert_octal_to_decimal(int octal_value)
 {
 	// LOCAL VARIABLES
@@ -2044,6 +2198,21 @@ int strip_newlines(char *string)
 }
 
 
+int recurse_path_tree(char **string_arr, const char *dirname, unsigned int num_files,
+					  unsigned int tree_width, unsigned int tree_depth)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // Errno value
+
+	// INPUT VALIDATION
+
+	// RECURSION FTW!
+
+	// DONE
+	return result;
+}
+
+
 int truncate_dir(char *haystack, const char *needle, size_t hay_len)
 {
 	// LOCAL VARIABLES
@@ -2097,6 +2266,84 @@ int truncate_dir(char *haystack, const char *needle, size_t hay_len)
 		*temp = '/';
 		temp++;
 		*temp = '\0';
+	}
+
+	// DONE
+	return result;
+}
+
+
+int validate_cpt_args(const char *top_dir, unsigned int num_files, unsigned int tree_width,
+	                  unsigned int tree_depth, int *ernnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // Errno value
+
+	// INPUT VALIDATION
+	result = validate_cpt_specific_args(top_dir, num_files, tree_width, tree_depth);
+	// errnum
+	if (ENOERR == result)
+	{
+		result = validate_err(errnum);
+	}
+
+	// DONE
+	return result;
+}
+
+
+int validate_cpt_limits(const char *top_dir, unsigned int num_files, unsigned int tree_width,
+	                    unsigned int tree_depth, int *ernnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;         // Errno value
+	unsigned int num_files = 0;  // Number of files these dimensions would create
+
+	// INPUT VALIDATION
+	// Arguments
+	result = validate_cpt_args(top_dir, num_files, tree_width, tree_depth, errnum);
+	// Limits
+	if (ENOERR == result)
+	{
+		num_files = calc_num_files(num_files, tree_width, tree_depth);
+		if (num_files > SKID_MAX_FILES)
+		{
+			result = EMFILE;  // Too many files
+		}
+	}
+
+	// DONE
+	return result;
+}
+
+
+int validate_cpt_specific_args(const char *top_dir, unsigned int num_files,
+							   unsigned int tree_width, unsigned int tree_depth)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // Errno value
+
+	// INPUT VALIDATION
+	// top_dir
+	result = validate_name(top_dir);
+	// Directory hierarchy dimensions
+	if (ENOERR == result)
+	{
+		// num_files
+		if (num_files < 0)
+		{
+			result = EINVAL;  // Bad value
+		}
+		// tree_width
+		else if (tree_width < 0)
+		{
+			result = EINVAL;  // Bad value
+		}
+		// tree_depth
+		else if (tree_depth < 0 || tree_depth > SKID_MAX_DEPTH)
+		{
+			result = EINVAL;  // Bad value
+		}
 	}
 
 	// DONE
