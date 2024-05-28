@@ -58,13 +58,14 @@ void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum);
  *			recursive execution of this function.  This function will not support tree_depth
  *			values that exceed SKID_MAX_DEPTH.
  *		errnum: [Out] Storage location for error values.  0 on success.  Errno value, or -1 for
- *			unspecified errors, on failure.
+ *			unspecified errors, on failure.  EMFILE is used if the requested number of files
+ *			is larger than SKID_MAX_FILES.
  *
  *	Returns:
  *		A NULL-terminated array of string pointers on success.  NULL on failure (see: errnum).
  */
-char **create_path_tree(const char *top_dir, int num_files, int tree_width, int tree_depth,
-                        int *ernnum);
+char **create_path_tree(const char *top_dir, unsigned int num_files, unsigned int tree_width,
+	                    unsigned int tree_depth, int *errnum);
 
 /*
  *  Description:
