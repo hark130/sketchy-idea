@@ -32,6 +32,21 @@ void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum);
 
 /*
  *	Description:
+ *		Allocate a character array in heap memory and copy source in.
+ *		Caller is respsonsible for freeing the return value with free_devops_mem().
+ *
+ *	Args:
+ *		source: The string to copy.
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Heap-allocated character array containing a copy of source on success.
+ *		NULL on error (check errnum).
+ */
+char *copy_string(const char *source, int *errnum);
+
+/*
+ *	Description:
  *		Recursively create top_dir with a file/dir hierarchy underneath it.
  *		Each directory will have num_files number of files inside.  There will be
  *		tree_depth number of sub-directories found within top_dir.  Each level

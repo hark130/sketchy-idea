@@ -124,6 +124,62 @@ char *extract_group_field(char *group_entry, int field_num);
 char *extract_group_user_list(char *group_entry);
 
 /*
+ *	Description:
+ *		Find the pointer to the next NULL index in string_arr.
+ *
+ *	Args:
+ *		string_arr: A pre-allocated, NULL-terminated array to hold heap-allocated strings.
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		A pointer following string_arr on success.  NULL on failure (check errnum).
+ */
+char **find_empty_spot(char **string_arr, int *errnum);
+
+/*
+ *	Description:
+ *		Join a new sub_dir to dirname, using dir_num to number it, inside out_arr.
+ *		Example:
+ *			form_new_dir("/tmp/test", "dir", 3, some_array, sizeof(some_array))
+ *			...will result in...
+ *			/tmp/test/dir3/
+ *
+ *	Args:
+ *		dirname: Source directory name, relative or absolute.
+ *		sub_dirname: Base sub-dirctory name.
+ *		dir_num: A value to add to the sub-directory name.
+ *		out_arr: [Out] The array to store the newly formed dirname/sub_dir.
+ *		out_size: The size of out_arr.
+ *
+ *  Returns:
+ *      0 on success, errno on failure.  ENAMETOOLONG is used if out_arr isn't large enough to
+ *		store the result.
+ */
+int form_new_dir(const char *dirname, const char *sub_dirname, int dir_num,
+	             char *out_arr, size_t out_size);
+
+/*
+ *	Description:
+ *		Join a new filename to dirname, using dir_num to number it, inside out_arr.
+ *		Example:
+ *			form_new_file("/tmp/test", "file", 4, some_array, sizeof(some_array))
+ *			...will result in...
+ *			/tmp/test/file4.txt
+ *
+ *	Args:
+ *		dirname: Source directory name, relative or absolute.
+ *		filename: Base filename.
+ *		file_num: A value to add to the sub-directory name.
+ *		out_arr: [Out] The array to store the newly formed dirname/sub_dir.
+ *		out_size: The size of out_arr.
+ *
+ *  Returns:
+ *      0 on success, errno on failure.
+ */
+int form_new_file(const char *dirname, const char *filename, int file_num,
+	              char *out_arr, size_t out_size);
+
+/*
  *  Description:
  *      Return a heap-allocated array of all the GIDs, found in /etc/group, where username
  *      is a member.  Terminate the array with username's GID and two zero values
@@ -189,6 +245,13 @@ int read_group_field(char *group_entry, int field_num, char *field_value, int fv
  *	Description:
  *		Create dirname, populate it with files, then recursively create sub-directories.
  *		Recursion base case is a tree depth of 0.
+ *
+ *	Notes:
+ *		1. Creates dirname
+ *		2. Copies the path into string_arr
+ *		3. Creates the necessary files
+ *		4. Copies new filename into string_arr
+ *		5. Recurses into new directory names (if applicable)
  *
  *	Args:
  *		string_arr: [Out] A pre-allocated, NULL-terminated array to hold heap-allocated strings.
@@ -290,6 +353,19 @@ int validate_cpt_specific_args(const char *top_dir, unsigned int num_files,
 int validate_err(int *err);
 
 /*
+ *	Description:
+ *		Validate the input on behalf of the local form_new_*() functions.
+ *
+ *	Args:
+ *		See: form_new_*()
+ *
+ *	Returns:
+ *      0 on success, EINVAL for bad input.
+ */
+int validate_form_new_args(const char *dirname, const char *pathname, int num,
+	                       char *out_arr, size_t out_size);
+
+/*
  *  Description:
  *      Validate one entry from /etc/group against the format specified in group(5).  Trailing
  *      newlines are ignored.
@@ -361,6 +437,42 @@ void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum)
 		*errnum = result;
 	}
 	return new_buf;
+}
+
+
+char *copy_string(const char *source, int *errnum)
+{
+	// LOCAL VARIABLES
+	char *new_string = NULL;  // Heap-allocated array
+	size_t source_len = 0;    // Length of source
+	int result = ENOERR;      // Errno value
+
+	// INPUT VALIDATION
+	result = validate_standard_args(source, errnum);
+
+	// COPY IT
+	// Measure
+	if (ENOERR == result)
+	{
+		source_len = strlen(source);
+	}
+	// Cut
+	if (ENOERR == result)
+	{
+		new_string = alloc_devops_mem(source_len + 1, sizeof(char), &result);
+	}
+	// Copy
+	if (ENOERR == result)
+	{
+		strncpy(new_string, source, source_len);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return new_string;
 }
 
 
@@ -2048,6 +2160,196 @@ char *extract_group_user_list(char *group_entry)
 }
 
 
+char **find_empty_spot(char **string_arr, int *errnum)
+{
+	// LOCAL VARIABLES
+	char **new_spot = string_arr;       // Iterating pointer
+	int result = validate_err(errnum);  // Store errno values here
+
+	// INPUT VALIDATION
+	if (ENOERR == result)
+	{
+		if (NULL == string_arr)
+		{
+			result = EINVAL;  // NULL pointer
+		}
+	}
+
+	// FIND IT
+	if (ENOERR == result)
+	{
+		while (NULL != *string_arr)
+		{
+			string_arr++;  // Check the next one
+		}
+	}
+
+	// DONE
+	if (result)
+	{
+		new_spot = NULL;
+	}
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return new_spot;
+}
+
+
+int form_new_dir(const char *dirname, const char *sub_dirname, int dir_num,
+	             char *out_arr, size_t out_size)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;                // Store errno values
+	char tmp_dir[PATH_MAX+10] = { 0 };  // Working array
+	char tmp_num[11] = { 0 };           // Print the number here as a string
+	size_t cur_len = 0;                 // Length of tmp_dir (update as we go)
+
+	// INPUT VALIDATION
+	result = validate_form_new_args(dirname, sub_dirname, dir_num, out_arr, out_size);
+
+	// FORM IT
+	// Start with dirname
+	if (ENOERR == result)
+	{
+		strncpy(tmp_dir, dirname, sizeof(tmp_dir)/sizeof(*tmp_dir));
+		cur_len = strlen(tmp_dir);
+		if (0 == cur_len)
+		{
+			result = -1;  // Unspecified error
+		}
+	}
+	// Truncate the dir if necessary
+	if (ENOERR == result)
+	{
+		cur_len = strlen(tmp_dir);
+		if (tmp_dir[cur_len - 1] != '/')
+		{
+			tmp_dir[cur_len] = '/';
+			cur_len++;  // We just added a character
+		}
+	}
+	// Add the sub-directory
+	if (ENOERR == result)
+	{
+		cur_len = strlen(tmp_dir);  // Get the current length
+		strncat(tmp_dir, sub_dirname, (sizeof(tmp_dir)/sizeof(*tmp_dir))-cur_len-1);
+	}
+	// Add the number to the sub-directory
+	if (ENOERR == result)
+	{
+		cur_len = strlen(tmp_dir);  // Get the current length
+		sprintf(tmp_num, "%d", dir_num);
+		strncat(tmp_dir, tmp_num, (sizeof(tmp_dir)/sizeof(*tmp_dir))-cur_len-1);
+	}
+	// Add a trailing slash
+	if (ENOERR == result)
+	{
+		cur_len = strlen(tmp_dir);
+		if (tmp_dir[cur_len - 1] != '/')
+		{
+			tmp_dir[cur_len] = '/';
+			cur_len++;  // We just added a character
+		}
+	}
+
+	// COPY IT
+	// Verify size
+	if (ENOERR == result)
+	{
+		cur_len = strlen(tmp_dir);
+		if (cur_len > out_size)
+		{
+			result = ENAMETOOLONG;  // Not enough space to store it
+		}
+	}
+	// Copy it
+	if (ENOERR == result)
+	{
+		strncpy(out_arr, tmp_dir, out_size);
+	}
+
+	// DONE
+	return result;
+}
+
+
+int form_new_file(const char *dirname, const char *filename, int file_num,
+	              char *out_arr, size_t out_size)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;                 // Store errno values
+	char tmp_file[PATH_MAX+10] = { 0 };  // Working array
+	char file_ext[] = { ".txt" };        // File extension
+	char tmp_num[11] = { 0 };            // Print the number here as a string
+	size_t cur_len = 0;                  // Length of tmp_file (update as we go)
+
+	// INPUT VALIDATION
+	result = validate_form_new_args(dirname, filename, dir_num, out_arr, out_size);
+
+	// FORM IT
+	// Start with dirname
+	if (ENOERR == result)
+	{
+		strncpy(tmp_file, dirname, sizeof(tmp_file)/sizeof(*tmp_file));
+		cur_len = strlen(tmp_file);
+		if (0 == cur_len)
+		{
+			result = -1;  // Unspecified error
+		}
+	}
+	// Truncate the dir if necessary
+	if (ENOERR == result)
+	{
+		cur_len = strlen(tmp_file);
+		if (tmp_file[cur_len - 1] != '/')
+		{
+			tmp_file[cur_len] = '/';
+			cur_len++;  // We just added a character
+		}
+	}
+	// Add the filename
+	if (ENOERR == result)
+	{
+		cur_len = strlen(tmp_file);  // Get the current length
+		strncat(tmp_file, filename, (sizeof(tmp_file)/sizeof(*tmp_file))-cur_len-1);
+	}
+	// Add the number to the filename
+	if (ENOERR == result)
+	{
+		cur_len = strlen(tmp_file);  // Get the current length
+		sprintf(tmp_num, "%d", dir_num);
+		strncat(tmp_file, tmp_num, (sizeof(tmp_file)/sizeof(*tmp_file))-cur_len-1);
+	}
+	// Add a file extension
+	if (ENOERR == result)
+	{
+		cur_len = strlen(tmp_file);
+		strncat(tmp_file, file_ext, (sizeof(tmp_file)/sizeof(*tmp_file))-cur_len-1);
+	}
+
+	// COPY IT
+	// Verify size
+	if (ENOERR == result)
+	{
+		cur_len = strlen(tmp_file);
+		if (cur_len > out_size)
+		{
+			result = ENAMETOOLONG;  // Not enough space to store it
+		}
+	}
+	// Copy it
+	if (ENOERR == result)
+	{
+		strncpy(out_arr, tmp_file, out_size);
+	}
+
+	// DONE
+	return result;
+}
+
+
 gid_t *parse_compatible_groups(char *username, int *errnum)
 {
 	// LOCAL VARIABLES
@@ -2303,11 +2605,107 @@ int recurse_path_tree(char **string_arr, const char *dirname, unsigned int num_f
 					  unsigned int tree_width, unsigned int tree_depth)
 {
 	// LOCAL VARIABLES
-	int result = ENOERR;  // Errno value
+	int result = validate_name(dirname);  // Errno value
+	char **tmp_ptr = string_arr;          // Iterating pointer
+	char tmp_path[PATH_MAX+1] = { 0 };    // Construct new paths here
+	char base_dirname[] = { "dir" };      // Base directory name
+	char base_filename[] = { "file" };    // Base filename
 
 	// INPUT VALIDATION
+	if (ENOERR == result)
+	{
+		tmp_ptr = find_empty_spot(tmp_ptr, &result);  // Also implicitly validates string_arr
+	}
+
+	// CREATE DIRECTORY
+	// Create dirname
+	if (ENOERR == result)
+	{
+		result = create_dir(dirname, 0775);
+	}
+	// Add dirname to the array
+	if (ENOERR == result)
+	{
+		*tmp_ptr = copy_string(dirname, &result);
+	}
+	// Advance to the next spot
+	if (ENOERR == result)
+	{
+		tmp_ptr = find_empty_spot(tmp_ptr, &result);
+	}
 
 	// RECURSION FTW!
+	// Create files
+	if (ENOERR == result)
+	{
+		for (int i = 1; i <= num_files; i++)
+		{
+			// Reset tmp_path
+			memset(tmp_path, 0x0, sizeof(tmp_path));
+			// Form the new filename
+			result = form_new_file(dirname, base_filename, i, tmp_path,
+				                   sizeof(tmp_path)/sizeof(*tmp_path));
+			if (result)
+			{
+				PRINT_ERROR(The call to form_new_file() did not succeed);
+				PRINT_ERRNO(result);
+				FPRINTF_ERR("Failed to form a new filename from '%s', '%s', and %d\n",
+					        dirname, base_filename, i);
+				break;  // Encountered an error so let's bail
+			}
+			// Create it
+			result = create_file(tmp_path, tmp_path, true);
+			if (result)
+			{
+				PRINT_ERROR(The call to create_file() did not succeed);
+				PRINT_ERRNO(result);
+				FPRINTF_ERR("Failed to create filename '%s'\n", tmp_path);
+				break;  // Encountered an error so let's bail
+			}
+			// Add it to the array
+			*tmp_ptr = copy_string(tmp_path, &result);
+			if (result)
+			{
+				PRINT_ERROR(The call to copy_string() did not succeed);
+				PRINT_ERRNO(result);
+				FPRINTF_ERR("Failed to allocate and copy '%s'\n", tmp_path);
+				break;  // Encountered an error so let's bail
+			}
+			// Advance to the next array spot
+			tmp_ptr = find_empty_spot(tmp_ptr, &result);
+			if (result)
+			{
+				PRINT_ERROR(The call to find_empty_spot() did not succeed);
+				PRINT_ERRNO(result);
+				break;  // Encountered an error so let's bail
+			}
+		}
+	}
+	// Create dirs
+	if (ENOERR == result)
+	{
+		if (tree_depth > 1)
+		{
+			for (int i = 1; i <= tree_width; i++)
+			{
+				// Reset tmp_path
+				memset(tmp_path, 0x0, sizeof(tmp_path));
+				// Form the new directory name
+				result = form_new_dir(dirname, base_dirname, i, tmp_path,
+					                  sizeof(tmp_path)/sizeof(*tmp_path));
+				if (result)
+				{
+					PRINT_ERROR(The call to form_new_dir() did not succeed);
+					PRINT_ERRNO(result);
+					FPRINTF_ERR("Failed to form a new directory name from '%s', '%s', and %d\n",
+						        dirname, base_dirname, i);
+					break;  // Encountered an error so let's bail
+				}
+				// Recurse
+				result = recurse_path_tree(tmp_ptr, num_files, tree_width, tree_depth - 1);
+			}
+		}
+	}
 
 	// DONE
 	return result;
@@ -2461,6 +2859,48 @@ int validate_err(int *err)
 	if (!err)
 	{
 		result = EINVAL;  // Bad input
+	}
+
+	// DONE
+	return result;
+}
+
+
+int validate_form_new_args(const char *dirname, const char *pathname, int num,
+	                       char *out_arr, size_t out_size)
+{
+	// LOCAL VARIABLES
+	int result = validate_name(dirname);  // Errno value
+
+	// INPUT VALIDATION
+	// pathname
+	if (ENOERR == result)
+	{
+		result = validate_name(pathname);
+	}
+	// num
+	if (ENOERR == result)
+	{
+		if (num < 0)
+		{
+			result = EINVAL;  // No negative numbers
+		}
+	}
+	// out_arr
+	if (ENOERR == result)
+	{
+		if (NULL == out_arr)
+		{
+			result = EINVAL;  // NULL pointer
+		}
+	}
+	// out_size
+	if (ENOERR == result)
+	{
+		if (out_size <= 0)
+		{
+			result = EINVAL;  // No room in out_arr
+		}
 	}
 
 	// DONE
