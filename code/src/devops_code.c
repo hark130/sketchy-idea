@@ -33,6 +33,44 @@
 
 /*
  *	Description:
+ *		Calculate the number of directories that would be created given these create_path_tree()
+ *		dimensions.  The formula to calculate the total number of files being, created, for
+ *		all valid input, tree_width > 1, is theorized to be:
+ *			(tree_width((tree_width^tree_depth)-1))/(tree_width-1)
+ *
+ *	Returns:
+ *		The number of directories projected to be created by these create_path_tree() dimensions.
+ */
+unsigned int calc_num_dirs(unsigned int tree_width, unsigned int tree_depth);
+
+/*
+ *	Description:
+ *		Calculate the number of files that would be created given create_path_tree() dimensions.
+ *		The formula to calculate the total number of files being created, for all valid input,
+ *		tree_width > 1, is theorized to be:
+ *			(((tree_width^(tree_depth+1))-1)/(tree_width-1))*num_files
+ *		Any other values are invalid or basic math.
+ *
+ *	Returns:
+ *		The number of files projected to be created by these create_path_tree() dimensions.
+ */
+unsigned int calc_num_files(unsigned int num_files, unsigned int tree_width,
+	                        unsigned int tree_depth);
+
+/*
+ *	Description:
+ *		Calculate the total number directories and files that will be created given the
+ *		create_path_tree() dimensions.  Automatically adds one for create_path_tree()'s top_dir
+ *		directory.
+ *
+ *	Returns:
+ *		calc_num_dirs() + calc_num_files() + 1 on success.  0 on failure (see: errnum for details).
+ */
+unsigned int calc_num_paths(unsigned int num_files, unsigned int tree_width,
+	                        unsigned int tree_depth, int *errnum);
+
+/*
+ *	Description:
  *		Calculate base^exp (AKA pow(base, exp)) but using integers.
  *
  *	Args:
@@ -42,21 +80,7 @@
  *	Returns:
  *		Base raised to the power of exp on succes.  UINT_MAX on failure.
  */
-unsigned int calc_int_pow(unsigned int base, unsigned int exp);
-
-/*
- *	Description:
- *		Calculate the number of files that would be created given create_path_tree() dimensions.
- *		The formula to calculate the total number of files being created, for all valid input,
- *		tree_width > 1, is theorized to be:
- *			((tree_width^(tree_depth+1)-1)/(tree_width-1))*num_files
- *		Any other values are invalid or basic math.
- *
- *	Returns:
- *		The number of files projected to be created by these create_path_tree() dimensions.
- */
-unsigned int calc_num_files(unsigned int num_files, unsigned int tree_width,
-	                        unsigned int tree_depth);
+unsigned int calc_uint_pow(unsigned int base, unsigned int exp);
 
 /*
  *  Description:
@@ -356,10 +380,19 @@ char **create_path_tree(const char *top_dir, unsigned int num_files, unsigned in
 	// Calculate necessary array size
 	if (ENOERR == result)
 	{
-		// TO DO: DON'T DO NOW... Pre-calcualte the total number of files and directories + 1
-		total_paths = calc_num_files(num_files, tree_width, tree_depth);
-		// TO DO: DON'T DO NOW... Calcualte and add the total number of directories
-		// TO DO: DON'T DO NOW... Validate that total_paths won't overflow num_elem (and convert)
+		total_paths = calc_num_paths(num_files, tree_width, tree_depth, &result);
+	}
+	// Convert the number of paths (unsigned int) to number of elements (size_t)
+	if (ENOERR == result)
+	{
+		if (total_paths > SIZE_MAX)
+		{
+			result = EOVERFLOW;  // Too large to fit in a size_t
+		}
+		else
+		{
+			num_elem = total_paths;
+		}
 	}
 	// Allocate array
 	if (ENOERR == result)
@@ -1811,7 +1844,99 @@ int set_shell_perms(const char *pathname, mode_t new_perms)
 /**************************************************************************************************/
 
 
-unsigned int calc_int_pow(unsigned int base, unsigned int exp)
+unsigned int calc_num_dirs(unsigned int tree_width, unsigned int tree_depth)
+{
+	// LOCAL VARIABLES
+	unsigned int dir_count = 0;  // Calculated number of directories
+
+	// CALCULATE IT
+	if (tree_width <= 1)
+	{
+		dir_count = tree_width * tree_depth;
+	}
+	else
+	{
+		// (tree_width((tree_width^tree_depth)-1))/(tree_width-1)
+		dir_count = (tree_width*(calc_uint_pow(tree_width, tree_depth)-1))/(tree_width-1);
+	}
+
+	// DONE
+	return dir_count;
+}
+
+
+unsigned int calc_num_files(unsigned int num_files, unsigned int tree_width,
+	                        unsigned int tree_depth)
+{
+	// LOCAL VARIABLES
+	unsigned int file_count = 0;  // Calculated number of files
+
+	// CALCULATE IT
+	if (tree_width <= 1)
+	{
+		file_count = (tree_width + 1) * num_files;
+	}
+	else
+	{
+		// (((tree_width^(tree_depth+1))-1)/(tree_width-1))*num_files
+		file_count = ((calc_uint_pow(tree_width, tree_depth+1)-1)/(tree_width-1))*num_files;
+	}
+
+	// DONE
+	return file_count;
+}
+
+
+unsigned int calc_num_paths(unsigned int num_files, unsigned int tree_width,
+	                        unsigned int tree_depth, int *errnum)
+{
+	// LOCAL VARIABLES
+	unsigned int path_count = 1;  // Calculated number of paths
+	unsigned int dir_count = 0;   // Calculated number of directories
+	unsigned int file_count = 0;  // Calculated number of files
+	int result = 0;               // Store errno value here
+
+	// VALIDATION
+	if (!errnum)
+	{
+		result = EINVAL;  // NULL pointer
+	}
+
+	// CALCULATE IT
+	// Get dir count
+	if (ENOERR == result)
+	{
+		dir_count = calc_num_dirs(tree_width, tree_depth);
+	}
+	// Get file count
+	if (ENOERR == result)
+	{
+		file_count = calc_num_files(num_files, tree_width, tree_depth);
+	}
+	// Check for overflow
+	if (ENOERR == result)
+	{
+		if (dir_count > (UINT_MAX - file_count))
+		{
+			path_count = 0;  // 0 indicates error
+			result = EOVERFLOW;  // Adding them would overflow the unsigned int
+		}
+		else
+		{
+			path_count = dir_count + file_count;
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;  // Provide the results
+	}
+	return path_count;
+}
+
+
+unsigned int calc_uint_pow(unsigned int base, unsigned int exp)
 {
 	// LOCAL VARIABLES
 	unsigned int result = 1;  // base^exp
@@ -1833,30 +1958,6 @@ unsigned int calc_int_pow(unsigned int base, unsigned int exp)
 
 	// DONE
 	return result;
-}
-
-
-unsigned int calc_num_files(unsigned int num_files, unsigned int tree_width,
-	                        unsigned int tree_depth)
-{
-	// LOCAL VARIABLES
-	unsigned int u_num_files = num_files;    // Unsigned number of files
-	unsigned int u_tree_width = tree_width;  // Unsigned tree width
-	unsigned int u_tree_depth = tree_depth;  // Unsigned tree depth
-	unsigned int file_count = 0;             // Calculated number of files
-
-	// CALCULATE IT
-	if (tree_width <= 1)
-	{
-		file_count = (tree_width + 1) * num_files;
-	}
-	else
-	{
-		file_count = ((calc_int_pow(tree_width, tree_depth+1)-1)/(tree_width-1))*num_files;
-	}
-
-	// DONE
-	return file_count;
 }
 
 
