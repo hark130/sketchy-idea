@@ -7,6 +7,8 @@
 
 #include <stdbool.h>    // bool, false, true
 #include <stddef.h>     // size_t
+#include <sys/types.h>	// blkcnt_t
+#include <time.h>		// time_t
 #include <unistd.h>     // useconds_t
 
 // Baseline dir level to standardize file-based test input paths
