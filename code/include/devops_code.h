@@ -11,8 +11,8 @@
 
 // Baseline dir level to standardize file-based test input paths
 #define SKID_REPO_NAME (const char *)"sketchy-idea"  // The name of this repo
-#define SKID_MAX_FILES = 100  						 // Max files create_path_tree() will create
-#define SKID_MAX_DEPTH = 5	  						 // Max depth create_path_tree() will create
+#define SKID_MAX_FILES 100  						 // Max files create_path_tree() will create
+#define SKID_MAX_DEPTH 5	  						 // Max depth create_path_tree() will create
 
 /*
  *  Description:

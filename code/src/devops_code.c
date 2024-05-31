@@ -4,18 +4,21 @@
 
 #define SKID_DEBUG			// Enable DEBUG logging
 
-#include <errno.h>          // errno
-#include <limits.h>         // PATH_MAX
-#include <stdio.h>          // remove()
-#include <stdlib.h>         // calloc(), free()
-#include <string.h>         // strstr()
-#include <sys/socket.h>     // AF_UNIX, socket()
-#include <sys/stat.h>       // stat()
-#include <sys/un.h>         // struct sockaddr_un
-#include <unistd.h>         // getcwd()
+#include <errno.h>          		// errno
+#include <limits.h>         		// PATH_MAX
+#include <stdio.h>          		// remove()
+#include <stdint.h>					// SIZE_MAX
+#include <stdlib.h>         		// calloc(), free()
+#include <string.h>         		// strstr()
+#include <sys/socket.h>     		// AF_UNIX, socket()
+#include <sys/stat.h>       		// stat()
+#include <sys/un.h>         		// struct sockaddr_un
+#include <unistd.h>         		// getcwd()
 // Local includes
-#include "devops_code.h"    // Headers
-#include "skid_debug.h"     // PRINT_ERRNO()
+#include "devops_code.h"    		// Headers
+#include "skid_debug.h"     		// PRINT_ERRNO()
+#include "skid_dir_operations.h"	// create_dir()
+#include "skid_file_operations.h"	// create_file()
 
 
 #ifndef ENOERR
@@ -308,8 +311,8 @@ int strip_newlines(char *string);
  *	Returns:
  *		0 on success, EINVAL on bad input.
  */
-int validate_cpt_args(const char *top_dir, int num_files, int tree_width, int tree_depth,
-                      int *ernnum);
+int validate_cpt_args(const char *top_dir, unsigned int num_files, unsigned int tree_width,
+	                  unsigned int tree_depth, int *errnum);
 
 /*
  *	Description:
@@ -323,8 +326,8 @@ int validate_cpt_args(const char *top_dir, int num_files, int tree_width, int tr
  *		0 on success, EINVAL on bad input, EMFILE is used if the requested number of files
  *		is larger than SKID_MAX_FILES.
  */
-int validate_cpt_limits(const char *top_dir, int num_files, int tree_width, int tree_depth,
-                        int *ernnum);
+int validate_cpt_limits(const char *top_dir, unsigned int num_files, unsigned int tree_width,
+	                    unsigned int tree_depth, int *errnum);
 
 /*
  *	Description:
@@ -338,7 +341,7 @@ int validate_cpt_limits(const char *top_dir, int num_files, int tree_width, int 
  *		0 on success, EINVAL on bad input.
  */
 int validate_cpt_specific_args(const char *top_dir, unsigned int num_files,
-							   unsigned int tree_width, unsigned int tree_depth)
+							   unsigned int tree_width, unsigned int tree_depth);
 
 /*
  *  Description:
@@ -407,6 +410,8 @@ int validate_standard_args(const char *name, int *err);
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
 /**************************************************************************************************/
+
+
 void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum)
 {
 	// LOCAL VARIABLES
@@ -2286,7 +2291,7 @@ int form_new_file(const char *dirname, const char *filename, int file_num,
 	size_t cur_len = 0;                  // Length of tmp_file (update as we go)
 
 	// INPUT VALIDATION
-	result = validate_form_new_args(dirname, filename, dir_num, out_arr, out_size);
+	result = validate_form_new_args(dirname, filename, file_num, out_arr, out_size);
 
 	// FORM IT
 	// Start with dirname
@@ -2319,7 +2324,7 @@ int form_new_file(const char *dirname, const char *filename, int file_num,
 	if (ENOERR == result)
 	{
 		cur_len = strlen(tmp_file);  // Get the current length
-		sprintf(tmp_num, "%d", dir_num);
+		sprintf(tmp_num, "%d", file_num);
 		strncat(tmp_file, tmp_num, (sizeof(tmp_file)/sizeof(*tmp_file))-cur_len-1);
 	}
 	// Add a file extension
@@ -2702,7 +2707,8 @@ int recurse_path_tree(char **string_arr, const char *dirname, unsigned int num_f
 					break;  // Encountered an error so let's bail
 				}
 				// Recurse
-				result = recurse_path_tree(tmp_ptr, num_files, tree_width, tree_depth - 1);
+				result = recurse_path_tree(tmp_ptr, tmp_path, num_files,
+					                       tree_width, tree_depth - 1);
 			}
 		}
 	}
@@ -2773,7 +2779,7 @@ int truncate_dir(char *haystack, const char *needle, size_t hay_len)
 
 
 int validate_cpt_args(const char *top_dir, unsigned int num_files, unsigned int tree_width,
-	                  unsigned int tree_depth, int *ernnum)
+	                  unsigned int tree_depth, int *errnum)
 {
 	// LOCAL VARIABLES
 	int result = ENOERR;  // Errno value
@@ -2792,11 +2798,11 @@ int validate_cpt_args(const char *top_dir, unsigned int num_files, unsigned int 
 
 
 int validate_cpt_limits(const char *top_dir, unsigned int num_files, unsigned int tree_width,
-	                    unsigned int tree_depth, int *ernnum)
+	                    unsigned int tree_depth, int *errnum)
 {
 	// LOCAL VARIABLES
-	int result = ENOERR;         // Errno value
-	unsigned int num_files = 0;  // Number of files these dimensions would create
+	int result = ENOERR;          // Errno value
+	unsigned int calc_files = 0;  // Number of files these dimensions would create
 
 	// INPUT VALIDATION
 	// Arguments
@@ -2804,8 +2810,8 @@ int validate_cpt_limits(const char *top_dir, unsigned int num_files, unsigned in
 	// Limits
 	if (ENOERR == result)
 	{
-		num_files = calc_num_files(num_files, tree_width, tree_depth);
-		if (num_files > SKID_MAX_FILES)
+		calc_files = calc_num_files(num_files, tree_width, tree_depth);
+		if (calc_files > SKID_MAX_FILES)
 		{
 			result = EMFILE;  // Too many files
 		}
