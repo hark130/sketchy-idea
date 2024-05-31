@@ -122,6 +122,18 @@ int create_file(const char *filename, const char *contents, bool overwrite)
 		if (contents && *contents)
 		{
 			result = write_stream(contents, fp);
+			if (ENOERR != result)
+			{
+				if (result > 0)
+				{
+					PRINT_ERROR(The call to write_stream() failed);
+					PRINT_ERRNO(result);
+				}
+				else
+				{
+					PRINT_ERROR(The call to write_stream() failed with an unspecified error);
+				}
+			}
 		}
 	}
 
@@ -370,7 +382,6 @@ int write_stream(const char *contents, FILE *stream)
 	if (ENOERR == result)
 	{
 		num_items_wrote = fwrite(contents, sizeof(*contents), nmemb, stream);
-		result = errno;  // Just in case
 		if (0 == num_items_wrote)
 		{
 			PRINT_ERROR(The call to fwrite() failed);
