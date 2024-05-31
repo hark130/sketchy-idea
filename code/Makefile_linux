@@ -24,8 +24,8 @@ endef
 
 ### COMPILER VARIABLES ###
 CC = gcc
-CFLAGS = -Wall -Werror -Wfatal-errors
 AFLAGS = -fsanitize=address -g
+CFLAGS = -Wall -Werror -Wfatal-errors
 
 ### OS-DYNAMIC VARIABLES ###
 # $(CHECK) - Checkmark
