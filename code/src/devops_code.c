@@ -587,8 +587,7 @@ int free_path_tree(char ***old_path_tree)
 	// Free the array
 	if (!result)
 	{
-		free_devops_mem((void **)*old_path_tree);
-		*old_path_tree = NULL;
+		free_devops_mem((void **)old_path_tree);
 	}
 
 	// DONE
@@ -2040,7 +2039,7 @@ unsigned int calc_num_paths(unsigned int num_files, unsigned int tree_width,
 		}
 		else
 		{
-			path_count = dir_count + file_count;
+			path_count += dir_count + file_count;
 		}
 	}
 
@@ -2174,7 +2173,7 @@ char **find_empty_spot(char **string_arr, int *errnum)
 	// INPUT VALIDATION
 	if (ENOERR == result)
 	{
-		if (NULL == string_arr)
+		if (NULL == new_spot)
 		{
 			result = EINVAL;  // NULL pointer
 		}
@@ -2183,9 +2182,9 @@ char **find_empty_spot(char **string_arr, int *errnum)
 	// FIND IT
 	if (ENOERR == result)
 	{
-		while (NULL != *string_arr)
+		while (NULL != *new_spot)
 		{
-			string_arr++;  // Check the next one
+			new_spot++;  // Check the next one
 		}
 	}
 
@@ -2689,7 +2688,7 @@ int recurse_path_tree(char **string_arr, const char *dirname, unsigned int num_f
 	// Create dirs
 	if (ENOERR == result)
 	{
-		if (tree_depth > 1)
+		if (tree_depth >= 1)
 		{
 			for (int i = 1; i <= tree_width; i++)
 			{
