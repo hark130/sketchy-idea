@@ -2627,7 +2627,7 @@ int recurse_path_tree(char **string_arr, const char *dirname, unsigned int num_f
 	if (ENOERR == result)
 	{
 		result = create_dir(dirname, 0775);
-		if (EEXIST == result)
+		if (EEXIST == result && true == is_directory(dirname, &result))
 		{
 			result = ENOERR;  // Count this as a success
 		}
