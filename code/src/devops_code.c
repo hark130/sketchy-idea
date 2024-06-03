@@ -247,7 +247,8 @@ int read_group_field(char *group_entry, int field_num, char *field_value, int fv
 /*
  *	Description:
  *		Create dirname, populate it with files, then recursively create sub-directories.
- *		Recursion base case is a tree depth of 0.
+ *		Recursion base case is a tree depth of 0.  Existing directories will count as a success.
+ *		Existing files will be overwritten.
  *
  *	Notes:
  *		1. Creates dirname
@@ -2626,6 +2627,10 @@ int recurse_path_tree(char **string_arr, const char *dirname, unsigned int num_f
 	if (ENOERR == result)
 	{
 		result = create_dir(dirname, 0775);
+		if (EEXIST == result)
+		{
+			result = ENOERR;  // Count this as a success
+		}
 	}
 	// Add dirname to the array
 	if (ENOERR == result)
