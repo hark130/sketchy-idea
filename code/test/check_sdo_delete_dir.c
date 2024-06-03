@@ -111,9 +111,9 @@ char *resolve_test_input(const char *pathname, const char *base)
 
 	// RESOLVE IT
 	resolved_name = join_dir_to_path(base_name, pathname, false, &errnum);
-	ck_assert_msg(0 == errnum, "resolve_to_repo(%s, %s) failed with [%d] %s\n", base_name,
+	ck_assert_msg(0 == errnum, "join_dir_to_path(%s, %s) failed with [%d] %s\n", base_name,
 				  pathname, errnum, strerror(errnum));
-	ck_assert_msg(NULL != resolved_name, "resolve_to_repo(%s, %s) failed to resolve the path\n",
+	ck_assert_msg(NULL != resolved_name, "join_dir_to_path(%s, %s) failed to resolve the path\n",
 				  base_name, pathname);
 
 	// DONE
