@@ -7,6 +7,7 @@
 #include "skid_debug.h"				  	// PRINT_ERRNO()
 #include "skid_dir_operations.h"		// _DEFAULT_SOURCE, delete_dir()
 #include "skid_file_metadata_read.h"	// is_directory()
+#include "skid_file_operations.h"		// delete_file()
 #include "skid_memory.h"				// copy_skid_string(), free_skid_mem(), free_skid_string()
 #include <dirent.h>						// closedir(), opendir(), readdir(), struct dirent
 #include <errno.h>						// errno
@@ -222,13 +223,73 @@ int delete_dir(const char *dirname)
 int destroy_dir(const char *dirname)
 {
 	// LOCAL VARIABLES
-	int result = ENOERR;  // Results of execution
+	int result = ENOERR;         // Results of execution
+	char **dir_contents = NULL;  // Array of string pointers containing dirname's paths
+	size_t capacity = 0;         // Size of dir_contents
+	size_t num_paths = 0;        // Number of paths contained in dirname
+	char *tmp_path = NULL;       // Temp pathname to manage
 
 	// INPUT VALIDATION
-	// TO DO: DON'T DO NOW
+	result = validate_sdo_pathname(dirname);
 
 	// DESTROY IT
-	// TO DO: DON'T DO NOW
+	// Get the full list
+	if (ENOERR == result)
+	{
+		FPRINTF_ERR("%s - About to read the contents of '%s'\n", DEBUG_INFO_STR, dirname);  // DEBUGGING
+		dir_contents = read_dir_contents(dirname, true, &result, &capacity);
+	}
+	// Size it
+	if (ENOERR == result)
+	{
+		num_paths = count_content_arr_entries(dir_contents, &capacity);
+	}
+	// Destroy it (backwards)
+	if (ENOERR == result)
+	{
+		for (size_t i = num_paths - 1; i >= 0; i--)
+		{
+			tmp_path = dir_contents[i];
+			if (tmp_path)
+			{
+				FPRINTF_ERR("%s - About to attempt to delete '%s'\n", DEBUG_INFO_STR, tmp_path);  // DEBUGGING
+				if (true == is_regular_file(tmp_path, &result))
+				{
+					result = delete_file(tmp_path);
+				}
+				else if (true == is_directory(tmp_path, &result))
+				{
+					result = delete_dir(tmp_path);
+				}
+				else
+				{
+					if (ENOERR == result)
+					{
+						PRINT_WARNG(Detected an unsupported path type);
+						FPRINTF_ERR("%s - %s is unsupported\n", DEBUG_WARNG_STR, tmp_path);
+					}
+					else
+					{
+						PRINT_ERROR(Encountered a deletion error);
+						PRINT_ERRNO(result);
+						FPRINTF_ERR("%s - Attempting to delete '%s'\n", DEBUG_ERROR_STR, tmp_path);
+						break;  // Let's stop since the rest will likely  error as well
+					}
+				}
+			}
+			else
+			{
+				PRINT_WARNG(The array count appears to have been off);
+				break;  // Found a NULL so we'll stop iterating
+			}
+		}
+	}
+
+	// CLEANUP
+	if (dir_contents)
+	{
+		free_skid_dir_contents(&dir_contents);  // Best effort
+	}
 
 	// DONE
 	return result;
@@ -269,17 +330,35 @@ int free_skid_dir_contents(char ***dir_contents)
 }
 
 
-char **read_dir_contents(const char *dirname, bool recurse, int *errnum)
+char **read_dir_contents(const char *dirname, bool recurse, int *errnum, size_t *capacity)
 {
 	// LOCAL VARIABLES
-	char **content_arr = NULL;  // NULL-terminated array of nul-terminated strings
-	int result = ENOERR;        // Capture errno values here
+	char **content_arr = NULL;                    // NULL-terminated array of nul-terminated strs
+	int result = validate_sdo_pathname(dirname);  // Capture errno values here
 
 	// INPUT VALIDATION
-	// TO DO: DON'T DO NOW
+	if (ENOERR == result)
+	{
+		result = validate_sdo_err(errnum);
+	}
+	if (ENOERR == result)
+	{
+		if (!capacity)
+		{
+			result = EINVAL;  // NULL pointer
+		}
+	}
 
 	// READ IT
-	// TO DO: DON'T DO NOW
+	if (ENOERR == result)
+	{
+		content_arr = recurse_dir_contents(content_arr, capacity, dirname, recurse, &result);
+		if (result)
+		{
+			PRINT_ERROR(The intial call to recurse_dir_contents() failed);
+			PRINT_ERRNO(result);
+		}
+	}
 
 	// DONE
 	if (errnum)
