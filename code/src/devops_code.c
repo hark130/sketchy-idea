@@ -4,21 +4,22 @@
 
 #define SKID_DEBUG			// Enable DEBUG logging
 
-#include <errno.h>          		// errno
-#include <limits.h>         		// PATH_MAX
-#include <stdio.h>          		// remove()
-#include <stdint.h>					// SIZE_MAX
-#include <stdlib.h>         		// calloc(), free()
-#include <string.h>         		// strstr()
-#include <sys/socket.h>     		// AF_UNIX, socket()
-#include <sys/stat.h>       		// stat()
-#include <sys/un.h>         		// struct sockaddr_un
-#include <unistd.h>         		// getcwd()
+#include <errno.h>          			// errno
+#include <limits.h>         			// PATH_MAX
+#include <stdio.h>          			// remove()
+#include <stdint.h>						// SIZE_MAX
+#include <stdlib.h>         			// calloc(), free()
+#include <string.h>         			// strstr()
+#include <sys/socket.h>     			// AF_UNIX, socket()
+#include <sys/stat.h>       			// stat()
+#include <sys/un.h>         			// struct sockaddr_un
+#include <unistd.h>         			// getcwd()
 // Local includes
-#include "devops_code.h"    		// Headers
-#include "skid_debug.h"     		// PRINT_ERRNO()
-#include "skid_dir_operations.h"	// create_dir()
-#include "skid_file_operations.h"	// create_file()
+#include "devops_code.h" 	   		// Headers
+#include "skid_debug.h"     			// PRINT_ERRNO()
+#include "skid_dir_operations.h"		// create_dir()
+#include "skid_file_metadata_read.h"	// is_directory()
+#include "skid_file_operations.h"		// create_file()
 
 
 #ifndef ENOERR
