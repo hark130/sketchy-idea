@@ -560,7 +560,10 @@ char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum)
 	// Allocate a larger array
 	if (ENOERR == result)
 	{
+		// FPRINTF_ERR("MADE IT HERE %s %d\n", __func__, __LINE__);  // DEBUGGING
 		new_array = alloc_skid_mem(new_size, sizeof(char*), &result);
+		// PRINT_ERRNO(result);  // DEBUGGING
+		// FPRINTF_ERR("MADE IT HERE %s %d\n", __func__, __LINE__);  // DEBUGGING
 	}
 	// Copy the pointers in
 	if (ENOERR == result && old_array)
@@ -614,6 +617,7 @@ char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *di
 	int result = ENOERR;                // Errno value
 	DIR *dirp = NULL;                   // Directory stream pointer
 	struct dirent *temp_dirent = NULL;  // Temporary dirent struct pointer
+	size_t curr_count = 0;              // Current count of content_arr entries
 
 	// INPUT VALIDATION
 	result = validate_rdc_args(content_arr, capacity, dirname, recurse, errnum);
@@ -663,12 +667,21 @@ char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *di
 					break;
 				}
 				// Should we recurse on this valid directory?
-				if (true == recurse && true == is_dirent_a_dir(temp_dirent) \
-					&& ENOERR == validate_sdo_pathname(temp_dirent->d_name))
+				if (true == recurse && validate_direntp(temp_dirent) \
+					&& true == is_dirent_a_dir(temp_dirent))
 				{
 					// Recurse!
-					curr_arr = recurse_dir_contents(curr_arr, capacity, temp_dirent->d_name,
-						                            recurse, &result);
+					curr_count = count_content_arr_entries(curr_arr, capacity);
+					// FPRINTF_ERR("ABOUT TO RECURSE INTO '%s'\n", curr_arr[curr_count-1]);  // DEBUGGING
+					if (curr_count >= 1)
+					{
+						curr_arr = recurse_dir_contents(curr_arr, capacity, curr_arr[curr_count-1],
+							                            recurse, &result);
+					}
+					else
+					{
+						PRINT_ERROR(Detected failed recursion in recurse_dir_contents());
+					}
 				}
 			}
 		}
@@ -723,25 +736,31 @@ char **store_dirent(char **content_arr, size_t *capacity, const char *dirname,
 	{
 		if (true == validate_direntp(direntp))
 		{
-			curr_capacity = *capacity;  // Get the current capacity
 			while (num_loops <= SKID_MAX_RETRIES)
 			{
 				// Gotta store this dirent
 				// 1. Is there are an array?
 				if (curr_arr)
 				{
+					curr_capacity = *capacity;  // Get the current capacity
 					// 2. If so, is there space?
+					// FPRINTF_ERR("MADE IT HERE %d\n", __LINE__);  // DEBUGGING
 					num_entries = count_content_arr_entries(curr_arr, capacity);
+					// FPRINTF_ERR("COUNTED %zu ENTRIES IN %p\n", num_entries, curr_arr);  // DEBUGGING
 					if (num_entries < (curr_capacity - 1))
 					{
+						// FPRINTF_ERR("MADE IT HERE %d\n", __LINE__);  // DEBUGGING
+						// FPRINTF_ERR("STORING '%s'\n", direntp->d_name);  // DEBUGGING
 						// 3. Allocate, copy, and store it
 						if (ENOERR == validate_sdo_pathname(dirname))
 						{
+							// FPRINTF_ERR("MADE IT HERE %d\n", __LINE__);  // DEBUGGING
 							curr_arr[num_entries] = join_dir_path(dirname, direntp->d_name,
 								                                  &result);
 						}
 						else
 						{
+							// FPRINTF_ERR("MADE IT HERE %d\n", __LINE__);  // DEBUGGING
 							curr_arr[num_entries] = copy_skid_string(direntp->d_name, &result);
 						}
 						// 4. Verify
@@ -753,12 +772,15 @@ char **store_dirent(char **content_arr, size_t *capacity, const char *dirname,
 						}
 						else
 						{
+							// FPRINTF_ERR("STORED '%s'\n", curr_arr[num_entries]);  // DEBUGGING
 							break;  // We stored it.  Done.
 						}
 					}
 					// Then make a bigger one
 					else
 					{
+						// FPRINTF_ERR("MADE IT HERE %d\n", __LINE__);  // DEBUGGING
+						// FPRINTF_ERR("OLD CAPACITY FOR %p IS %zu\n", curr_arr, *capacity);  // DEBUGGING
 						curr_arr = realloc_dir_contents(curr_arr, capacity, &result);
 						if (result)
 						{
@@ -768,14 +790,16 @@ char **store_dirent(char **content_arr, size_t *capacity, const char *dirname,
 						}
 						else
 						{
-							FPRINTF_ERR("%s - %s reallocated the dir contents array!\n",
-								        DEBUG_INFO_STR, __FILE__);
+							FPRINTF_ERR("%s - %s - %s() - %d - resized the dir contents array!\n",
+								        DEBUG_INFO_STR, __FILE__, __FUNCTION_NAME__, __LINE__);
 						}
+						// FPRINTF_ERR("NEW CAPACITY FOR %p IS %zu\n", curr_arr, *capacity);  // DEBUGGING
 					}
 				}
 				// Then make one
 				else
 				{
+					// FPRINTF_ERR("MADE IT HERE %d\n", __LINE__);  // DEBUGGING
 					curr_arr = realloc_dir_contents(curr_arr, capacity, &result);
 					if (result)
 					{
