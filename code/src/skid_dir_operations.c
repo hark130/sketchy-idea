@@ -684,7 +684,7 @@ char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *di
 			{
 				// Store it
 				FPRINTF_ERR("CALLING store_dirent(%p, %p, %p, %p)\n", curr_arr, capacity, temp_dirent, &result);  // DEBUGGING
-				curr_arr = store_dirent(curr_arr, capacity, temp_dirent, &result);
+				curr_arr = store_dirent(curr_arr, capacity, dirname, temp_dirent, &result);
 				if (result)
 				{
 					PRINT_ERROR(The call to store_dirent() failed);
