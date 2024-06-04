@@ -95,12 +95,16 @@ int destroy_shell_tree(char **old_path_tree)
 	// Iterate the array in reverse order
 	if (0 == result)
 	{
-		for (int i = str_count - 1; i >= 0; i--)
+		fprintf(stderr, "MADE IT HERE IN %s %d\n", __FILE__, __LINE__);  // DEBUGGING
+		while (str_count > 0)
 		{
-			tmp_path = tmp_arr[i];
+			tmp_path = old_path_tree[str_count - 1];
+			fprintf(stderr, "MADE IT HERE IN %s %d\n", __FILE__, __LINE__);  // DEBUGGING
+			fprintf(stderr, "DOES '%s' EXIST?\n", tmp_path);  // DEBUGGING
 			// Exists?
 			if (true == is_path_there(tmp_path))
 			{
+				fprintf(stderr, "MADE IT HERE IN %s %d\n", __FILE__, __LINE__);  // DEBUGGING
 				// File?
 				if (true == is_regular_file(tmp_path, &result))
 				{
@@ -114,6 +118,7 @@ int destroy_shell_tree(char **old_path_tree)
 					ck_assert_msg(0 == result, "is_regular_file(%s) failed with [%d] %s\n",
 						          tmp_path, result, strerror(result));
 				}
+				fprintf(stderr, "MADE IT HERE IN %s %d\n", __FILE__, __LINE__);  // DEBUGGING
 				// Dir?
 				if (true == is_directory(tmp_path, &result))
 				{
@@ -127,9 +132,12 @@ int destroy_shell_tree(char **old_path_tree)
 					ck_assert_msg(0 == result, "is_directory(%s) failed with [%d] %s\n",
 						          tmp_path, result, strerror(result));
 				}
+				fprintf(stderr, "MADE IT HERE IN %s %d\n", __FILE__, __LINE__);  // DEBUGGING
 				// How did we get here?
 				ck_abort_msg("'%s' exists but is not a file or directory?!", tmp_path);
 			}
+			str_count--;
+			fprintf(stderr, "MADE IT HERE IN %s %d\n", __FILE__, __LINE__);  // DEBUGGING
 		}
 	}
 
@@ -223,7 +231,9 @@ void run_test_case(char *dir_input, int exp_return, bool create, unsigned int nu
 
 	// RUN IT
 	// Call the function
+	fprintf(stderr, "DESTROYING %s\n", dir_input);  // DEBUGGING
 	actual_ret = destroy_dir(dir_input);
+	fprintf(stderr, "DESTROYED %s\n", dir_input);  // DEBUGGING
 	// Compare actual results to expected results
 	ck_assert_msg(exp_return == actual_ret, "destroy_dir(%s) returned [%d] '%s' "
 				  "instead of [%d] '%s'\n", dir_input, actual_ret, strerror(actual_ret),
@@ -239,7 +249,9 @@ void run_test_case(char *dir_input, int exp_return, bool create, unsigned int nu
 	// Delete test artifacts
 	if (true == create)
 	{
+		fprintf(stderr, "MADE IT HERE IN %s %d\n", __FILE__, __LINE__);  // DEBUGGING
 		errnum = destroy_shell_tree(artifact_arr);
+		fprintf(stderr, "MADE IT HERE IN %s %d\n", __FILE__, __LINE__);  // DEBUGGING
 		ck_assert_msg(0 == errnum, "The destroy_shell_tree(%p) call failed with [%d] '%s'\n",
 					  artifact_arr, errnum, strerror(errnum));
 	}
@@ -271,6 +283,7 @@ START_TEST(test_n01_abs_dir_no_tree)
 	unsigned int tree_depth = 0;  // Number of sub-directory levels
 
 	// RUN TEST
+	fprintf(stderr, "NORMAL 1 IS USING '%s'\n", input_test_path);  // DEBUGGING
 	run_test_case(input_test_path, exp_return, create, num_files, tree_width, tree_depth);
 
 	// CLEANUP
@@ -325,6 +338,7 @@ START_TEST(test_n04_abs_dir_no_files_one_subdir_one_level)
 	unsigned int tree_depth = 1;  // Number of sub-directory levels
 
 	// RUN TEST
+	fprintf(stderr, "NORMAL 4 IS USING '%s'\n", input_test_path);  // DEBUGGING
 	run_test_case(input_test_path, exp_return, create, num_files, tree_width, tree_depth);
 
 	// CLEANUP
