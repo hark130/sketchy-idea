@@ -14,7 +14,8 @@
 #include <stdint.h>						// SIZE_MAX
 #include <unistd.h>						// link(), rmdir(), symlink()
 #ifndef SKID_ARRAY_SIZE
-#define SKID_ARRAY_SIZE 1024			// Starting num of indices in read_dir_contents()'s array
+// #define SKID_ARRAY_SIZE 1024			// Starting num of indices in read_dir_contents()'s array
+#define SKID_ARRAY_SIZE 8			// Starting num of indices in read_dir_contents()'s array
 #endif  /* SKID_ARRAY_SIZE */
 #ifndef SKID_MAX_RETRIES
 #define SKID_MAX_RETRIES 10				// Maximum number of maximum failure loops for store_dent()
@@ -99,7 +100,7 @@ char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *di
 
 /*
  *	Description:
- *		Allocate, copy, and store dirp->d_name in content_arr.
+ *		Allocate, copy, and store dirp->d_name in content_arr (unless d_name is . or ..).
  *
  *	Args:
  *		content_arr: [Optional] Starting array of strings (which represent pathnames).  There is no
@@ -119,6 +120,19 @@ char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *di
  *		will be set with an errno value (or -1 for an unspecified error).
  */
 char **store_dirent(char **content_arr, size_t *capacity, struct dirent *direntp, int *errnum);
+
+/*
+ *	Description:
+ *		Validate struct dirent pointers on behalf of store_dirent().
+ *
+ *	Args:
+ *		direntp: A non-NULL dirent struct pointer.
+ *
+ *	Returns:
+ *		True if direntp is valid: non-NULL, d_name lenth > 0, is not a relative symbol
+ *		(e.g., ".", "..").  False otherwise.
+ */
+bool validate_direntp(struct dirent *direntp);
 
 /*
  *	Description:
@@ -222,6 +236,10 @@ int delete_dir(const char *dirname)
 
 int destroy_dir(const char *dirname)
 {
+	// From readdir(3)
+	// Only  the fields d_name and (as an XSI extension) d_ino are specified in POSIX.1.  Other than Linux, the d_type field is available mainly only on BSD systems.  The remaining fields are available on many, but not all systems.  Under glibc, programs can check for
+	// the availability of the fields not defined in POSIX.1 by testing whether the macros _DIRENT_HAVE_D_NAMLEN, _DIRENT_HAVE_D_RECLEN, _DIRENT_HAVE_D_OFF, or _DIRENT_HAVE_D_TYPE are defined.
+
 	// LOCAL VARIABLES
 	int result = ENOERR;         // Results of execution
 	char **dir_contents = NULL;  // Array of string pointers containing dirname's paths
@@ -379,6 +397,7 @@ size_t count_content_arr_entries(char **content_arr, size_t *capacity)
 	// LOCAL VARIABLES
 	size_t count = 0;              // Number of non-NULL entries in content_arr.
 	size_t curr_capacity = 0;      // Current capacity
+	char **tmp_arr = content_arr;  // Iterating variable
 
 	// INPUT VALIDATION
 	if (content_arr && capacity)
@@ -386,14 +405,26 @@ size_t count_content_arr_entries(char **content_arr, size_t *capacity)
 		curr_capacity = *capacity;
 		for (size_t i = 0; i < curr_capacity; i++)
 		{
-			if (NULL == content_arr[i])
+			// FPRINTF_ERR("FOUND %p IN ARRAY %p: %s\n", *tmp_arr, content_arr, *tmp_arr);  // DEBUGGING
+			if (NULL == *tmp_arr)
 			{
 				break;  // Found a NULL
 			}
 			else
 			{
 				count++;  // Found a pointer
+				tmp_arr++;  // Check the next index
 			}
+			// FPRINTF_ERR("FOUND %p IN ARRAY %p\n", content_arr[i], content_arr);  // DEBUGGING
+			// if (NULL == content_arr[i])
+			// {
+			// 	break;  // Found a NULL
+			// }
+			// else
+			// {
+			// 	// FPRINTF_ERR("FOUND %p IN THE ARRAY\n", content_arr[i]);  // DEBUGGING
+			// 	count++;  // Found a pointer
+			// }
 		}
 	}
 
@@ -447,7 +478,7 @@ char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum)
 	// Size it
 	if (ENOERR == result)
 	{
-		if (0 == curr_capacity)
+		if (NULL == old_array || 0 == curr_capacity)
 		{
 			new_size = SKID_ARRAY_SIZE;  // Starting size
 		}
@@ -466,13 +497,21 @@ char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum)
 		{
 			new_size = curr_capacity * 2;
 		}
+		FPRINTF_ERR("NEW SIZE IS %zu\n", new_size);  // DEBUGGING
 	}
 	// Allocate a larger array
 	if (ENOERR == result)
 	{
 		new_array = alloc_skid_mem(new_size, sizeof(char*), &result);
+		FPRINTF_ERR("NEW ARRAY IS %p\n", new_array);  // DEBUGGING
+		// DEBUGGING... NEW ARRAY ISN'T EMPTY!
+		for (size_t i = 0; i < new_size; i++)
+		{
+			FPRINTF_ERR("NEW ARRAY CONTAINS %p: %s\n", new_array[i], new_array[i]);  // DEBUGGING
+		}
 	}
 	// Copy the pointers in
+	FPRINTF_ERR("OLD ARRAY IS %p\n", old_array);  // DEBUGGING
 	if (ENOERR == result && old_array)
 	{
 		for (size_t i = 0; i < curr_capacity; i++)
@@ -512,6 +551,7 @@ char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum)
 	{
 		*errnum = result;
 	}
+	FPRINTF_ERR("ABOUT TO RETURN %p WITH CAPACITY OF %zu\n", new_array, *capacity);  // DEBUGGING
 	return new_array;
 }
 
@@ -545,10 +585,14 @@ char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *di
 	{
 		while (1)
 		{
+			FPRINTF_ERR("IN THE WHILE LOOP\n");  // DEBUGGING
 			// To distinguish end of stream from an error, set errno to zero before calling
 			// readdir() and then check the value of errno if NULL is returned.
 			errno = ENOERR;  // Clear errno... see: readdir(3)
+			FPRINTF_ERR("BEFORE: TEMP DIRENT IS %p\n", temp_dirent);  // DEBUGGING
 			temp_dirent = readdir(dirp);
+			FPRINTF_ERR("AFTER:  TEMP DIRENT IS %p\n", temp_dirent);  // DEBUGGING
+			// FPRINTF_ERR("READDIR(%p) RETURNED %p\n", dirp, temp_dirent);  // DEBUGGING
 			if (NULL == temp_dirent)
 			{
 				result = errno;
@@ -565,6 +609,7 @@ char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *di
 			else
 			{
 				// Store it
+				FPRINTF_ERR("CALLING store_dirent(%p, %p, %p, %p)\n", curr_arr, capacity, temp_dirent, &result);  // DEBUGGING
 				curr_arr = store_dirent(curr_arr, capacity, temp_dirent, &result);
 				if (result)
 				{
@@ -639,7 +684,6 @@ char **store_dirent(char **content_arr, size_t *capacity, struct dirent *direntp
 	// LOCAL VARIABLES
 	char **curr_arr = content_arr;  // Current content array
 	int result = ENOERR;            // Errno value
-	size_t d_name_len = 0;          // Length of direntp->d_name
 	int num_loops = 0;              // Maximum number of loops before direntp is stored
 	size_t curr_capacity = 0;       // Current capacity
 	size_t num_entries = 0;         // Number of entries already in content_arr
@@ -652,8 +696,7 @@ char **store_dirent(char **content_arr, size_t *capacity, struct dirent *direntp
 	// STORE IT
 	else if (direntp)
 	{
-		d_name_len = strlen(direntp->d_name);
-		if (d_name_len > 0)
+		if (true == validate_direntp(direntp))
 		{
 			curr_capacity = *capacity;  // Get the current capacity
 			while (num_loops <= SKID_MAX_RETRIES)
@@ -664,6 +707,7 @@ char **store_dirent(char **content_arr, size_t *capacity, struct dirent *direntp
 				{
 					// 2. If so, is there space?
 					num_entries = count_content_arr_entries(curr_arr, capacity);
+					// FPRINTF_ERR("THERE ARE %zu ENTRIES IN THE ARRAY\n", num_entries);  // DEBUGGING
 					if (num_entries < (curr_capacity - 1))
 					{
 						// 3. Allocate, copy, and store it
@@ -676,7 +720,7 @@ char **store_dirent(char **content_arr, size_t *capacity, struct dirent *direntp
 						}
 						else
 						{
-							num_loops = 0;  // Reset the counter because this "loop" succeeded
+							break;  // We stored it.  Done.
 						}
 					}
 					// Then make a bigger one
@@ -699,6 +743,7 @@ char **store_dirent(char **content_arr, size_t *capacity, struct dirent *direntp
 				// Then make one
 				else
 				{
+					FPRINTF_ERR("ABOUT TO REALLOC AN ARRAY... FOR THE FIRST TIME\n");  // DEBUGGING
 					curr_arr = realloc_dir_contents(curr_arr, capacity, &result);
 					if (result)
 					{
@@ -724,6 +769,34 @@ char **store_dirent(char **content_arr, size_t *capacity, struct dirent *direntp
 		*errnum = result;
 	}
 	return curr_arr;
+}
+
+
+bool validate_direntp(struct dirent *direntp)
+{
+	// LOCAL VARIABLES
+	bool is_valid = true;  // Is direntp valid?
+
+	// INPUT VALIDATION
+	if (!direntp)
+	{
+		is_valid = false;  // NULL pointer
+	}
+	else if (0 >= strlen(direntp->d_name))
+	{
+		is_valid = false;  // Empty string
+	}
+	else if (!strcmp(".", direntp->d_name))
+	{
+		is_valid = false;  // We will not store this
+	}
+	else if (!strcmp("..", direntp->d_name))
+	{
+		is_valid = false;  // We will not store this either
+	}
+
+	// DONE
+	return is_valid;
 }
 
 
