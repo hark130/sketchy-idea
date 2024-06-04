@@ -19,6 +19,21 @@ void *alloc_skid_mem(size_t num_elem, size_t size_elem, int *errnum);
 
 /*
  *	Description:
+ *		Determine the length of source, allocate a zeroized array in heap memory, and copy it.
+ *		It is the caller's responsibility to free the return value using free_skid_string().
+ *
+ *	Args:
+ *		source: A string to copy.
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Heap-allocated memory containing a copy of source on succes.  NULL on error (check
+ *		errnum for details).
+ */
+char *copy_skid_string(const char *source, int *errnum);
+
+/*
+ *	Description:
  *		Free skid-allocated heap memory and set the original pointer to NULL.
  *
  *	Args:
@@ -28,5 +43,17 @@ void *alloc_skid_mem(size_t num_elem, size_t size_elem, int *errnum);
  *		0 on success, errno on error.
  */
 int free_skid_mem(void **old_mem);
+
+/*
+ *	Description:
+ *		Free skid-allocated string and set the original pointer to NULL.
+ *
+ *	Args:
+ *		old_string: Pointer to the heap-allocated string's storage location.
+ *
+ *	Returns:
+ *		0 on success, errno on error.
+ */
+int free_skid_string(char **old_string);
 
 #endif  /* __SKID_MEMORY__ */
