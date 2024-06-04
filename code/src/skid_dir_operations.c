@@ -273,7 +273,6 @@ int destroy_dir(const char *dirname)
 	// Get the full list
 	if (ENOERR == result)
 	{
-		FPRINTF_ERR("%s - About to read the contents of '%s'\n", DEBUG_INFO_STR, dirname);  // DEBUGGING
 		dir_contents = read_dir_contents(dirname, true, &result, &capacity);
 	}
 	// Size it
@@ -289,7 +288,6 @@ int destroy_dir(const char *dirname)
 			tmp_path = dir_contents[i];
 			if (tmp_path)
 			{
-				FPRINTF_ERR("%s - About to attempt to delete '%s'\n", DEBUG_INFO_STR, tmp_path);  // DEBUGGING
 				if (true == is_regular_file(tmp_path, &result))
 				{
 					result = delete_file(tmp_path);
@@ -416,7 +414,6 @@ size_t count_content_arr_entries(char **content_arr, size_t *capacity)
 	// LOCAL VARIABLES
 	size_t count = 0;              // Number of non-NULL entries in content_arr.
 	size_t curr_capacity = 0;      // Current capacity
-	char **tmp_arr = content_arr;  // Iterating variable
 
 	// INPUT VALIDATION
 	if (content_arr && capacity)
@@ -424,26 +421,14 @@ size_t count_content_arr_entries(char **content_arr, size_t *capacity)
 		curr_capacity = *capacity;
 		for (size_t i = 0; i < curr_capacity; i++)
 		{
-			// FPRINTF_ERR("FOUND %p IN ARRAY %p: %s\n", *tmp_arr, content_arr, *tmp_arr);  // DEBUGGING
-			if (NULL == *tmp_arr)
+			if (NULL == content_arr[i])
 			{
 				break;  // Found a NULL
 			}
 			else
 			{
 				count++;  // Found a pointer
-				tmp_arr++;  // Check the next index
 			}
-			// FPRINTF_ERR("FOUND %p IN ARRAY %p\n", content_arr[i], content_arr);  // DEBUGGING
-			// if (NULL == content_arr[i])
-			// {
-			// 	break;  // Found a NULL
-			// }
-			// else
-			// {
-			// 	// FPRINTF_ERR("FOUND %p IN THE ARRAY\n", content_arr[i]);  // DEBUGGING
-			// 	count++;  // Found a pointer
-			// }
 		}
 	}
 
@@ -501,7 +486,7 @@ char *join_dir_path(const char *dirname, const char *path, int *errnum)
 	// Add delimiter?
 	if (ENOERR == result)
 	{
-		if ('/' != work_buff[strlen(work_buff-1)] && '/' != path[0])
+		if ('/' != work_buff[strlen(work_buff)-1] && '/' != path[0])
 		{
 			work_buff[strlen(work_buff)] = '/';
 		}
@@ -571,21 +556,13 @@ char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum)
 		{
 			new_size = curr_capacity * 2;
 		}
-		FPRINTF_ERR("NEW SIZE IS %zu\n", new_size);  // DEBUGGING
 	}
 	// Allocate a larger array
 	if (ENOERR == result)
 	{
 		new_array = alloc_skid_mem(new_size, sizeof(char*), &result);
-		FPRINTF_ERR("NEW ARRAY IS %p\n", new_array);  // DEBUGGING
-		// DEBUGGING... NEW ARRAY ISN'T EMPTY!
-		for (size_t i = 0; i < new_size; i++)
-		{
-			FPRINTF_ERR("NEW ARRAY CONTAINS %p: %s\n", new_array[i], new_array[i]);  // DEBUGGING
-		}
 	}
 	// Copy the pointers in
-	FPRINTF_ERR("OLD ARRAY IS %p\n", old_array);  // DEBUGGING
 	if (ENOERR == result && old_array)
 	{
 		for (size_t i = 0; i < curr_capacity; i++)
@@ -625,7 +602,6 @@ char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum)
 	{
 		*errnum = result;
 	}
-	FPRINTF_ERR("ABOUT TO RETURN %p WITH CAPACITY OF %zu\n", new_array, *capacity);  // DEBUGGING
 	return new_array;
 }
 
@@ -659,14 +635,10 @@ char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *di
 	{
 		while (1)
 		{
-			FPRINTF_ERR("IN THE WHILE LOOP\n");  // DEBUGGING
 			// To distinguish end of stream from an error, set errno to zero before calling
 			// readdir() and then check the value of errno if NULL is returned.
 			errno = ENOERR;  // Clear errno... see: readdir(3)
-			FPRINTF_ERR("BEFORE: TEMP DIRENT IS %p\n", temp_dirent);  // DEBUGGING
 			temp_dirent = readdir(dirp);
-			FPRINTF_ERR("AFTER:  TEMP DIRENT IS %p\n", temp_dirent);  // DEBUGGING
-			// FPRINTF_ERR("READDIR(%p) RETURNED %p\n", dirp, temp_dirent);  // DEBUGGING
 			if (NULL == temp_dirent)
 			{
 				result = errno;
@@ -683,7 +655,6 @@ char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *di
 			else
 			{
 				// Store it
-				FPRINTF_ERR("CALLING store_dirent(%p, %p, %p, %p)\n", curr_arr, capacity, temp_dirent, &result);  // DEBUGGING
 				curr_arr = store_dirent(curr_arr, capacity, dirname, temp_dirent, &result);
 				if (result)
 				{
@@ -761,7 +732,6 @@ char **store_dirent(char **content_arr, size_t *capacity, const char *dirname,
 				{
 					// 2. If so, is there space?
 					num_entries = count_content_arr_entries(curr_arr, capacity);
-					// FPRINTF_ERR("THERE ARE %zu ENTRIES IN THE ARRAY\n", num_entries);  // DEBUGGING
 					if (num_entries < (curr_capacity - 1))
 					{
 						// 3. Allocate, copy, and store it
@@ -806,7 +776,6 @@ char **store_dirent(char **content_arr, size_t *capacity, const char *dirname,
 				// Then make one
 				else
 				{
-					FPRINTF_ERR("ABOUT TO REALLOC AN ARRAY... FOR THE FIRST TIME\n");  // DEBUGGING
 					curr_arr = realloc_dir_contents(curr_arr, capacity, &result);
 					if (result)
 					{
