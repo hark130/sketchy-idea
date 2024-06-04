@@ -5,10 +5,19 @@
 #define SKID_DEBUG						// Enable DEBUG logging
 
 #include "skid_debug.h"				  	// PRINT_ERRNO()
-#include "skid_dir_operations.h"		// delete_dir()
+#include "skid_dir_operations.h"		// _DEFAULT_SOURCE, delete_dir()
 #include "skid_file_metadata_read.h"	// is_directory()
+#include "skid_memory.h"				// copy_skid_string(), free_skid_mem(), free_skid_string()
+#include <dirent.h>						// closedir(), opendir(), readdir(), struct dirent
 #include <errno.h>						// errno
+#include <stdint.h>						// SIZE_MAX
 #include <unistd.h>						// link(), rmdir(), symlink()
+#ifndef SKID_ARRAY_SIZE
+#define SKID_ARRAY_SIZE 1024			// Starting num of indices in read_dir_contents()'s array
+#endif  /* SKID_ARRAY_SIZE */
+#ifndef SKID_MAX_RETRIES
+#define SKID_MAX_RETRIES 10				// Maximum number of maximum failure loops for store_dent()
+#endif  /* SKID_MAX_RETRIES */
 #ifndef ENOERR
 #define ENOERR ((int)0)
 #endif  /* ENOERR */
@@ -19,10 +28,129 @@
 /**************************************************************************************************/
 
 /*
+ *	Description:
+ *		Count the number of sequential, non-NULL entries in content_arr.  Stops counting at the
+ *		first NULL or capacity has been reached.  Bad input will result in 0.
+ *
+ *	Args:
+ *		content_arr: [Optional] Starting array of strings (which represent pathnames).  If NULL,
+ *			this function will return 0.
+ *		capacity: [In] Current capacity of content_arr.
+ *
+ *	Returns:
+ *		The number of non-NULL entries in the content_arr.  0 on bad input: NULL pointer, invalid
+ *		capacity value.
+ */
+size_t count_content_arr_entries(char **content_arr, size_t *capacity);
+
+/*
+ *	Description:
+ *		Replicates skid_file_metadata_read's is_directory() functionality for dirent structs.
+ *
+ *	Args:
+ *		direntp: A pointer to a dirent struct.
+ *
+ *	Returns:
+ *		True if direntp represents a directory, false otherwise.  Also returns false on any error.
+ */
+bool is_dirent_a_dir(struct dirent *direntp);
+
+/*
+ *	Description:
+ *		Allocate a larger array, copy the string pointers in, update the capacity, and free the
+ *		old array.
+ *
+ *	Args:
+ *		content_arr: [Optional] Starting array of strings (which represent pathnames).  If NULL,
+ *			this function will create the first array.
+ *		capacity: [In/Out] Current capacity of content_arr.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		A larger string array on success, content_arr on failure.  Ensure errnum is checked for
+ *		errno values.
+ */
+char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum);
+
+/*
+ *	Description:
+ *		Underpins read_dir_contents().  The caller is responsible for free()ing the return value.
+ *
+ *	Args:
+ *		content_arr: [Optional] Starting array of strings (which represent pathnames).  There is no
+ *			guarantee the return value will match content_arr.  If NULL, this function will
+ *			allocate an array.  If content_arr is full, this function will reallocate an array
+ *			and update capacity with the new size.
+ *		capacity: [In/Out] A pointer to the current capacity of content_arr.  This value will be
+ *			updated if the content array has to be reallocated.
+ *		dirname: Absolute or relative directory to read the contents of (must exist).
+ *		recurse: If true, also include all sub-dirs and their files in the array.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		A NULL-terminated array of string pointers.  Each string pointer represents one path
+ *		found in dirname.  The array contains a number of indices equal to capacity.  If dirname
+ *		is empty, this function will return NULL.  On failure, NULL an errnum will be set with
+ *		an errno value (or -1 for an unspecified error).
+ */
+char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *dirname,
+	                        bool recurse, int *errnum);
+
+/*
+ *	Description:
+ *		Allocate, copy, and store dirp->d_name in content_arr.
+ *
+ *	Args:
+ *		content_arr: [Optional] Starting array of strings (which represent pathnames).  There is no
+ *			guarantee the return value will match content_arr.  If NULL, this function will
+ *			allocate an array.  If content_arr is full, this function will reallocate an array,
+ *			copy the legacy pointers, and update capacity with the new size.
+ *		capacity: [In/Out] A pointer to the current capacity of content_arr.  This value will be
+ *			updated if the content array has to be reallocated.
+ *		direntp: [Optional] A pointer to a dirent struct to store in content_arr.  This function
+ *			will ignore NULL direntp pointers.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		A NULL-terminated array of string pointers.  Each string pointer represents one path.
+ *		The last entry in the array will be a copy of dirp->d_name (if dirp is a valid pointer).
+ *		The array contains a number of indices equal to capacity.  On failure, NULL an errnum
+ *		will be set with an errno value (or -1 for an unspecified error).
+ */
+char **store_dirent(char **content_arr, size_t *capacity, struct dirent *direntp, int *errnum);
+
+/*
+ *	Description:
+ *		Validate the arguments on behalf of recurse_dir_contents().
+ *
+ *	Args:
+ *		See recurse_dir_contents().
+ *
+ *	Returns:
+ *      An errno value indicating the results of validation.  0 on successful validation.
+ */
+int validate_rdc_args(char **content_arr, size_t *capacity, const char *dirname,
+	                  bool recurse, int *errnum);
+
+/*
+ *  Description:
+ *      Validates the errnum arguments on behalf of this library.
+ *
+ *  Args:
+ *      err: A non-NULL pointer to an integer.
+ *
+ *  Returns:
+ *      An errno value indicating the results of validation.  0 on successful validation.
+ */
+int validate_sdo_err(int *err);
+
+/*
  *  Description:
  *      Validates the pathname arguments on behalf of this library.
+ *
  *  Args:
  *      pathname: A non-NULL pointer to a non-empty string.
+ *
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
@@ -107,6 +235,40 @@ int destroy_dir(const char *dirname)
 }
 
 
+int free_skid_dir_contents(char ***dir_contents)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;      // Errno value
+	char **old_array = NULL;  // Pointer to the array
+
+	// INPUT VALIDATION
+	if (NULL == dir_contents)
+	{
+		result = EINVAL;  // NULL pointer
+	}
+
+	// FREE IT
+	// Free the string pointers
+	if (!result)
+	{
+		old_array = *dir_contents;  // Array pointer
+		while (NULL != old_array && NULL != *old_array && ENOERR == result)
+		{
+			result = free_skid_string(old_array);
+			old_array++;
+		}
+	}
+	// Free the array
+	if (!result)
+	{
+		free_skid_mem((void **)dir_contents);
+	}
+
+	// DONE
+	return result;
+}
+
+
 char **read_dir_contents(const char *dirname, bool recurse, int *errnum)
 {
 	// LOCAL VARIABLES
@@ -133,24 +295,421 @@ char **read_dir_contents(const char *dirname, bool recurse, int *errnum)
 /**************************************************************************************************/
 
 
+size_t count_content_arr_entries(char **content_arr, size_t *capacity)
+{
+	// LOCAL VARIABLES
+	size_t count = 0;              // Number of non-NULL entries in content_arr.
+	size_t curr_capacity = 0;      // Current capacity
+
+	// INPUT VALIDATION
+	if (content_arr && capacity)
+	{
+		curr_capacity = *capacity;
+		for (size_t i = 0; i < curr_capacity; i++)
+		{
+			if (NULL == content_arr[i])
+			{
+				break;  // Found a NULL
+			}
+			else
+			{
+				count++;  // Found a pointer
+			}
+		}
+	}
+
+	// DONE
+	return count;
+}
+
+
+bool is_dirent_a_dir(struct dirent *direntp)
+{
+	// LOCAL VARIABLES
+	bool is_dir = false;  // Does direntp represent a directory?
+
+	// INPUT VALIDATION
+	if (direntp)
+	{
+		if (DT_DIR == direntp->d_type)
+		{
+			is_dir = true;
+		}
+	}
+
+	// DONE
+	return is_dir;
+}
+
+
+char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = validate_sdo_err(errnum);  // Errno value
+	char **new_array = NULL;                // Newly allocated array
+	char **old_array = content_arr;         // Old array
+	size_t new_size = 0;                    // Size of the new array
+	size_t curr_capacity = 0;               // Current capacity
+
+	// INPUT VALIDATION
+	if (ENOERR == result)
+	{
+		if (!capacity)
+		{
+			result = EINVAL;  // NULL pointer
+		}
+		else
+		{
+			curr_capacity = *capacity;
+		}
+	}
+
+	// REALLOC IT
+	// Size it
+	if (ENOERR == result)
+	{
+		if (0 == curr_capacity)
+		{
+			new_size = SKID_ARRAY_SIZE;  // Starting size
+		}
+		// Verify it's not already maxxed out
+		else if (SIZE_MAX == curr_capacity)
+		{
+			result = ENOMEM;  // Already at the max
+		}
+		// Check for overflow
+		else if (curr_capacity > (SIZE_MAX - curr_capacity))
+		{
+			new_size = SIZE_MAX;  // This is as big as it gets
+		}
+		// Double it
+		else
+		{
+			new_size = curr_capacity * 2;
+		}
+	}
+	// Allocate a larger array
+	if (ENOERR == result)
+	{
+		new_array = alloc_skid_mem(new_size, sizeof(char*), &result);
+	}
+	// Copy the pointers in
+	if (ENOERR == result && old_array)
+	{
+		for (size_t i = 0; i < curr_capacity; i++)
+		{
+			if (old_array[i])
+			{
+				new_array[i] = old_array[i];
+			}
+			else
+			{
+				break;  // Stop copying at the first NULL
+			}
+		}
+	}
+
+	// WRAP UP
+	// One of the arrays has to go
+	if (ENOERR == result)
+	{
+		free_skid_mem((void **)&old_array);  // Free the original array
+		*capacity = new_size;  // Update the capacity
+	}
+	else
+	{
+		// Free the new array
+		free_skid_mem((void **)&new_array);  // Best effort
+		// Restore the old capacity
+		if (capacity)
+		{
+			*capacity = curr_capacity;
+		}
+		new_array = old_array;  // Return the old array
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return new_array;
+}
+
+
+char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *dirname,
+	                        bool recurse, int *errnum)
+{
+	// LOCAL VARIABLES
+	char **curr_arr = content_arr;      // Current content array
+	int result = ENOERR;                // Errno value
+	DIR *dirp = NULL;                   // Directory stream pointer
+	struct dirent *temp_dirent = NULL;  // Temporary dirent struct pointer
+
+	// INPUT VALIDATION
+	result = validate_rdc_args(content_arr, capacity, dirname, recurse, errnum);
+
+	// RECURSION FTW!
+	// Open the directory
+	if (ENOERR == result)
+	{
+		dirp = opendir(dirname);
+		if (NULL == dirp)
+		{
+			result = errno;
+			PRINT_ERROR(The call to opendir() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+	// Read the directory
+	if (ENOERR == result)
+	{
+		while (1)
+		{
+			// To distinguish end of stream from an error, set errno to zero before calling
+			// readdir() and then check the value of errno if NULL is returned.
+			errno = ENOERR;  // Clear errno... see: readdir(3)
+			temp_dirent = readdir(dirp);
+			if (NULL == temp_dirent)
+			{
+				result = errno;
+				if (result)
+				{
+					PRINT_ERROR(The call to readdir() failed);
+					PRINT_ERRNO(result);
+				}
+				else
+				{
+					break;  // The end of the directory stream has been reached
+				}
+			}
+			else
+			{
+				// Store it
+				curr_arr = store_dirent(curr_arr, capacity, temp_dirent, &result);
+				if (result)
+				{
+					PRINT_ERROR(The call to store_dirent() failed);
+					PRINT_ERRNO(result);
+					break;
+				}
+				// Should we recurse on this valid directory?
+				if (true == recurse && true == is_dirent_a_dir(temp_dirent) \
+					&& ENOERR == validate_sdo_pathname(temp_dirent->d_name))
+				{
+					// Recurse!
+					curr_arr = recurse_dir_contents(curr_arr, capacity, temp_dirent->d_name,
+						                            recurse, &result);
+				}
+			}
+		}
+	}
+
+	// CLEANUP
+	// Close the directory stream pointer
+	if (dirp)
+	{
+		if (closedir(dirp))
+		{
+			if (!result)
+			{
+				result = errno;
+				PRINT_ERROR(The call to closedir() failed);
+				PRINT_ERRNO(result);
+			}
+		}
+	}
+	// Free any existing array on an error
+	if (result)
+	{
+		free_skid_dir_contents(&curr_arr);  // Best effort
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return curr_arr;
+}
+
+
+/*
+ *	Description:
+ *		Allocate, copy, and store dirp->d_name in content_arr.
+ *
+ *	Args:
+ *		content_arr: [Optional] Starting array of strings (which represent pathnames).  There is no
+ *			guarantee the return value will match content_arr.  If NULL, this function will
+ *			allocate an array.  If content_arr is full, this function will reallocate an array,
+ *			copy the legacy pointers, and update capacity with the new size.
+ *		capacity: [In/Out] A pointer to the current capacity of content_arr.  This value will be
+ *			updated if the content array has to be reallocated.
+ *		direntp: [Optional] A pointer to a dirent struct to store in content_arr.  This function
+ *			will ignore NULL direntp pointers.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		A NULL-terminated array of string pointers.  Each string pointer represents one path.
+ *		The last entry in the array will be a copy of dirp->d_name (if dirp is a valid pointer).
+ *		The array contains a number of indices equal to capacity.  On failure, NULL an errnum
+ *		will be set with an errno value (or -1 for an unspecified error).
+ */
+char **store_dirent(char **content_arr, size_t *capacity, struct dirent *direntp, int *errnum)
+{
+	// LOCAL VARIABLES
+	char **curr_arr = content_arr;  // Current content array
+	int result = ENOERR;            // Errno value
+	size_t d_name_len = 0;          // Length of direntp->d_name
+	int num_loops = 0;              // Maximum number of loops before direntp is stored
+	size_t curr_capacity = 0;       // Current capacity
+	size_t num_entries = 0;         // Number of entries already in content_arr
+
+	// INPUT VALIDATION
+	if (!capacity || !errnum)
+	{
+		result = EINVAL;  // Bad input
+	}
+	// STORE IT
+	else if (direntp)
+	{
+		d_name_len = strlen(direntp->d_name);
+		if (d_name_len > 0)
+		{
+			curr_capacity = *capacity;  // Get the current capacity
+			while (num_loops <= SKID_MAX_RETRIES)
+			{
+				// Gotta store this dirent
+				// 1. Is there are an array?
+				if (curr_arr)
+				{
+					// 2. If so, is there space?
+					num_entries = count_content_arr_entries(curr_arr, capacity);
+					if (num_entries < (curr_capacity - 1))
+					{
+						// 3. Allocate, copy, and store it
+						curr_arr[num_entries] = copy_skid_string(direntp->d_name, &result);
+						if (result)
+						{
+							PRINT_ERROR(The call to copy_skid_string() failed);
+							PRINT_ERRNO(result);
+							break;  // The copy failed
+						}
+						else
+						{
+							num_loops = 0;  // Reset the counter because this "loop" succeeded
+						}
+					}
+					// Then make a bigger one
+					else
+					{
+						curr_arr = realloc_dir_contents(curr_arr, capacity, &result);
+						if (result)
+						{
+							PRINT_ERROR(The call to realloc_dir_contents() failed);
+							PRINT_ERRNO(result);
+							break;  // The reallocation failed
+						}
+						else
+						{
+							FPRINTF_ERR("%s - %s reallocated the dir contents array!\n",
+								        DEBUG_INFO_STR, __FILE__);
+						}
+					}
+				}
+				// Then make one
+				else
+				{
+					curr_arr = realloc_dir_contents(curr_arr, capacity, &result);
+					if (result)
+					{
+						PRINT_ERROR(The initial call to realloc_dir_contents() failed?);
+						PRINT_ERRNO(result);
+						break;  // The reallocation failed
+					}
+				}
+
+				num_loops++;  // One loop completed without success
+			}
+			// Verify we did something
+			if (!result && num_loops > SKID_MAX_RETRIES)
+			{
+				result = -1;  // It appears we exceeded the max loops without succeeding or failing
+			}
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return curr_arr;
+}
+
+
+int validate_rdc_args(char **content_arr, size_t *capacity, const char *dirname,
+	                  bool recurse, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = validate_sdo_pathname(dirname);  // The results of validation
+
+	// INPUT VALIDATION
+	// Skipping content_arr
+	// capacity
+	if (!result)
+	{
+		if (!capacity)
+		{
+			result = EINVAL;  // NULL pointer
+		}
+	}
+	// dirname already validated
+	// errnum
+	if (!result)
+	{
+		result = validate_sdo_err(errnum);
+	}
+
+	// DONE
+	return result;
+}
+
+
+int validate_sdo_err(int *err)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // The results of validation
+
+	// INPUT VALIDATION
+	if (!err)
+	{
+		result = EINVAL;  // NULL pointer
+	}
+
+	// DONE
+	return result;
+}
+
+
 int validate_sdo_pathname(const char *pathname)
 {
 	// LOCAL VARIABLES
-	int retval = ENOERR;  // The results of validation
+	int result = ENOERR;  // The results of validation
 
 	// VALIDATE IT
 	// pathname
 	if (!pathname)
 	{
-		retval = EINVAL;  // Invalid argument
+		result = EINVAL;  // Invalid argument
 		PRINT_ERROR(Invalid Argument - Received a null pathname pointer);
 	}
 	else if (!(*pathname))
 	{
-		retval = EINVAL;  // Invalid argument
+		result = EINVAL;  // Invalid argument
 		PRINT_ERROR(Invalid Argument - Received an empty pathname);
 	}
 
 	// DONE
-	return retval;
+	return result;
 }

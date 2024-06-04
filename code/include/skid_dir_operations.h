@@ -1,6 +1,10 @@
 #ifndef __SKID_DIR_OPERATIONS__
 #define __SKID_DIR_OPERATIONS__
 
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE  // Make glibc expose macros to test a struct dirent.d_type's value
+#endif  /* _DEFAULT_SOURCE */
+
 #include <stdbool.h>    // bool, false, true
 #include <sys/stat.h>	// mode_t
 
@@ -59,19 +63,36 @@ int destroy_dir(const char *dirname);
 
 /*
  *	Description:
+ *		Easily free the return value from the read_dir_contents() function.
+ *
+ *	Args:
+ *		dir_contents: The address of the variable storing a read_dir_contents()'s return value.
+ *
+ *	Returns:
+ *		0 on success, errno on error.
+ */
+int free_skid_dir_contents(char ***dir_contents);
+
+/*
+ *	Description:
  *		Read the contents of dirname into a heap-allocated, NULL-terminated, array of string
- *		buffers.
+ *		buffers.  It is the caller's responsibility to free the memory (each string and the array)
+ *		returned by this function.  Use free_skid_mem() to free individual string pointers
+ *		(AKA pick-and-choose what to keep) or use free_skid_dir_contents() to free the entire
+ *		collection.
  *
  *	Notes:
  *		TO DO: DON'T DO NOW...
  *
  *	Args:
- *		dirname: Absolute or relative directory to create.
+ *		dirname: Absolute or relative directory to read the contents of (must exist).
  *		recurse: If true, also include all sub-dirs and their files in the array.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *
  *	Returns:
- *		0, on success.  On failure, an errno value.
+ *		An array of string pointers, on success.  If dirname is empty, this function will return
+ *		NULL.  On failure, NULL an errnum will be set with an errno value (or -1 for an
+ *		unspecified error).
  */
 char **read_dir_contents(const char *dirname, bool recurse, int *errnum);
 
