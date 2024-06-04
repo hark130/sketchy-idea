@@ -59,6 +59,22 @@ bool is_dirent_a_dir(struct dirent *direntp);
 
 /*
  *	Description:
+ *		Allocate an array and copy in dirname/path.  This function will add a delimiter if
+ *		dirname does not end with one and path does not begin with one.  It is the caller's
+ *		responsiblity to free the return value.  Use free_skid_string() to free the return value.
+ *
+ *	Args:
+ *		dirname: A directory, relative or absolute, to join path to.
+ *		path: A path, relative or absolute, to join to dirname.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		A heap-allocated copy of dirname/path on success.  NULL on failure (see errnum for details).
+ */
+char *join_dir_path(const char *dirname, const char *path, int *errnum);
+
+/*
+ *	Description:
  *		Allocate a larger array, copy the string pointers in, update the capacity, and free the
  *		old array.
  *
@@ -109,6 +125,8 @@ char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *di
  *			copy the legacy pointers, and update capacity with the new size.
  *		capacity: [In/Out] A pointer to the current capacity of content_arr.  This value will be
  *			updated if the content array has to be reallocated.
+ *		dirname: [Optional] Preceding directory to prepend to the dirent->d_name.  If ommitted,
+ *			just the d_name will be stored.
  *		direntp: [Optional] A pointer to a dirent struct to store in content_arr.  This function
  *			will ignore NULL direntp pointers.
  *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
@@ -119,7 +137,8 @@ char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *di
  *		The array contains a number of indices equal to capacity.  On failure, NULL an errnum
  *		will be set with an errno value (or -1 for an unspecified error).
  */
-char **store_dirent(char **content_arr, size_t *capacity, struct dirent *direntp, int *errnum);
+char **store_dirent(char **content_arr, size_t *capacity, const char *dirname,
+	                struct dirent *direntp, int *errnum);
 
 /*
  *	Description:
@@ -452,6 +471,61 @@ bool is_dirent_a_dir(struct dirent *direntp)
 }
 
 
+char *join_dir_path(const char *dirname, const char *path, int *errnum)
+{
+	// LOCAL VARIABLES
+	char work_buff[PATH_MAX + 3] = { 0 };  // Working array
+	char *new_buff = NULL;                 // Heap-allocated copy of work_buff
+	int result = ENOERR;                   // Errno values
+
+	// INPUT VALIDATION
+	// dirname
+	result = validate_sdo_pathname(dirname);
+	// path
+	if (ENOERR == result)
+	{
+		result = validate_sdo_pathname(path);
+	}
+	// errnum
+	if (ENOERR == result)
+	{
+		result = validate_sdo_err(errnum);
+	}
+
+	// JOIN IT
+	// Copy dirname in
+	if (ENOERR == result)
+	{
+		strncpy(work_buff, dirname, strlen(dirname) + 1);
+	}
+	// Add delimiter?
+	if (ENOERR == result)
+	{
+		if ('/' != work_buff[strlen(work_buff-1)] && '/' != path[0])
+		{
+			work_buff[strlen(work_buff)] = '/';
+		}
+	}
+	// Concatenate path
+	if (ENOERR == result)
+	{
+		strncat(work_buff, path, (sizeof(work_buff)/sizeof(*work_buff)) - strlen(work_buff));
+	}
+	// Allocate and copy
+	if (ENOERR == result)
+	{
+		new_buff = copy_skid_string(work_buff, &result);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return new_buff;
+}
+
+
 char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum)
 {
 	// LOCAL VARIABLES
@@ -658,28 +732,8 @@ char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *di
 }
 
 
-/*
- *	Description:
- *		Allocate, copy, and store dirp->d_name in content_arr.
- *
- *	Args:
- *		content_arr: [Optional] Starting array of strings (which represent pathnames).  There is no
- *			guarantee the return value will match content_arr.  If NULL, this function will
- *			allocate an array.  If content_arr is full, this function will reallocate an array,
- *			copy the legacy pointers, and update capacity with the new size.
- *		capacity: [In/Out] A pointer to the current capacity of content_arr.  This value will be
- *			updated if the content array has to be reallocated.
- *		direntp: [Optional] A pointer to a dirent struct to store in content_arr.  This function
- *			will ignore NULL direntp pointers.
- *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
- *
- *	Returns:
- *		A NULL-terminated array of string pointers.  Each string pointer represents one path.
- *		The last entry in the array will be a copy of dirp->d_name (if dirp is a valid pointer).
- *		The array contains a number of indices equal to capacity.  On failure, NULL an errnum
- *		will be set with an errno value (or -1 for an unspecified error).
- */
-char **store_dirent(char **content_arr, size_t *capacity, struct dirent *direntp, int *errnum)
+char **store_dirent(char **content_arr, size_t *capacity, const char *dirname,
+	                struct dirent *direntp, int *errnum)
 {
 	// LOCAL VARIABLES
 	char **curr_arr = content_arr;  // Current content array
@@ -711,10 +765,19 @@ char **store_dirent(char **content_arr, size_t *capacity, struct dirent *direntp
 					if (num_entries < (curr_capacity - 1))
 					{
 						// 3. Allocate, copy, and store it
-						curr_arr[num_entries] = copy_skid_string(direntp->d_name, &result);
+						if (ENOERR == validate_sdo_pathname(dirname))
+						{
+							curr_arr[num_entries] = join_dir_path(dirname, direntp->d_name,
+								                                  &result);
+						}
+						else
+						{
+							curr_arr[num_entries] = copy_skid_string(direntp->d_name, &result);
+						}
+						// 4. Verify
 						if (result)
 						{
-							PRINT_ERROR(The call to copy_skid_string() failed);
+							PRINT_ERROR(The direntp->d_name copy operation failed);
 							PRINT_ERRNO(result);
 							break;  // The copy failed
 						}
