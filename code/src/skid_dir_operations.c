@@ -274,30 +274,46 @@ int destroy_dir(const char *dirname)
 	if (ENOERR == result)
 	{
 		dir_contents = read_dir_contents(dirname, true, &result, &capacity);
+		if (result)
+		{
+			PRINT_ERROR(The call to read_dir_contents() failed);
+			PRINT_ERRNO(result);
+		}
 	}
 	// Size it
 	if (ENOERR == result)
 	{
 		num_paths = count_content_arr_entries(dir_contents, &capacity);
+		FPRINTF_ERR("FOUND %zu ENTRIES IN %s\n", num_paths, dirname);
+		for (int i = 0; i < num_paths; i++)
+		{
+			FPRINTF_ERR("FOUND: '%s'\n", dir_contents[i]);  // DEBUGGING
+		}
 	}
 	// Destroy it (backwards)
 	if (ENOERR == result)
 	{
-		for (size_t i = num_paths - 1; i >= 0; i--)
+		while (num_paths > 0)
 		{
-			tmp_path = dir_contents[i];
+			PRINT_ERROR("MADE IT HERE");  // DEBUGGING
+			tmp_path = dir_contents[num_paths - 1];  // Start at the end
 			if (tmp_path)
 			{
 				if (true == is_regular_file(tmp_path, &result))
 				{
+					PRINT_ERROR("MADE IT HERE");  // DEBUGGING
 					result = delete_file(tmp_path);
+					PRINT_ERROR("MADE IT HERE");  // DEBUGGING
 				}
 				else if (true == is_directory(tmp_path, &result))
 				{
+					PRINT_ERROR("MADE IT HERE");  // DEBUGGING
 					result = delete_dir(tmp_path);
+					PRINT_ERROR("MADE IT HERE");  // DEBUGGING
 				}
 				else
 				{
+					PRINT_ERROR("MADE IT HERE");  // DEBUGGING
 					if (ENOERR == result)
 					{
 						PRINT_WARNG(Detected an unsupported path type);
@@ -310,6 +326,7 @@ int destroy_dir(const char *dirname)
 						FPRINTF_ERR("%s - Attempting to delete '%s'\n", DEBUG_ERROR_STR, tmp_path);
 						break;  // Let's stop since the rest will likely  error as well
 					}
+					PRINT_ERROR("MADE IT HERE");  // DEBUGGING
 				}
 			}
 			else
@@ -317,7 +334,14 @@ int destroy_dir(const char *dirname)
 				PRINT_WARNG(The array count appears to have been off);
 				break;  // Found a NULL so we'll stop iterating
 			}
+			num_paths--;
+			PRINT_ERROR("MADE IT HERE");  // DEBUGGING
 		}
+	}
+	// Finally, remove the original dir
+	if (ENOERR == result)
+	{
+		result = delete_dir(dirname);
 	}
 
 	// CLEANUP
