@@ -108,52 +108,21 @@ void check_return_value(char *dir_input, char **return_arr, size_t return_cap, c
 	//			verify everything exists
 	//		If NULL
 	//			let it go
-	// fprintf(stderr, "MADE IT INTO %s\n", __func__);  // DEBUGGING
 	if (true == create)
 	{
 		// Measure both arrays
 		return_len = determine_arr_len(return_arr);
 		artifact_len = determine_arr_len(artifact_arr) - 1;  // Less one for the top-level dir
-		// fprintf(stderr, "RETURNED ARRAY IS %zu LONG\n", return_len);  // DEBUGGING
-		// fprintf(stderr, "ARTIFACT ARRAY IS %zu LONG\n", artifact_len);  // DEBUGGING
 
 		// Verify length
 		if (true == recurse)
 		{
-			// if (return_len != artifact_len)
-			// {
-			// 	// fprintf(stderr, "EXPECTED %zu BUT MEASURED %zu\n", artifact_len, return_len);  // DEBUGGING
-			// 	// fprintf(stderr, "ARTIFACT STRINGS:\n");
-			// 	for (int i = 1; i < artifact_len + 1; i++)
-			// 	{
-			// 		fprintf(stderr, "\t'%s'\n", artifact_arr[i]);  // DEBUGGING
-			// 	}
-			// 	// fprintf(stderr, "RETURNED STRINGS:\n");
-			// 	for (int i = 0; i < return_len; i++)
-			// 	{
-			// 		fprintf(stderr, "\t'%s'\n", return_arr[i]);  // DEBUGGING
-			// 	}
-			// }
 			ck_assert_msg(return_len == artifact_len, "Recursive content array size mismatch: "
 				          "return array for '%s' is %zu long but the artifact array is %zu long\n",
 				          dir_input, return_len, artifact_len);
 		}
 		else
 		{
-			// if (return_len != (num_files + tree_width))
-			// {
-			// 	fprintf(stderr, "EXPECTED %u BUT MEASURED %zu\n", num_files + tree_width, return_len);  // DEBUGGING
-			// 	fprintf(stderr, "ARTIFACT STRINGS:\n");
-			// 	for (int i = 1; i < artifact_len + 1; i++)
-			// 	{
-			// 		fprintf(stderr, "\t'%s'\n", artifact_arr[i]);  // DEBUGGING
-			// 	}
-			// 	fprintf(stderr, "RETURNED STRINGS:\n");
-			// 	for (int i = 0; i < return_len; i++)
-			// 	{
-			// 		fprintf(stderr, "\t'%s'\n", return_arr[i]);  // DEBUGGING
-			// 	}
-			// }
 			ck_assert_msg(return_len == (num_files + tree_width),
 				          "Detected non-recursive mismatch in the length of the returned array. "
 				          "Expected %u but counted %zu in the returned array\n",
@@ -165,21 +134,17 @@ void check_return_value(char *dir_input, char **return_arr, size_t return_cap, c
 		// Verify content
 		for (size_t i = 0; i < return_len; i++)
 		{
-			// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 			// Verify a found path was in dir_input
 			ck_assert_msg(strstr(return_arr[i], dir_input) == return_arr[i],
 				          "Found an entry '%s' that is not in the original dir_input ('%s')\n",
 				          return_arr[i], dir_input);
-			// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 			// Verify a found path was a created path
 			ck_assert_msg(true == is_needle_in_haystack(return_arr[i], artifact_arr),
 				          "Unable to find '%s' in the framework's test case input\n",
 				          return_arr[i]);
-			// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 			// Verify the existence of a found path
 			ck_assert_msg(true == is_path_there(return_arr[i]),
 				          "An entry was found ('%s') that does not exist\n", return_arr[i]);
-			// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 		}
 	}
 	else
@@ -241,18 +206,13 @@ int destroy_shell_tree(char **old_path_tree)
 	{
 		for (int i = str_count - 1; i >= 0; i--)
 		{
-			// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 			tmp_path = old_path_tree[i];
-			// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 			// Exists?
-			// fprintf(stderr, "ABOUT TO LOOK FOR: %s\n", tmp_path);  // DEBUGGING
 			if (true == is_path_there(tmp_path))
 			{
-				// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 				// File?
 				if (true == is_regular_file(tmp_path, &result))
 				{
-					// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 					result = remove_a_file(tmp_path, false);
 					ck_assert_msg(0 == result, "remove_a_file(%s, false) failed with [%d] %s\n",
 						          tmp_path, result, strerror(result));
@@ -264,10 +224,8 @@ int destroy_shell_tree(char **old_path_tree)
 						          tmp_path, result, strerror(result));
 				}
 				// Dir?
-				// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 				if (true == is_directory(tmp_path, &result))
 				{
-					// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 					result = remove_shell_dir(tmp_path);
 					ck_assert_msg(0 == result, "remove_shell_dir(%s) failed with [%d] %s\n",
 						          tmp_path, result, strerror(result));
@@ -281,7 +239,6 @@ int destroy_shell_tree(char **old_path_tree)
 				// How did we get here?
 				ck_abort_msg("'%s' exists but is not a file or directory?!", tmp_path);
 			}
-			// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 		}
 	}
 
@@ -358,10 +315,8 @@ bool is_needle_in_haystack(char *needle, char **haystack)
 		while (*tmp_stack)
 		{
 			tmp_str = *tmp_stack;
-			// fprintf(stderr, "Looking for '%s' in '%s'\n", needle, tmp_str);  // DEBUGGING
 			if (!strcmp(tmp_str, needle))
 			{
-				// fprintf(stderr, "Found '%s' in '%s'\n", needle, tmp_str);  // DEBUGGING
 				found_it = true;  // Found it!
 				break;  // Stop looking
 			}
@@ -370,7 +325,6 @@ bool is_needle_in_haystack(char *needle, char **haystack)
 			{
 				// The devops code that creates the hiearchy appends all directories with trailing
 				// delimiters but the production code does not.
-				// fprintf(stderr, "Found special case '%s' in '%s'\n", needle, tmp_str);  // DEBUGGING
 				found_it = true;  // Found it...
 				break;  // Stop looking
 			}
@@ -440,7 +394,6 @@ void run_test_case(char *dir_input, bool recurse, int exp_result, bool create,
 	// RUN IT
 	// Call the function
 	content_arr = read_dir_contents(dir_input, recurse, &act_result, &capacity);
-	// fprintf(stderr, "MADE IT HERE\n");  // DEBUGGING
 	// Compare actual results to expected results
 	ck_assert_msg(exp_result == act_result, "read_dir_contents(%s) resulted in [%d] '%s' "
 				  "instead of [%d] '%s'\n", dir_input, act_result, strerror(act_result),
@@ -461,27 +414,21 @@ void run_test_case(char *dir_input, bool recurse, int exp_result, bool create,
 	// Delete test artifacts
 	if (true == create)
 	{
-		// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 		errnum = destroy_shell_tree(artifact_arr);
 		ck_assert_msg(0 == errnum, "The destroy_shell_tree(%p) call failed with [%d] '%s'\n",
 					  artifact_arr, errnum, strerror(errnum));
-		// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 	}
 	// Free path tree
 	if (artifact_arr)
 	{
-		// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 		free_path_tree(&artifact_arr);  // Best effort
-		// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 	}
 	// Free return value
 	if (content_arr)
 	{
-		// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 		errnum = free_skid_dir_contents(&content_arr);
 		ck_assert_msg(0 == errnum, "The library failed to free the return value with [%d] '%s'\n",
 			          errnum, strerror(errnum));
-		// fprintf(stderr, "MADE IT TO %d\n", __LINE__);  // DEBUGGING
 	}
 
 	// DONE
