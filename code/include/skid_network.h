@@ -12,9 +12,12 @@
  *		- accept(sockfd)/read(sockfd)/write(sockfd)/etc.
  */
 
+#define SKID_BAD_FD (signed int)-1  // Use this to standardize "invalid" file descriptors
+
 /*
  *	Description:
- *		"Assign a name to a socket" using a struct to specify the address.
+ *		"Assign a name to a socket" using a struct to specify the address.  This function will not
+ *		close sockfd.
  *
  *	Args:
  *		sockfd: The socket file descriptor to assign an address to.
@@ -29,7 +32,64 @@ int bind_struct(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 
 /*
  *	Description:
- *		Marks a socket as a passive socket so it may accept incoming connection requests.
+ *		Close a socket file descriptor.
+ *
+ *	Args:
+ *		sockfd: The socket file descriptor to close.
+ *		quiet: If true, ignores all errors and silences all logging/debugging.
+ *
+ *	Returns:
+ *		On success, zero is returned.  On error, errno is returned.
+ */
+int close_socket(int sockfd, bool quiet);
+
+/*
+ *	Description:
+ *		Use freeaddrinfo() to free the linked list created by get_addr_info() and set it to NULL.
+ *
+ *	Args:
+ *		res: [In/Out] A pointer to the head node of the addrinfo struct pointers provided
+ *			by get_addr_info().
+ *
+ *	Returns:
+ *		On success, zero is returned.  On error, errno is returned.
+ */
+int free_addr_info(struct addrinfo **res);
+
+/*
+ *	Description:
+ *		Populate addrinfo structures for use with bind(2) or connect(2).  Calls getaddrinfo()
+ *		under the hood.
+ *
+ *	Notes:
+ *		The getaddrinfo() function allocates and initializes a linked list of addrinfo structures,
+ *		one for each network address that matches node and service, subject to any restrictions
+ *		imposed by hints, and returns a pointer to the start of the list in res.  The items
+ *		in the linked list are linked by the ai_next field.
+ *
+ *	Args:
+ *		node: Either node or service, but not both, may be NULL.
+ *		service: Either node or service, but not both, may be NULL.
+ *		hints: [Optional] A pointer to a addrinfo structure that specifies criteria for selecting
+ *			the socket address structures returned in the list pointed to by res.
+ *			See getaddrinfo(3) for details on how to setup the structure.  If hints is NULL,
+ *			it is equivalent to is equivalent to setting ai_socktype and ai_protocol to 0;
+ *			ai_family to AF_UNSPEC; and ai_flags to (AI_V4MAPPED | AI_ADDRCONFIG).
+ *		res: [Out] A linked list of addrinfo structures allocated and initialized by
+ *			getaddrinfo().  It is the caller's responsibility to free this linked list by
+ *			calling free_addr_info() (or freeaddrinfo()).
+ *
+ *	Returns:
+ *		On success, zero is returned.  On error, -1 is returned for an unspecified getaddrinfo()
+ *		errcode, or errno is returned.
+ */
+int get_addr_info(const char *node, const char *service, const struct addrinfo *hints,
+	              struct addrinfo **res);
+
+/*
+ *	Description:
+ *		Marks a socket as a passive socket so it may accept incoming connection requests.  This
+ *		function will not close sockfd.
  *
  *	Args:
  *		sockfd: A file descriptor that refers to a socket of type SOCK_STREAM or SOCK_SEQPACKET.
@@ -46,7 +106,14 @@ int listen_socket(int sockfd, int backlog);
 
 /*
  *	Description:
- *		Open a socket.
+ *		TO DO: DON'T DO NOW... CONTINUE HERE(?) FOR THE MANUAL TEST IMPLEMENTATION?
+ */
+int open_named_socket();
+
+/*
+ *	Description:
+ *		Open a socket.  It is the caller's responsibility to close the socket file descriptor
+ *		returned by this function.
  *
  *	Args:
  *		domain: Specifies a communication domain; this selects the protocol family which will be
@@ -64,8 +131,8 @@ int listen_socket(int sockfd, int backlog);
  *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *
  *	Returns:
- *		On success, a file descriptor for the new socket is returned.  On error, -1 is returned,
- *		and errnum is set appropriately.
+ *		On success, a file descriptor for the new socket is returned.  On error, SKID_BAD_FD is
+ *		returned, and errnum is set appropriately.
  */
 int open_socket(int domain, int type, int protocol, int *errnum);
 
