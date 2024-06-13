@@ -27,6 +27,20 @@
 /**************************************************************************************************/
 
 /*
+ *	Description:
+ *		Retrieve the relevant address pointer based on the struct's sa_family value.
+ *
+ *	Args:
+ *		sa: Pointer to the struct to evaluate.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		Pointer to the relevant struct in*_addr member on success.  NULL on error (consult
+ *		errnum for details).  EPFNOSUPPORT is used to indicate an unsupported sa->sa_family.
+ */
+void *get_inet_addr(struct sockaddr *sa, int *errnum);
+
+/*
  *  Description:
  *      Validates the errnum arguments on behalf of this library.
  *
@@ -55,6 +69,44 @@ int validate_sn_sockfd(int sockfd);
 /**************************************************************************************************/
 
 
+int accept_client(int sockfd, struct sockaddr *addr, socklen_t *addrlen, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;          // Errno values
+	int client_fd = SKID_BAD_FD;  // Accepted client file descriptor
+
+	// INPUT VALIDATION
+	result = validate_sn_sockfd(sockfd);
+	if (ENOERR == result)
+	{
+		if (!(NULL == addr) != !(NULL == addrlen))
+		{
+			result = EINVAL;  // If addr is NULL, so should addrlen (and vice versa)
+		}
+	}
+
+	// ACCEPT IT
+	if (ENOERR == result)
+	{
+		client_fd = accept(sockfd, addr, addrlen);
+		if (client_fd < 0)
+		{
+			result = errno;
+			PRINT_ERROR(The call to accept() failed);
+			PRINT_ERRNO(result);
+			client_fd = SKID_BAD_FD;  // Ensuring compliance with function documentation
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return client_fd;
+}
+
+
 int bind_struct(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
 	// LOCAL VARIABLES
@@ -79,17 +131,72 @@ int bind_struct(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 }
 
 
-int close_socket(int sockfd, bool quiet)
+int close_socket(int *sockfd, bool quiet)
 {
 	// LOCAL VARIABLES
 	int result = ENOERR;  // Errno values
 
-	// CLOSE IT
-	if (close(sockfd) && false == quiet)
+	// INPUT VALIDATION
+	if (NULL == sockfd)
 	{
-		result = errno;
-		PRINT_ERROR(The call to close() failed);
-		PRINT_ERRNO(result);
+		result = EINVAL;  // NULL pointer
+	}
+	else
+	{
+		result = validate_sn_sockfd(*sockfd);
+	}
+
+	// CLOSE IT
+	if (ENOERR == result)
+	{
+		if (close(*sockfd))
+		{
+			// close() failed
+			result = errno;
+			if (false == quiet)
+			{
+				PRINT_ERROR(The call to close() failed);
+				PRINT_ERRNO(result);
+			}
+		}
+		else
+		{
+			*sockfd = SKID_BAD_FD;
+		}
+	}
+
+	// DONE
+	return result;
+}
+
+
+int convert_sas_ip(struct sockaddr_storage *addr, char *ip_buff, size_t ip_size)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;     // Errno values
+	void *inet_addr = NULL;  // Extracted pointer of the relevant struct in*_addr member
+
+	// INPUT VALIDATION
+	if (NULL == addr || NULL == ip_buff || ip_size <= 0)
+	{
+		result = EINVAL;  // Bad input
+	}
+
+	// CONVERT IT
+	// Get the in_addr member
+	if (ENOERR == result)
+	{
+		inet_addr = get_inet_addr((struct sockaddr *)addr, &result);
+	}
+	// Convert in_addr member
+	if (ENOERR == result)
+	{
+		if (ip_buff != inet_ntop(addr.ss_family, inet_addr, ip_buff, ip_size))
+		{
+			result = errno;
+			PRINT_ERROR(The call to inet_ntop() failed);
+			PRINT_ERRNO(result);
+		}
 	}
 
 	// DONE
@@ -240,6 +347,42 @@ int open_socket(int domain, int type, int protocol, int *errnum)
 /**************************************************************************************************/
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
+
+
+void *get_inet_addr(struct sockaddr *sa, int *errnum)
+{
+	// LOCAL VARIABLES
+	void *inet_addr = NULL;  // Pointer to the relevant struct in*_addr member
+	int result = ENOERR;     // Errno values
+
+	// INPUT VALIDATION
+	result = ( NULL == sa ) ? EINVAL : validate_sn_err(errnum);
+
+	// GET IT
+	if (ENOERR == result)
+	{
+		if (AF_INET == sa->sa_family)
+		{
+			inet_addr = (void *)&(((struct sockaddr_in*)sa)->sin_addr);
+		}
+		else if (AF_INET6 == sa->sa_family)
+		{
+			inet_addr = (void *)&(((struct sockaddr_in6*)sa)->sin6_addr);
+		}
+		else
+		{
+			inet_addr = NULL;
+			result = EPFNOSUPPORT;  // Unsupported sa_family
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return inet_addr;
+}
 
 
 int validate_sn_err(int *err)

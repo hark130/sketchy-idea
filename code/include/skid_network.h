@@ -16,6 +16,36 @@
 
 /*
  *	Description:
+ *		Accept an incoming connection request to a listening socket.
+ *
+ *	Notes:
+ *		Extracts the first connection request on the queue of pending connections for the
+ *		listening socket, sockfd, creates a new connected socket, and returns a new
+ *		file descriptor referring to that socket.  The newly created socket is not in the
+ *		listening state.  The original socket sockfd is unaffected by this call.
+ *
+ *	Args:
+ *		sockfd: A file descriptor that refers to a socket of type SOCK_STREAM or SOCK_SEQPACKET.
+ *		addr: [Optional/Out] This structure is filled in with the address of the peer socket,
+ *			as known to the communications layer.  The exact format of the address returned addr
+ *			is determined by the socket's address family (see socket(2) and the respective
+ *			protocol man pages).  When addr is NULL, nothing is filled in; in this case,
+ *			addrlen is not used, and should also be NULL.
+ *		addrlen: [Optional/In/Out] The size of addr on the way in and the way out.  the caller must
+ *			initialize it to contain the size (in bytes) of the structure pointed to by addr.
+ *			On return it will contain the actual size of the peer address.  If addr is NULL,
+ *			this value should also be NULL.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		On success, a file descriptor for the accepted socket (a non-negative integer).
+ *		On error, SKID_BAD_FD is returned, errnum is set appropriately, and addrlen is left
+ *		unchanged.
+ */
+int accept_client(int sockfd, struct sockaddr *addr, socklen_t *addrlen, int *errnum);
+
+/*
+ *	Description:
  *		"Assign a name to a socket" using a struct to specify the address.  This function will not
  *		close sockfd.
  *
@@ -32,16 +62,31 @@ int bind_struct(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 
 /*
  *	Description:
- *		Close a socket file descriptor.
+ *		Close a socket file descriptor and sets it to SKID_BAD_FD (if it was successfully closed).
  *
  *	Args:
- *		sockfd: The socket file descriptor to close.
- *		quiet: If true, ignores all errors and silences all logging/debugging.
+ *		sockfd: [In/Out] A pointer to a socket file descriptor to close.
+ *		quiet: If true, silences all logging/debugging.
  *
  *	Returns:
  *		On success, zero is returned.  On error, errno is returned.
  */
-int close_socket(int sockfd, bool quiet);
+int close_socket(int *sockfd, bool quiet);
+
+/*
+ *	Description:
+ *		Convert socket address storage struct addr to a human-readable IP address.
+ *
+ *	Args:
+ *		addr: Struct pointer to conver to an IP address.
+ *		ip_buff: [Out] Buffer to store the converted IP address.  Must be at least INET6_ADDRSTRLEN
+ *			bytes long.
+ *		ip_size: The size, in bytes, of ip_buff.
+ *
+ *	Returns:
+ *		On success, zero is returned.  On error, errno is returned.
+ */
+int convert_sas_ip(struct sockaddr_storage *addr, char *ip_buff, size_t ip_size);
 
 /*
  *	Description:
@@ -59,7 +104,8 @@ int free_addr_info(struct addrinfo **res);
 /*
  *	Description:
  *		Populate addrinfo structures for use with bind(2) or connect(2).  Calls getaddrinfo()
- *		under the hood.
+ *		under the hood.  The caller is responsible for freeing the contents of res by calling
+ *		free_addr_info() (or freeaddrinfo()).
  *
  *	Notes:
  *		The getaddrinfo() function allocates and initializes a linked list of addrinfo structures,
@@ -68,8 +114,11 @@ int free_addr_info(struct addrinfo **res);
  *		in the linked list are linked by the ai_next field.
  *
  *	Args:
- *		node: Either node or service, but not both, may be NULL.
- *		service: Either node or service, but not both, may be NULL.
+ *		node: An indication of the host (e.g., hostname, IP address).  Either node or service,
+ *			but not both, may be NULL.
+ *		service: Sets the port in each returned address structure.  Could be NULL, a port number,
+ *			or a serivce name (see: services(5)).  Either node or service, but not both,
+ *			may be NULL.
  *		hints: [Optional] A pointer to a addrinfo structure that specifies criteria for selecting
  *			the socket address structures returned in the list pointed to by res.
  *			See getaddrinfo(3) for details on how to setup the structure.  If hints is NULL,
@@ -108,7 +157,7 @@ int listen_socket(int sockfd, int backlog);
  *	Description:
  *		TO DO: DON'T DO NOW... CONTINUE HERE(?) FOR THE MANUAL TEST IMPLEMENTATION?
  */
-int open_named_socket();
+// int open_named_socket();
 
 /*
  *	Description:
