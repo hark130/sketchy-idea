@@ -79,6 +79,28 @@ int close_socket(int *sockfd, bool quiet);
 
 /*
  *	Description:
+ *		Connects the sockfd to the address specified by addr.
+ *
+ *	Notes:
+ *		The format of the address in addr is determined by the address space of the socket sockfd;
+ *		see socket(2) for further details.  If the socket sockfd is of type SOCK_DGRAM,
+ *		then addr is the address to which datagrams are sent by default, and the only address
+ *		from which datagrams are received.  If the socket is of type SOCK_STREAM or SOCK_SEQPACKET,
+ *		this call attempts to make a connection to the socket that is bound to the address
+ *		specified by addr.
+ *
+ *	Args:
+ *		sockfd: File descriptor of a server socket.
+ *		addr: Address of the socket.
+ *		addrlen: The size of addr.
+ *
+ *	Returns:
+ *		On success, zero is returned.  On error, errno is returned.
+ */
+int connect_socket(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+
+/*
+ *	Description:
  *		Convert socket address storage struct addr to a human-readable IP address.
  *
  *	Args:

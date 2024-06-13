@@ -173,6 +173,30 @@ int close_socket(int *sockfd, bool quiet)
 }
 
 
+int connect_socket(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // Errno values
+
+	// INPUT VALIDATION
+	result = validate_sn_sockfd(sockfd);
+
+	// CONNECT IT
+	if (ENOERR == result)
+	{
+		if (connect(sockfd, addr, addrlen))
+		{
+			result = errno;
+			PRINT_ERROR(The call to connect() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+
+	// DONE
+	return result;
+}
+
+
 int convert_sas_ip(struct sockaddr_storage *addr, char *ip_buff, size_t ip_size)
 {
 	// LOCAL VARIABLES
