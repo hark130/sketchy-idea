@@ -4,8 +4,11 @@
 
 #define SKID_DEBUG						// Enable DEBUG logging
 
-#include "skid_debug.h"				  	// PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_debug.h"					// PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_network.h"				// SKID_BAD_FD
+#include <arpa/inet.h>					// inet_ntop()
+#include <errno.h>						// EINVAL
+#include <unistd.h>						// close()
 
 #ifdef SKID_DEBUG
 #include <stdio.h>   // fprintf()
@@ -191,7 +194,7 @@ int convert_sas_ip(struct sockaddr_storage *addr, char *ip_buff, size_t ip_size)
 	// Convert in_addr member
 	if (ENOERR == result)
 	{
-		if (ip_buff != inet_ntop(addr.ss_family, inet_addr, ip_buff, ip_size))
+		if (ip_buff != inet_ntop(addr->ss_family, inet_addr, ip_buff, ip_size))
 		{
 			result = errno;
 			PRINT_ERROR(The call to inet_ntop() failed);
@@ -208,7 +211,6 @@ int free_addr_info(struct addrinfo **res)
 {
 	// LOCAL VARIABLES
 	int result = ENOERR;                // Errno values
-	struct addrinfo *head_node = NULL;  // Head node of the addrinfo struct pointer linked list
 
 	// INPUT VALIDATION
 	if (NULL == res || NULL == *res)
@@ -331,7 +333,7 @@ int open_socket(int domain, int type, int protocol, int *errnum)
 	// CLEANUP
 	if (ENOERR != result)
 	{
-		close(sockfd, true);  // Close the file descriptor but ignore errors
+		close_socket(&sockfd, true);  // Close the file descriptor but ignore errors
 		sockfd = SKID_BAD_FD;  // Ensure compliance with the function's documented behavior
 	}
 

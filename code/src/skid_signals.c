@@ -5,6 +5,10 @@
 #define SKID_DEBUG						// Enable DEBUG logging
 
 #include "skid_debug.h"				  	// PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_signals.h"				// SignalHandler
+#include <errno.h>						// EINVAL
+#include <sys/types.h>					// pid_t
+#include <sys/wait.h>					// waitpid()
 
 #ifndef ENOERR
 #define ENOERR ((int)0)
@@ -20,7 +24,7 @@
 /**************************************************************************************************/
 
 
-void handle_all_children(int signum);
+void handle_all_children(int signum)
 {
     // waitpid() might overwrite errno, so we save and restore it:
     int errnum = errno;  // Perserve the errno value
