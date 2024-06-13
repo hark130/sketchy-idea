@@ -23,6 +23,7 @@
 #include "skid_signals.h"	// handle_all_children(), set_signal_handler()
 
 
+#define SERVER_SLEEP 1  			// Number of seconds the server sleeps while awiting connection
 #define SERVER_DOMAIN AF_INET 		// Server socket domain
 #define SERVER_TYPE SOCK_STREAM		// Server socket type
 #define SERVER_PROTOCOL 0 			// Server socket protocol
@@ -46,9 +47,6 @@ int main(int argc, char *argv[])
 	struct sockaddr_storage their_addr;          // Client's address information
 	socklen_t sin_size = 0;                      // The size of their_addr
 	char inet_addr[INET6_ADDRSTRLEN+1] = { 0 };  // Converted socket address to human readable IP
-	pid_t process = 0;                           // Return value from fork()
-	char message[] = { "Hello, world!" };        // Message for the client to send to the server
-	ssize_t send_ret = 0;                        // Return value from send()
 
 	// INPUT VALIDATION
 	if (argc != 1)
@@ -109,6 +107,11 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
+		if (NULL == temp_serv)
+		{
+			FPRINTF_ERR("%s - Server: failed to name a socket", DEBUG_ERROR_STR);
+			exit_code = ETIMEDOUT;  // It's as close as anything else
+		}
 	}
 	// Success or failure, we're done with the addrinfo linked list
 	if (NULL != servinfo)
@@ -127,79 +130,54 @@ int main(int argc, char *argv[])
 			FPRINTF_ERR("%s - Setting the server socket to listen\n", DEBUG_INFO_STR);
 			exit_code = listen_socket(server_fd, BACKLOG);
 		}
+		else if (SOCK_DCCP == server_protocol)
+		{
+			FPRINTF_ERR("%s - Setting the server socket to listen for SOCK_DCCP\n",
+				        DEBUG_WARNG_STR);
+			exit_code = listen_socket(server_fd, BACKLOG);
+		}
 		else
 		{
 			FPRINTF_ERR("%s - Skipping 'listen' for an ineligible server socket protocol\n",
 				        DEBUG_INFO_STR);  // Not an error
+			// FPRINTF_ERR("Looking for %d or %d but saw %d\n", SOCK_STREAM, SOCK_SEQPACKET,
+			// 	        server_protocol);  // DEBUGGING
+		}
+		if (exit_code)
+		{
+			PRINT_ERROR(The call to listen_socket() failed);
+			PRINT_ERRNO(exit_code);
 		}
 	}
 
-	// FORK
-	// Setup signal handler
-	if (!exit_code)
-	{
-		exit_code = set_signal_handler(SIGCHLD, handle_all_children, SA_RESTART, NULL);
-	}
-	// Accept
+	// ACCEPT CONNECTIONS
 	if (!exit_code)
 	{
 		FPRINTF_ERR("%s - Server: waiting for connections...\n", DEBUG_INFO_STR);
 		while(1)
 		{
+			// Accept
 			sin_size = sizeof(their_addr);
+			FPRINTF_ERR("IN %s ON LINE %d\n", __FILE__, __LINE__);  // DEBUGGING
 			client_fd = accept_client(server_fd, (struct sockaddr *)&their_addr, &sin_size,
 				                      &exit_code);
+			FPRINTF_ERR("IN %s ON LINE %d\n", __FILE__, __LINE__);  // DEBUGGING
 			if (exit_code)
 			{
-				FPRINTF_ERR("%s - Server: still waiting for connections...\n", DEBUG_INFO_STR);
-				continue;  // I question this statement's validity but I'm leaving it in for testing
+				FPRINTF_ERR("%s - Server: still waiting for connections...\n",
+					        DEBUG_INFO_STR);
+				sleep(SERVER_SLEEP);  // A tasteful sleep
+				continue;  // Keep trying
 			}
 			else
 			{
-				exit_code = convert_sas_ip(&their_addr, inet_addr, INET6_ADDRSTRLEN * sizeof(char));
+				exit_code = convert_sas_ip(&their_addr, inet_addr,
+					                       INET6_ADDRSTRLEN * sizeof(char));
 				if (!exit_code)
 				{
 					FPRINTF_ERR("%s - Server: recvd connection from %s\n",
 						        DEBUG_INFO_STR, inet_addr);
 				}
-			}
-			// Fork
-			process = fork();
-			// Parent
-			if (process > 0)
-			{
-				// Shouldn't the parent be doing something here?
-			}
-			// Child
-			else if (0 == process)
-			{
-				close_socket(&server_fd, false);  // Child doesn't need the server file descriptor
-				send_ret = send(client_fd, message, strlen(message), 0);
-                if (send_ret < 0)
-                {
-					exit_code = errno;
-					PRINT_ERROR(The call to send() failed);
-					PRINT_ERRNO(exit_code);
-                }
-                else if (send_ret != strlen(message))
-                {
-					PRINT_ERROR(The call to send() did not send the entire message);
-					FPRINTF_ERR("%s - Sent %zu bytes but expected to send %zu bytes\n",
-						        DEBUG_WARNG_STR, send_ret, strlen(message));
-                }
-                else
-                {
-					FPRINTF_ERR("%s - Client: message sent!\n", DEBUG_INFO_STR);
-                }
-                break;  // The child has done its job
-			}
-			// Error
-			else
-			{
-				exit_code = errno;
-				PRINT_ERROR(The call to fork() failed);
-				PRINT_ERRNO(exit_code);
-				break;  // Breaking error
 			}
 		}
 	}
