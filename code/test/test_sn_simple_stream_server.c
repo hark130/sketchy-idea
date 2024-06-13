@@ -16,7 +16,10 @@
 #include <errno.h>			// EINVAL
 #include <stdio.h>			// fprintf()
 #include <stdlib.h>			// exit()
+#include <sys/socket.h>		// AF_INET
+#include <unistd.h>			// fork()
 #include "skid_debug.h"		// FPRINTF_ERR(), PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_network.h"
 #include "skid_signals.h"	// handle_all_children(), set_signal_handler()
 
 
@@ -60,8 +63,8 @@ int main(int argc, char *argv[])
 	{
 		// Zeroize the struct
 		memset(&hints, 0x0, sizeof(hints));
-	    hints.ai_family = SERVER_DOMAIN;  // AKA domain
-	    hints.ai_socktype = SERVER_TYPE;
+	    hints.ai_family = server_domain;  // AKA domain
+	    hints.ai_socktype = server_type;
 	    hints.ai_flags = AI_PASSIVE; // use my IP
 	}
 	// Get an address
@@ -96,7 +99,7 @@ int main(int argc, char *argv[])
 					PRINT_ERRNO(exit_code);
 					FPRINTF_ERR("The call was bind_struct(%d, %p, %d)\n", server_fd,
 						        temp_serv->ai_addr, temp_serv->ai_addrlen);
-					close_socket(server_fd, false);  // This socket is no good
+					close_socket(&server_fd, false);  // This socket is no good
 					continue;  // Try the next node in the linked list
 				}
 				else
@@ -145,7 +148,7 @@ int main(int argc, char *argv[])
 		{
 			sin_size = sizeof(their_addr);
 			client_fd = accept_client(server_fd, (struct sockaddr *)&their_addr, &sin_size,
-				                      exit_code);
+				                      &exit_code);
 			if (exit_code)
 			{
 				FPRINTF_ERR("%s - Server: still waiting for connections...\n", DEBUG_INFO_STR);
@@ -170,8 +173,8 @@ int main(int argc, char *argv[])
 			// Child
 			else if (0 == process)
 			{
-				close_socket(&sockfd, false);  // Child doesn't need the server file descriptor
-				send_ret = send(client_fd, message, strlen(messsage), 0);
+				close_socket(&server_fd, false);  // Child doesn't need the server file descriptor
+				send_ret = send(client_fd, message, strlen(message), 0);
                 if (send_ret < 0)
                 {
 					exit_code = errno;
@@ -202,7 +205,7 @@ int main(int argc, char *argv[])
 	}
 
 	// CLEANUP
-	close_socket(&sockfd, true);  // Best effort
+	close_socket(&server_fd, true);  // Best effort
 	close_socket(&client_fd, true);  // Best effort
 
 	// DONE
