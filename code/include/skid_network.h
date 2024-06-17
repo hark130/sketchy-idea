@@ -15,8 +15,7 @@
 #include <netdb.h>			// struct addrinfo
 #include <stdbool.h>    	// bool, false, true
 #include <sys/socket.h>		// socklen_t
-
-#define SKID_BAD_FD (signed int)-1  // Use this to standardize "invalid" file descriptors
+#include "skid_macros.h"	// SKID_BAD_FD
 
 /*
  *	Description:

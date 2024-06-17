@@ -5,6 +5,8 @@
 #ifndef __SKID_MACROS__
 #define __SKID_MACROS__
 
+#define SKID_BAD_FD (signed int)-1  // Use this to standardize "invalid" file descriptors
+
 // You may use these macros with SKID mode_t arguments.
 /* We translated the chown(2) macros so you don't have to! */
 // Owner Permissions
