@@ -158,10 +158,10 @@ int main(int argc, char *argv[])
 		{
 			// Accept
 			sin_size = sizeof(their_addr);
-			FPRINTF_ERR("IN %s ON LINE %d\n", __FILE__, __LINE__);  // DEBUGGING
+			// FPRINTF_ERR("IN %s ON LINE %d\n", __FILE__, __LINE__);  // DEBUGGING
 			client_fd = accept_client(server_fd, (struct sockaddr *)&their_addr, &sin_size,
 				                      &exit_code);
-			FPRINTF_ERR("IN %s ON LINE %d\n", __FILE__, __LINE__);  // DEBUGGING
+			// FPRINTF_ERR("IN %s ON LINE %d\n", __FILE__, __LINE__);  // DEBUGGING
 			if (exit_code)
 			{
 				FPRINTF_ERR("%s - Server: still waiting for connections...\n",
