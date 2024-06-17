@@ -4,6 +4,7 @@
 
 #define SKID_DEBUG						// Enable DEBUG logging
 
+#include "skid_file_descriptors.h"		// close_fd()
 #include "skid_debug.h"					// PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_network.h"				// SKID_BAD_FD
 #include <arpa/inet.h>					// inet_ntop()
@@ -140,33 +141,10 @@ int close_socket(int *sockfd, bool quiet)
 	int result = ENOERR;  // Errno values
 
 	// INPUT VALIDATION
-	if (NULL == sockfd)
-	{
-		result = EINVAL;  // NULL pointer
-	}
-	else
-	{
-		result = validate_sn_sockfd(*sockfd);
-	}
+	// Handled by close_fd()
 
 	// CLOSE IT
-	if (ENOERR == result)
-	{
-		if (close(*sockfd))
-		{
-			// close() failed
-			result = errno;
-			if (false == quiet)
-			{
-				PRINT_ERROR(The call to close() failed);
-				PRINT_ERRNO(result);
-			}
-		}
-		else
-		{
-			*sockfd = SKID_BAD_FD;
-		}
-	}
+	result = close_fd(sockfd, quiet);
 
 	// DONE
 	return result;
