@@ -13,14 +13,15 @@
 
 #define SKID_DEBUG			// Enable DEBUG logging
 
-#include <errno.h>			// EINVAL
-#include <stdio.h>			// fprintf()
-#include <stdlib.h>			// exit()
-#include <sys/socket.h>		// AF_INET
-#include <unistd.h>			// fork()
-#include "skid_debug.h"		// FPRINTF_ERR(), PRINT_ERRNO(), PRINT_ERROR()
+#include <errno.h>					// EINVAL
+#include <stdio.h>					// fprintf()
+#include <stdlib.h>					// exit()
+#include <sys/socket.h>				// AF_INET
+#include <unistd.h>					// fork()
+#include "skid_debug.h"				// FPRINTF_ERR(), PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_file_descriptors.h"	// read_fd()
 #include "skid_network.h"
-#include "skid_signals.h"	// handle_all_children(), set_signal_handler()
+#include "skid_signals.h"			// handle_all_children(), set_signal_handler()
 
 
 #define SERVER_SLEEP 1  			// Number of seconds the server sleeps while awiting connection
@@ -47,6 +48,7 @@ int main(int argc, char *argv[])
 	struct sockaddr_storage their_addr;          // Client's address information
 	socklen_t sin_size = 0;                      // The size of their_addr
 	char inet_addr[INET6_ADDRSTRLEN+1] = { 0 };  // Converted socket address to human readable IP
+	char *client_msg = NULL;                     // Message read from the client file descriptor
 
 	// INPUT VALIDATION
 	if (argc != 1)
@@ -140,8 +142,6 @@ int main(int argc, char *argv[])
 		{
 			FPRINTF_ERR("%s - Skipping 'listen' for an ineligible server socket protocol\n",
 				        DEBUG_INFO_STR);  // Not an error
-			// FPRINTF_ERR("Looking for %d or %d but saw %d\n", SOCK_STREAM, SOCK_SEQPACKET,
-			// 	        server_protocol);  // DEBUGGING
 		}
 		if (exit_code)
 		{
@@ -158,10 +158,8 @@ int main(int argc, char *argv[])
 		{
 			// Accept
 			sin_size = sizeof(their_addr);
-			// FPRINTF_ERR("IN %s ON LINE %d\n", __FILE__, __LINE__);  // DEBUGGING
 			client_fd = accept_client(server_fd, (struct sockaddr *)&their_addr, &sin_size,
 				                      &exit_code);
-			// FPRINTF_ERR("IN %s ON LINE %d\n", __FILE__, __LINE__);  // DEBUGGING
 			if (exit_code)
 			{
 				FPRINTF_ERR("%s - Server: still waiting for connections...\n",
@@ -177,6 +175,13 @@ int main(int argc, char *argv[])
 				{
 					FPRINTF_ERR("%s - Server: recvd connection from %s\n",
 						        DEBUG_INFO_STR, inet_addr);
+					client_msg = read_fd(client_fd, &exit_code);
+					if (!exit_code)
+					{
+						FPRINTF_ERR("%s - Server: read message from %s: %s\n",
+							        DEBUG_INFO_STR, inet_addr, client_msg);
+						free_skid_mem(&client_msg);
+					}
 				}
 			}
 		}
