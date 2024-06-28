@@ -19,7 +19,7 @@ int close_fd(int *fdp, bool quiet);
 
 /*
  *	Description:
- *		Read the contents of filename into a heap-allocated buffer.  It is the caller's
+ *		Read the contents of the file descriptor into a heap-allocated buffer.  It is the caller's
  *		responsibility to free the buffer with free_skid_mem().
  *
  *	Args:
@@ -27,7 +27,7 @@ int close_fd(int *fdp, bool quiet);
  *		errnum: [Out] Storage location for errno values encountered.
  *
  *	Returns:
- *		Pointer, on success.  NULL on error (check errnum for details).
+ *		Pointer to the heap-allocated buffer, on success.  NULL on error (check errnum for details).
  */
 char *read_fd(int fd, int *errnum);
 
