@@ -11,16 +11,17 @@
  *
  */
 
-#define SKID_DEBUG			// Enable DEBUG logging
+#define SKID_DEBUG					// Enable DEBUG logging
 
-#include <errno.h>			// EINVAL
-#include <stdio.h>			// fprintf()
-#include <stdlib.h>			// exit()
-#include <sys/socket.h>		// AF_INET
-#include <unistd.h>			// fork()
-#include "skid_debug.h"		// FPRINTF_ERR(), PRINT_ERRNO(), PRINT_ERROR()
+#include <errno.h>					// EINVAL
+#include <stdio.h>					// fprintf()
+#include <stdlib.h>					// exit()
+#include <sys/socket.h>				// AF_INET
+#include <unistd.h>					// fork()
+#include "skid_debug.h"				// FPRINTF_ERR(), PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_file_descriptors.h"	// write_fd()
 #include "skid_network.h"
-#include "skid_signals.h"	// handle_all_children(), set_signal_handler()
+#include "skid_signals.h"			// handle_all_children(), set_signal_handler()
 
 
 #define SERVER_SLEEP 1  			// Number of seconds the server sleeps while awiting connection
@@ -43,7 +44,7 @@ int main(int argc, char *argv[])
 	struct addrinfo *servinfo = NULL;            // Out argument for get_addr_info()
 	struct addrinfo *temp_serv = NULL;           // Use this to walk the servinfo linked list
 	char message[] = { "Hello, world!" };        // Message for the client to send to the server
-	ssize_t send_ret = 0;                        // Return value from send()
+	// ssize_t send_ret = 0;                        // Return value from send()
 
 	// INPUT VALIDATION
 	if (argc != 1)
@@ -123,22 +124,32 @@ int main(int argc, char *argv[])
 	if (!exit_code)
 	{
 		FPRINTF_ERR("%s - Client: attempting to send data...\n", DEBUG_INFO_STR);
-		send_ret = send(server_fd, message, strlen(message), 0);
-        if (send_ret < 0)
+		// send_ret = send(server_fd, message, strlen(message), 0);
+        // if (send_ret < 0)
+        // {
+		// 	exit_code = errno;
+		// 	PRINT_ERROR(The call to send() failed);
+		// 	PRINT_ERRNO(exit_code);
+        // }
+        // else if (send_ret != strlen(message))
+        // {
+		// 	PRINT_ERROR(The call to send() did not send the entire message);
+		// 	FPRINTF_ERR("%s - Sent %zu bytes but expected to send %zu bytes\n",
+		// 		        DEBUG_WARNG_STR, send_ret, strlen(message));
+        // }
+        // else
+        // {
+		// 	FPRINTF_ERR("%s - Client: message sent!\n", DEBUG_INFO_STR);
+        // }
+        exit_code = write_fd(server_fd, message);
+        if (!exit_code)
         {
-			exit_code = errno;
-			PRINT_ERROR(The call to send() failed);
-			PRINT_ERRNO(exit_code);
-        }
-        else if (send_ret != strlen(message))
-        {
-			PRINT_ERROR(The call to send() did not send the entire message);
-			FPRINTF_ERR("%s - Sent %zu bytes but expected to send %zu bytes\n",
-				        DEBUG_WARNG_STR, send_ret, strlen(message));
+			FPRINTF_ERR("%s - Client: message sent!\n", DEBUG_INFO_STR);
         }
         else
         {
-			FPRINTF_ERR("%s - Client: message sent!\n", DEBUG_INFO_STR);
+			PRINT_ERROR(The call to write_fd() failed);
+			PRINT_ERRNO(exit_code);
         }
 	}
 
