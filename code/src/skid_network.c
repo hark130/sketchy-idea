@@ -733,7 +733,7 @@ int recv_socket_dynamic(int sockfd, int flags, char **output_buf, size_t *output
 int validate_sn_args(char **output_buf, size_t *output_size)
 {
 	// LOCAL VARIABLES
-	int result = EBADF;  // Validation result
+	int result = ENOERR;  // Validation result
 
 	// VALIDATE IT
 	// output_buf
