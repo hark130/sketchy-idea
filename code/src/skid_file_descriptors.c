@@ -10,6 +10,7 @@
 #include "skid_file_descriptors.h"		// close_fd()
 #include "skid_macros.h"				// SKID_BAD_FD
 #include "skid_memory.h"				// alloc_skid_mem(), free_skid_mem()
+#include "skid_validation.h"			// validate_skid_fd(), validate_skid_string()
 
 #define SKID_FD_BUFF_SIZE 1024  // Starting buffer size to read into
 
