@@ -210,4 +210,35 @@ int listen_socket(int sockfd, int backlog);
  */
 int open_socket(int domain, int type, int protocol, int *errnum);
 
+/*
+ *	Description:
+ *		Read a message from a socket into a heap-allocated array.  It is the caller's
+ *		responsibility to free the buffer with free_skid_mem().
+ *
+ *	Args:
+ *		sockfd: A file descriptor that refers to a socket to receive from.
+ *		flags: A bit-wise OR of zero or more flags, as defined in recv(2):
+ *			MSG_CMSG_CLOEXEC, MSG_DONTWAIT, MSG_ERRQUEUE, MSG_OOB, MSG_PEEK, MSG_TRUNC, MSG_WAITALL.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		Pointer to the heap-allocated buffer, on success.  NULL on error (check errnum for details).
+ */
+char *recv_socket(int sockfd, int flags, int *errnum);
+
+/*
+ *	Description:
+ *		Send a message on a socket file descriptor.
+ *
+ *	Args:
+ *		sockfd: A file descriptor that refers to a socket to send to.
+ *		msg: The nul-terminated message to write to sockfd.
+ *		flags: A bit-wise OR of zero or more flags, as defined in send(2):
+ *			MSG_CONFIRM, MSG_DONTROUTE, MSG_DONTWAIT, MSG_EOR, MSG_MORE, MSG_NOSIGNAL, MSG_OOB.
+ *
+ *	Returns:
+ *		On success, zero is returned.  On error, errno is returned.
+ */
+int send_socket(int sockfd, const char *msg, int flags);
+
 #endif  /* __SKID_NETWORK__ */
