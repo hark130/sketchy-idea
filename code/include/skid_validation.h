@@ -1,6 +1,9 @@
 #ifndef __SKID_VALIDATION__
 #define __SKID_VALIDATION__
 
+#include <stdbool.h>        // bool, false, true
+#include "skid_macros.h"    // ENOERR
+
 /*
  *  Description:
  *      Validates the errnum arguments on behalf of SKID.
@@ -9,7 +12,7 @@
  *      err: A non-NULL pointer to an integer.
  *
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 int validate_skid_err(int *err);
 
@@ -21,7 +24,7 @@ int validate_skid_err(int *err);
  *      fd: File descriptor to validate.
  *
  *  Returns:
- *      0 on success, errno on failed validation. 
+ *      ENOERR on success, errno on failed validation.
  */
 int validate_skid_fd(int fd);
 
@@ -33,7 +36,7 @@ int validate_skid_fd(int fd);
  *      sockfd: Socket file descriptor to validate.
  *
  *  Returns:
- *      0 on success, errno on failed validation. 
+ *      ENOERR on success, errno on failed validation.
  */
 int validate_skid_sockfd(int sockfd);
 
@@ -46,7 +49,7 @@ int validate_skid_sockfd(int sockfd);
  *      can_be_empty: If true, string may be empty.  Otherwise, the string must have a length.
  *
  *  Returns:
- *      0 on success, errno on failed validation.
+ *      ENOERR on success, errno on failed validation.
  */
 int validate_skid_string(const char *string, bool can_be_empty);
 
