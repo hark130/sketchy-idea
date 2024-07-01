@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 					client_msg = read_fd(client_fd, &exit_code);
 					if (exit_code)
 					{
-						FPRINTF_ERR("%s - No message recevied from client connection [%d]: %s\n",
+						FPRINTF_ERR("%s - No message received from client connection [%d]: %s\n",
 							        DEBUG_WARNG_STR, exit_code, strerror(exit_code));
 					}
 					else
