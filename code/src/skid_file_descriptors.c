@@ -87,7 +87,7 @@ int realloc_fd_dynamic(char **output_buf, size_t *output_size);
 
 /*
  *	Description:
- *		Validate common In/Out args\ on behalf of the library.
+ *		Validate common In/Out args on behalf of the library.
  *
  *	Args:
  *		output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
@@ -99,31 +99,6 @@ int realloc_fd_dynamic(char **output_buf, size_t *output_size);
  *		0 on success, errno on failed validation.
  */
 int validate_sfd_args(char **output_buf, size_t *output_size);
-
-/*
- *	Description:
- *		Validate file descriptors on behalf of the library.
- *
- *	Args:
- *		fd: File descriptor to validate.
- *
- *	Returns:
- *		0 on success, errno on failed validation. 
- */
-int validate_sfd_fd(int fd);
-
-/*
- *	Description:
- *		Validate C strings on behalf of the library.
- *
- *	Args:
- *		string: The C string to validate.
- *		can_be_empty: If true, string may be empty.  Otherwise, the string must have a length.
- *
- *	Returns:
- *		0 on success, errno on failed validation.
- */
-int validate_sfd_string(const char *string, bool can_be_empty);
 
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
@@ -142,7 +117,7 @@ int close_fd(int *fdp, bool quiet)
 	}
 	else
 	{
-		result = validate_sfd_fd(*fdp);
+		result = validate_skid_fd(*fdp);
 	}
 
 	// CLOSE IT
@@ -179,7 +154,7 @@ char *read_fd(int fd, int *errnum)
 	// INPUT VALIDATION
 	if (errnum)
 	{
-		result = validate_sfd_fd(fd);
+		result = validate_skid_fd(fd);
 	}
 	else
 	{
@@ -216,10 +191,10 @@ int write_fd(int fd, const char *msg)
 	ssize_t bytes_wrote = 0;  // Number of bytes written
 
 	// INPUT VALIDATION
-	result = validate_sfd_fd(fd);
+	result = validate_skid_fd(fd);
 	if (ENOERR == result)
 	{
-		result = validate_sfd_string(msg, false);
+		result = validate_skid_string(msg, false);
 	}
 
 	// WRITE IT
@@ -311,7 +286,7 @@ int check_for_pre_alloc(char **output_buf, size_t *output_size)
 int read_fd_dynamic(int fd, char **output_buf, size_t *output_size)
 {
 	// LOCAL VARIABLES
-	int result = validate_sfd_fd(fd);           // Success of execution
+	int result = validate_skid_fd(fd);           // Success of execution
 	char local_buf[SKID_FD_BUFF_SIZE] = { 0 };  // Local buffer
 	ssize_t num_read = 0;                       // Number of bytes read
 	size_t output_len = 0;                      // The length of *output_buf's string
@@ -494,45 +469,6 @@ int validate_sfd_args(char **output_buf, size_t *output_size)
 		{
 			result = EINVAL;  // Buffer pointer exists but size is invalid
 			PRINT_ERROR(Invalid size of an existing buffer pointer);
-		}
-	}
-
-	// DONE
-	return result;
-}
-
-
-int validate_sfd_fd(int fd)
-{
-	// LOCAL VARIABLES
-	int result = EBADF;  // Validation result
-
-	// INPUT VALIDATION
-	if (fd >= 0)
-	{
-		result = ENOERR;  // Good(?).
-	}
-
-	// DONE
-	return result;
-}
-
-
-int validate_sfd_string(const char *string, bool can_be_empty)
-{
-	// LOCAL VARIABLES
-	int result = ENOERR;  // Validation result
-
-	// INPUT VALIDATION
-	if (NULL == string)
-	{
-		result = EINVAL;  // NULL pointer
-	}
-	else if (false == can_be_empty)
-	{
-		if (0x0 == *string)
-		{
-			result = EINVAL;  // Empty string
 		}
 	}
 
