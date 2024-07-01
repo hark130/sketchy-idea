@@ -20,6 +20,7 @@
 #include <unistd.h>					// fork()
 #include "skid_debug.h"				// FPRINTF_ERR(), PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_file_descriptors.h"	// read_fd()
+#include "skid_memory.h"			// free_skid_mem()
 #include "skid_network.h"
 #include "skid_signals.h"			// handle_all_children(), set_signal_handler()
 
@@ -176,11 +177,15 @@ int main(int argc, char *argv[])
 					FPRINTF_ERR("%s - Server: recvd connection from %s\n",
 						        DEBUG_INFO_STR, inet_addr);
 					client_msg = read_fd(client_fd, &exit_code);
-					if (!exit_code)
+					if (exit_code)
+					{
+						FPRINTF_ERR("%s - No message recevied from client connection [%d]: %s\n",
+							        DEBUG_WARNG_STR, exit_code, strerror(exit_code));
+					}
+					else
 					{
 						FPRINTF_ERR("%s - Server: read message from %s: %s\n",
 							        DEBUG_INFO_STR, inet_addr, client_msg);
-						free_skid_mem(&client_msg);
 					}
 				}
 			}
@@ -188,6 +193,7 @@ int main(int argc, char *argv[])
 	}
 
 	// CLEANUP
+	free_skid_mem((void **)&client_msg);  // Best effort
 	close_socket(&server_fd, true);  // Best effort
 	close_socket(&client_fd, true);  // Best effort
 
