@@ -2,6 +2,7 @@
 #define __SKID_FILE_DESCRIPTORS__
 
 #include <stdbool.h>    	// bool, false, true
+#include <stddef.h>			// size_t
 #include "skid_macros.h"	// SKID_BAD_FD
 
 /*
@@ -30,5 +31,18 @@ int close_fd(int *fdp, bool quiet);
  *		Pointer to the heap-allocated buffer, on success.  NULL on error (check errnum for details).
  */
 char *read_fd(int fd, int *errnum);
+
+/*
+ *	Description:
+ *		Write a string to the file descriptor.
+ *
+ *	Args:
+ *		fd: File descriptor to write to.
+ *		msg: The nul-terminated message to write to fd.
+ *
+ *	Returns:
+ *		On success, zero is returned.  On error, errno is returned.
+ */
+int write_fd(int fd, const char *msg);
 
 #endif  /* __SKID_FILE_DESCRIPTORS__ */

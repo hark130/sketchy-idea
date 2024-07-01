@@ -2,8 +2,14 @@
  *	This library defines functionality to manage Linux file descriptors.
  */
 
+#include <errno.h>						// EINVAL
+#include <stddef.h>						// size_t
+#include <string.h>						// strlen()
+#include <unistd.h>						// close()
+#include "skid_debug.h"					// PRINT_ERROR()
 #include "skid_file_descriptors.h"		// close_fd()
 #include "skid_macros.h"				// SKID_BAD_FD
+#include "skid_memory.h"				// alloc_skid_mem(), free_skid_mem()
 
 #define SKID_FD_BUFF_SIZE 1024  // Starting buffer size to read into
 
@@ -106,6 +112,19 @@ int validate_sfd_args(char **output_buf, size_t *output_size);
  */
 int validate_sfd_fd(int fd);
 
+/*
+ *	Description:
+ *		Validate C strings on behalf of the library.
+ *
+ *	Args:
+ *		string: The C string to validate.
+ *		can_be_empty: If true, string may be empty.  Otherwise, the string must have a length.
+ *
+ *	Returns:
+ *		0 on success, errno on failed validation.
+ */
+int validate_sfd_string(const char *string, bool can_be_empty);
+
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
 /**************************************************************************************************/
@@ -176,7 +195,7 @@ char *read_fd(int fd, int *errnum)
 	// CLEAN UP
 	if (ENOERR != result)
 	{
-		free_skid_mem(&output_buf);
+		free_skid_mem((void **)&output_buf);
 		output_size = 0;
 	}
 
@@ -186,6 +205,49 @@ char *read_fd(int fd, int *errnum)
 		*errnum = result;
 	}
 	return output_buf;
+}
+
+
+int write_fd(int fd, const char *msg)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;      // Errno values
+	size_t msg_len = 0;       // Length of the msg string
+	ssize_t bytes_wrote = 0;  // Number of bytes written
+
+	// INPUT VALIDATION
+	result = validate_sfd_fd(fd);
+	if (ENOERR == result)
+	{
+		result = validate_sfd_string(msg, false);
+	}
+
+	// WRITE IT
+	// Size it
+	if (ENOERR == result)
+	{
+		msg_len = strlen(msg);
+	}
+	// Write it
+	if (ENOERR == result)
+	{
+		errno = ENOERR;  // Clear errno
+		bytes_wrote = write(fd, (void *)msg, msg_len * sizeof(char));
+		if (bytes_wrote < 0)
+		{
+			result = errno;
+			PRINT_ERROR(The call to write() failed);
+			PRINT_ERRNO(result);
+		}
+		else if (bytes_wrote < (msg_len * sizeof(char)))
+		{
+			PRINT_WARNG(A partial write occurred);
+			result = write_fd(fd, msg + bytes_wrote);  // Finish the write or force an error
+		}
+	}
+
+	// DONE
+	return result;
 }
 
 
@@ -295,7 +357,7 @@ int read_fd_dynamic(int fd, char **output_buf, size_t *output_size)
 			// Copy local buff into *output_buf
 			if (true == check_for_space(num_read, output_len, *output_size))
 			{
-				strncat(*output_buf, local_buf, sizeof(local_buf));  // Add local to output
+				strncat(*output_buf, local_buf, *output_size - output_len);  // Add local to output
 				memset(local_buf, 0x0, sizeof(local_buf));  // Zeroize the local buffer
 			}
 			else
@@ -314,7 +376,7 @@ int read_fd_dynamic(int fd, char **output_buf, size_t *output_size)
 			tmp_ptr = copy_skid_string(*output_buf, &result);
 			if (ENOERR == result)
 			{
-				free_skid_mem(output_buf);  // Free the old buffer
+				free_skid_mem((void **)output_buf);  // Free the old buffer
 				*output_buf = tmp_ptr;  // Save the new buffer
 				*output_size += 1;  // Made room for nul-termination
 			}
@@ -325,14 +387,14 @@ int read_fd_dynamic(int fd, char **output_buf, size_t *output_size)
 	if (ENOERR != result)
 	{
 		// output_buf
-		free_skid_mem(output_buf);
+		free_skid_mem((void **)output_buf);
 		// output_size
 		if (output_size)
 		{
 			*output_size = 0;
 		}
 		// tmp_ptr
-		free_skid_mem(&tmp_ptr);
+		free_skid_mem((void **)&tmp_ptr);
 	}
 
 	// DONE
@@ -394,7 +456,7 @@ int realloc_fd_dynamic(char **output_buf, size_t *output_size)
 	// Free old
 	if (ENOERR == result)
 	{
-		result = free_skid_mem(output_buf);
+		result = free_skid_mem((void **)output_buf);
 		*output_size = 0;  // Zero out the size
 	}
 	// Update out arguments
@@ -449,6 +511,29 @@ int validate_sfd_fd(int fd)
 	if (fd >= 0)
 	{
 		result = ENOERR;  // Good(?).
+	}
+
+	// DONE
+	return result;
+}
+
+
+int validate_sfd_string(const char *string, bool can_be_empty)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;  // Validation result
+
+	// INPUT VALIDATION
+	if (NULL == string)
+	{
+		result = EINVAL;  // NULL pointer
+	}
+	else if (false == can_be_empty)
+	{
+		if (0x0 == *string)
+		{
+			result = EINVAL;  // Empty string
+		}
 	}
 
 	// DONE
