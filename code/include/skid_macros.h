@@ -7,6 +7,9 @@
 
 #define SKID_BAD_FD (signed int)-1  // Use this to standardize "invalid" file descriptors
 #define SKID_MAX_SZ (~(size_t)0)    // Library's value for the maximum size_t value
+#ifndef ENOERR
+#define ENOERR ((int)0)  // Success value for errno
+#endif  /* ENOERR */
 
 // You may use these macros with SKID mode_t arguments.
 /* We translated the chown(2) macros so you don't have to! */
