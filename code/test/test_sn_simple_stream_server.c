@@ -25,12 +25,12 @@
 #include "skid_signals.h"			// handle_all_children(), set_signal_handler()
 
 
-#define SERVER_SLEEP 1  			// Number of seconds the server sleeps while awiting connection
-#define SERVER_DOMAIN AF_INET 		// Server socket domain
-#define SERVER_TYPE SOCK_STREAM		// Server socket type
-#define SERVER_PROTOCOL 0 			// Server socket protocol
-#define PORT "1234"					// The port clients will connect to
-#define BACKLOG 10   				// Maximum number of pending connections to queue
+#define SERVER_SLEEP 1  			 // Number of seconds the server sleeps while awiting connection
+#define SERVER_DOMAIN AF_INET 		 // Server socket domain
+#define SERVER_TYPE SOCK_STREAM		 // Server socket type
+#define SERVER_PROTOCOL IPPROTO_TCP  // Server socket protocol
+#define PORT "1234"					 // The port clients will connect to
+#define BACKLOG 10   				 // Maximum number of pending connections to queue
 
 
 int main(int argc, char *argv[])
@@ -66,6 +66,7 @@ int main(int argc, char *argv[])
 		memset(&hints, 0x0, sizeof(hints));
 	    hints.ai_family = server_domain;  // AKA domain
 	    hints.ai_socktype = server_type;
+	    hints.ai_protocol = server_protocol;
 	    hints.ai_flags = AI_PASSIVE; // use my IP
 	}
 	// Get an address
@@ -176,7 +177,18 @@ int main(int argc, char *argv[])
 				{
 					FPRINTF_ERR("%s - Server: recvd connection from %s\n",
 						        DEBUG_INFO_STR, inet_addr);
-					client_msg = read_fd(client_fd, &exit_code);
+					// client_msg = read_fd(client_fd, &exit_code);
+					// if (exit_code)
+					// {
+					// 	FPRINTF_ERR("%s - No message received from client connection [%d]: %s\n",
+					// 		        DEBUG_WARNG_STR, exit_code, strerror(exit_code));
+					// }
+					// else
+					// {
+					// 	FPRINTF_ERR("%s - Server: read message from %s: %s\n",
+					// 		        DEBUG_INFO_STR, inet_addr, client_msg);
+					// }
+					client_msg = recv_socket(client_fd, 0, &exit_code);
 					if (exit_code)
 					{
 						FPRINTF_ERR("%s - No message received from client connection [%d]: %s\n",
@@ -184,7 +196,7 @@ int main(int argc, char *argv[])
 					}
 					else
 					{
-						FPRINTF_ERR("%s - Server: read message from %s: %s\n",
+						FPRINTF_ERR("%s - Server: recv'd message from %s: %s\n",
 							        DEBUG_INFO_STR, inet_addr, client_msg);
 					}
 				}
