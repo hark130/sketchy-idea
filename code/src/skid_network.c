@@ -7,6 +7,7 @@
 #include "skid_file_descriptors.h"		// close_fd()
 #include "skid_debug.h"					// PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_macros.h"				// ENOERR
+#include "skid_memory.h"				// alloc_skid_mem()
 #include "skid_network.h"				// SKID_BAD_FD
 #include "skid_validation.h"			// validate_skid_err(), validate_skid_sockfd()
 #include <arpa/inet.h>					// inet_ntop()
@@ -101,6 +102,7 @@ int realloc_sock_dynamic(char **output_buf, size_t *output_size);
  *
  *	Args:
  *		sockfd: Socket file descriptor to recv from.
+ *		flags: A bit-wise OR of zero or more flags (see: recv(2), recv_socket()).
  *		output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
  *			a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
  *			output_size will be updated.
@@ -109,7 +111,7 @@ int realloc_sock_dynamic(char **output_buf, size_t *output_size);
  *	Returns:
  *		0 on success, errno on failure.
  */
-int recv_socket_dynamic(int sockfd, char **output_buf, size_t *output_size);
+int recv_socket_dynamic(int sockfd, int flags, char **output_buf, size_t *output_size);
 
 /*
  *	Description:
@@ -409,7 +411,6 @@ int open_socket(int domain, int type, int protocol, int *errnum)
 char *recv_socket(int sockfd, int flags, int *errnum)
 {
 	// LOCAL VARIABLES
-	char local_msg[SKID_NET_BUFF_SIZE] = { 0 };  // Temp buffer for partial reads
 	char *msg = NULL;                            // Heap-allocated copy of the msg read from sockfd
 	size_t msg_len = 0;                          // The length of msg (after it's recv()'d)
 	int result = ENOERR;                         // Errno values
@@ -464,7 +465,7 @@ int send_socket(int sockfd, const char *msg, int flags)
 		else if (bytes_sent < (msg_len * sizeof(char)))
 		{
 			PRINT_WARNG(The call to send() only finished a partial send);
-			result = send_socket(fd, msg + bytes_sent, flags);  // Finish the send or force an error
+			result = send_socket(sockfd, msg + bytes_sent, flags);  // Finish sending or force error
 		}
 	}
 
@@ -635,7 +636,7 @@ int realloc_sock_dynamic(char **output_buf, size_t *output_size)
 }
 
 
-int recv_socket_dynamic(int sockfd, char **output_buf, size_t *output_size)
+int recv_socket_dynamic(int sockfd, int flags, char **output_buf, size_t *output_size)
 {
 	// LOCAL VARIABLES
 	int result = validate_skid_fd(sockfd);       // Success of execution
@@ -663,14 +664,14 @@ int recv_socket_dynamic(int sockfd, char **output_buf, size_t *output_size)
 		{
 			output_len = strlen(*output_buf);  // Get the current length of output_buf
 			// Read into local buff
-			num_read = recv(sockfd, local_buf, sizeof(local_buf));
+			num_read = recv(sockfd, local_buf, sizeof(local_buf), flags);
 			if (0 == num_read)
 			{
 				 FPRINTF_ERR("%s - Reached EOF\n", DEBUG_INFO_STR);
 				 break;  // Done reading
 			}
 			// Check for room
-			if (false == check_for_space(num_read, output_len, *output_size))
+			if (false == check_sn_space(num_read, output_len, *output_size))
 			{
 				// Not enough room?  Reallocate.
 				result = realloc_sock_dynamic(output_buf, output_size);
@@ -682,7 +683,7 @@ int recv_socket_dynamic(int sockfd, char **output_buf, size_t *output_size)
 				}
 			}
 			// Copy local buff into *output_buf
-			if (true == check_for_space(num_read, output_len, *output_size))
+			if (true == check_sn_space(num_read, output_len, *output_size))
 			{
 				strncat(*output_buf, local_buf, *output_size - output_len);  // Add local to output
 				memset(local_buf, 0x0, sizeof(local_buf));  // Zeroize the local buffer
