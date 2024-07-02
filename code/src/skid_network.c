@@ -408,6 +408,43 @@ int open_socket(int domain, int type, int protocol, int *errnum)
 }
 
 
+char *receive_socket(int sockfd, int flags, int protocol, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = validate_skid_err(errnum);  // Errno values
+	char *msg = NULL;                        // Return value from underlying SKID library call
+
+	// INPUT VALIDATION
+	// protocol
+	if (ENOERR == result)
+	{
+		// Underlying SKID library call will validate remaining input as appropriate
+		if (SOCK_STREAM == protocol)
+		{
+			// read()
+			msg = read_fd(sockfd, &result);
+		}
+		else if (SOCK_DGRAM == protocol || SOCK_DCCP == protocol)
+		{
+			// recv()
+			msg = recv_socket(sockfd, flags, &result);
+		}
+		else
+		{
+			// Don't forget to update the comment block w/ any additional protocols supported
+			result = EPROTONOSUPPORT;  // Unsupported protocol
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return msg;
+}
+
+
 char *recv_socket(int sockfd, int flags, int *errnum)
 {
 	// LOCAL VARIABLES
