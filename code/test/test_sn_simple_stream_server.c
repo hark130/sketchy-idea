@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
 	socklen_t sin_size = 0;                      // The size of their_addr
 	char inet_addr[INET6_ADDRSTRLEN+1] = { 0 };  // Converted socket address to human readable IP
 	char *client_msg = NULL;                     // Message read from the client file descriptor
+	int recv_flags = 0;                          // See recv(2)
 
 	// INPUT VALIDATION
 	if (argc != 1)
@@ -177,18 +178,7 @@ int main(int argc, char *argv[])
 				{
 					FPRINTF_ERR("%s - Server: recvd connection from %s\n",
 						        DEBUG_INFO_STR, inet_addr);
-					// client_msg = read_fd(client_fd, &exit_code);
-					// if (exit_code)
-					// {
-					// 	FPRINTF_ERR("%s - No message received from client connection [%d]: %s\n",
-					// 		        DEBUG_WARNG_STR, exit_code, strerror(exit_code));
-					// }
-					// else
-					// {
-					// 	FPRINTF_ERR("%s - Server: read message from %s: %s\n",
-					// 		        DEBUG_INFO_STR, inet_addr, client_msg);
-					// }
-					client_msg = recv_socket(client_fd, 0, &exit_code);
+					client_msg = receive_socket(client_fd, recv_flags, server_protocol, &exit_code);
 					if (exit_code)
 					{
 						FPRINTF_ERR("%s - No message received from client connection [%d]: %s\n",
@@ -196,9 +186,16 @@ int main(int argc, char *argv[])
 					}
 					else
 					{
-						FPRINTF_ERR("%s - Server: recv'd message from %s: %s\n",
+						FPRINTF_ERR("%s - Server: received message from %s: %s\n",
 							        DEBUG_INFO_STR, inet_addr, client_msg);
+						free_skid_mem((void **)&client_msg);  // Best effort to free temp mem
 					}
+				}
+				else
+				{
+					PRINT_ERROR(The call to convert_sas_ip() failed);
+					PRINT_ERRNO(exit_code);
+					break;  // Stop on conversion error
 				}
 			}
 		}
