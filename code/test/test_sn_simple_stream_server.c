@@ -190,6 +190,7 @@ int main(int argc, char *argv[])
 						FPRINTF_ERR("%s - Server: received message from %s: %s\n",
 							        DEBUG_INFO_STR, inet_addr, client_msg);
 						free_skid_mem((void **)&client_msg);  // Best effort to free temp mem
+						break;  // Just accept one message
 					}
 				}
 				else
