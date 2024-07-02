@@ -315,7 +315,7 @@ int read_fd_dynamic(int fd, char **output_buf, size_t *output_size)
 			num_read = read(fd, local_buf, sizeof(local_buf));
 			if (0 == num_read)
 			{
-				 FPRINTF_ERR("%s - Reached EOF\n", DEBUG_INFO_STR);
+				 FPRINTF_ERR("%s - Call to read() reached EOF\n", DEBUG_INFO_STR);
 				 break;  // Done reading
 			}
 			// Check for room

@@ -704,7 +704,7 @@ int recv_socket_dynamic(int sockfd, int flags, char **output_buf, size_t *output
 			num_read = recv(sockfd, local_buf, sizeof(local_buf), flags);
 			if (0 == num_read)
 			{
-				 FPRINTF_ERR("%s - Reached EOF\n", DEBUG_INFO_STR);
+				 FPRINTF_ERR("%s - Call to recv() reached EOF\n", DEBUG_INFO_STR);
 				 break;  // Done reading
 			}
 			// Check for room
