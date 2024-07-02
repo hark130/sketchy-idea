@@ -40,7 +40,7 @@ int validate_skid_fd(int fd)
 	int result = EBADF;  // Validation result
 
 	// INPUT VALIDATION
-	if (fd >= 0)
+	if (fd >= 0 && SKID_BAD_FD != fd)
 	{
 		result = ENOERR;  // Good(?).
 	}
@@ -56,7 +56,7 @@ int validate_skid_sockfd(int sockfd)
 	int result = EBADF;  // Validation result
 
 	// INPUT VALIDATION
-	if (sockfd >= 0)
+	if (sockfd >= 0 && SKID_BAD_FD != sockfd)
 	{
 		result = ENOERR;  // Good(?).
 	}
