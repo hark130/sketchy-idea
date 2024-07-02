@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 	struct addrinfo *servinfo = NULL;            // Out argument for get_addr_info()
 	struct addrinfo *temp_serv = NULL;           // Use this to walk the servinfo linked list
 	char message[] = { "Hello, world!" };        // Message for the client to send to the server
-	ssize_t send_ret = 0;                        // Return value from send()
+	// ssize_t send_ret = 0;                        // Return value from send()
 
 	// INPUT VALIDATION
 	if (argc != 1)
