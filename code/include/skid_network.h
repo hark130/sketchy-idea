@@ -212,8 +212,27 @@ int open_socket(int domain, int type, int protocol, int *errnum);
 
 /*
  *	Description:
- *		Read a message from a socket into a heap-allocated array.  It is the caller's
- *		responsibility to free the buffer with free_skid_mem().
+ *		Dynamically read a message from a socket based on the given protocol.
+ *
+ *	Args:
+ *		sockfd: A file descriptor that refers to a named socket to receive from.
+ *		flags: [Optional?] A bit-wise OR of zero or more flags given to the underlying system call.
+ *			This value will be ignored for non-applicable function calls (e.g., read_fd()).
+ *		protocol: The struct addrinfo.ai_protocol the socket was bound to.
+ *			This function currently supports: SOCK_STREAM, SOCK_DGRAM, SOCK_DCCP.
+ *			See socket(2) for details.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		Pointer to the heap-allocated buffer, on success.  NULL on error and errnum is set with
+ *		details.  EPROTONOSUPPORT is used to indicate an unsupported protocol argument value.
+ */
+char *receive_socket(int sockfd, int flags, int protocol, int *errnum);
+
+/*
+ *	Description:
+ *		Read a message from a socket, using recv(), into a heap-allocated array.
+ *		It is the caller's responsibility to free the buffer with free_skid_mem().
  *
  *	Args:
  *		sockfd: A file descriptor that refers to a socket to receive from.
