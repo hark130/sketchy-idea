@@ -44,7 +44,6 @@ int main(int argc, char *argv[])
 	struct addrinfo *servinfo = NULL;            // Out argument for get_addr_info()
 	struct addrinfo *temp_serv = NULL;           // Use this to walk the servinfo linked list
 	char message[] = { "Hello, world!" };        // Message for the client to send to the server
-	// ssize_t send_ret = 0;                        // Return value from send()
 
 	// INPUT VALIDATION
 	if (argc != 1)
@@ -81,8 +80,9 @@ int main(int argc, char *argv[])
 				// Failed to open the socket with this domain, type, and protocol
 				PRINT_ERROR(The call to open_socket() failed);
 				PRINT_ERRNO(exit_code);
-				FPRINTF_ERR("The call was open_socket(%d, %d, %d, %p)\n", temp_serv->ai_family,
-					        temp_serv->ai_socktype, temp_serv->ai_protocol, &exit_code);
+				FPRINTF_ERR("%s - The call was open_socket(%d, %d, %d, %p)\n", DEBUG_ERROR_STR,
+					        temp_serv->ai_family, temp_serv->ai_socktype, temp_serv->ai_protocol,
+					        &exit_code);
 				continue;  // Try the next node in the linked list
 			}
 			else
@@ -93,8 +93,8 @@ int main(int argc, char *argv[])
 					// Failed to connect the socket to the address
 					PRINT_ERROR(The call to connect_socket() failed);
 					PRINT_ERRNO(exit_code);
-					FPRINTF_ERR("The call was connect_socket(%d, %p, %d)\n", server_fd,
-						        temp_serv->ai_addr, temp_serv->ai_addrlen);
+					FPRINTF_ERR("%s - The call was connect_socket(%d, %p, %d)\n", DEBUG_ERROR_STR,
+						        server_fd, temp_serv->ai_addr, temp_serv->ai_addrlen);
 					close_socket(&server_fd, false);  // This socket is no good
 					continue;  // Try the next node in the linked list
 				}
@@ -124,23 +124,6 @@ int main(int argc, char *argv[])
 	if (!exit_code)
 	{
 		FPRINTF_ERR("%s - Client: attempting to send data...\n", DEBUG_INFO_STR);
-		// send_ret = send(server_fd, message, strlen(message), 0);
-        // if (send_ret < 0)
-        // {
-		// 	exit_code = errno;
-		// 	PRINT_ERROR(The call to send() failed);
-		// 	PRINT_ERRNO(exit_code);
-        // }
-        // else if (send_ret != strlen(message))
-        // {
-		// 	PRINT_ERROR(The call to send() did not send the entire message);
-		// 	FPRINTF_ERR("%s - Sent %zu bytes but expected to send %zu bytes\n",
-		// 		        DEBUG_WARNG_STR, send_ret, strlen(message));
-        // }
-        // else
-        // {
-		// 	FPRINTF_ERR("%s - Client: message sent!\n", DEBUG_INFO_STR);
-        // }
         exit_code = write_fd(server_fd, message);
         if (!exit_code)
         {
@@ -151,16 +134,6 @@ int main(int argc, char *argv[])
 			PRINT_ERROR(The call to write_fd() failed);
 			PRINT_ERRNO(exit_code);
         }
-        // exit_code = send_socket(server_fd, message, 0);
-        // if (!exit_code)
-        // {
-		// 	FPRINTF_ERR("%s - Client: message sent!\n", DEBUG_INFO_STR);
-        // }
-        // else
-        // {
-		// 	PRINT_ERROR(The call to send_socket() failed);
-		// 	PRINT_ERRNO(exit_code);
-        // }
 	}
 
 	// CLEANUP

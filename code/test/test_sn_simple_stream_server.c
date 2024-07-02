@@ -88,8 +88,9 @@ int main(int argc, char *argv[])
 				// Failed to open the socket with this domain, type, and protocol
 				PRINT_ERROR(The call to open_socket() failed);
 				PRINT_ERRNO(exit_code);
-				FPRINTF_ERR("The call was open_socket(%d, %d, %d, %p)\n", temp_serv->ai_family,
-					        temp_serv->ai_socktype, temp_serv->ai_protocol, &exit_code);
+				FPRINTF_ERR("%s - The call was open_socket(%d, %d, %d, %p)\n", DEBUG_ERROR_STR,
+					        temp_serv->ai_family, temp_serv->ai_socktype, temp_serv->ai_protocol,
+					        &exit_code);
 				continue;  // Try the next node in the linked list
 			}
 			else
@@ -100,8 +101,8 @@ int main(int argc, char *argv[])
 					// Failed to "name the socket"
 					PRINT_ERROR(The call to bind_struct() failed);
 					PRINT_ERRNO(exit_code);
-					FPRINTF_ERR("The call was bind_struct(%d, %p, %d)\n", server_fd,
-						        temp_serv->ai_addr, temp_serv->ai_addrlen);
+					FPRINTF_ERR("%s - The call was bind_struct(%d, %p, %d)\n", DEBUG_ERROR_STR,
+						        server_fd, temp_serv->ai_addr, temp_serv->ai_addrlen);
 					close_socket(&server_fd, false);  // This socket is no good
 					continue;  // Try the next node in the linked list
 				}
