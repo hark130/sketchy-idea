@@ -247,6 +247,36 @@ char *recv_socket(int sockfd, int flags, int *errnum);
 
 /*
  *	Description:
+ *		Read a message from a socket, using recvfrom(), into a heap-allocated array.
+ *		It is the caller's responsibility to free the buffer with free_skid_mem().
+ *
+ *	Note:
+ *		If src_addr is not NULL, and the underlying protocol provides the source address of the
+ *		message, that source address is placed in the buffer pointed to by src_addr.
+ *		In this case, addrlen is a value-result argument.  Before the call, it should be
+ *		initialized to the size of the buffer associated with src_addr.  Upon return, addrlen
+ *		is updated to contain the actual size of the source address.  The returned address is
+ *		truncated if the buffer provided is too small; in this case, addrlen will return a value
+ *		greater than was supplied to the call.
+ *
+ *	Args:
+ *		sockfd: A file descriptor that refers to a socket to receive from.
+ *		flags: A bit-wise OR of zero or more flags, as defined in recv(2):
+ *			MSG_CMSG_CLOEXEC, MSG_DONTWAIT, MSG_ERRQUEUE, MSG_OOB, MSG_PEEK, MSG_TRUNC, MSG_WAITALL.
+ *		src_addr: [Optional/Out] A pointer to the storage location for the source address of the
+ *			incoming connection.  Not validated.  Passed directly to recvfrom().
+ *		addrlen: [Optional/Out] A pointer to the storage location for the actual size of the
+ *			source address.  Not validated.  Passed directly to recvfrom().
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		Pointer to the heap-allocated buffer, on success.  NULL on error (check errnum for details).
+ */
+char *recv_from_socket(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
+	                   int *errnum);
+
+/*
+ *	Description:
  *		Send a message on a socket file descriptor.
  *
  *	Args:

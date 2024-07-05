@@ -102,6 +102,29 @@ int realloc_sock_dynamic(char **output_buf, size_t *output_size);
  *
  *	Args:
  *		sockfd: Socket file descriptor to recv from.
+ *		flags: A bit-wise OR of zero or more flags (see: recvfrom(2)).
+ *		src_addr: [Optional/Out] Passed directly to recvfrom() without validation.
+ *		addrlen: [Optional/Out] Passed directly to recvfrom() without validation.
+ *		output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
+ *			a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
+ *			output_size will be updated.
+ *		output_size: [In/Out] Pointer to the size of output_buf.
+ *
+ *	Returns:
+ *		0 on success, errno on failure.
+ */
+int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
+	                         char **output_buf, size_t *output_size);
+
+/*
+ *	Description:
+ *		Read the contents of the file descriptor into a heap-allocated buffer.  If the buffer ever
+ *		fills then this function will (effectively) reallocate more space.  It will read until
+ *		no other data can be read or an error occurred.  It is the caller's responsibility to
+ *		free the buffer with free_skid_mem().
+ *
+ *	Args:
+ *		sockfd: Socket file descriptor to recv from.
  *		flags: A bit-wise OR of zero or more flags (see: recv(2), recv_socket()).
  *		output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
  *			a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
@@ -474,6 +497,36 @@ char *recv_socket(int sockfd, int flags, int *errnum)
 }
 
 
+char *recv_from_socket(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
+	                   int *errnum)
+{
+	// LOCAL VARIABLES
+	char *msg = NULL;                            // Heap-allocated copy of the msg read from sockfd
+	size_t msg_len = 0;                          // The length of msg (after it's recv()'d)
+	int result = ENOERR;                         // Errno values
+
+	// INPUT VALIDATION
+	result = validate_skid_sockfd(sockfd);
+	if (ENOERR == result)
+	{
+		result = validate_skid_err(errnum);
+	}
+
+	// RECV FROM IT
+	if (ENOERR == result)
+	{
+		result = recv_from_socket_dynamic(sockfd, flags, src_addr, addrlen, &msg, &msg_len);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return msg;
+}
+
+
 int send_socket(int sockfd, const char *msg, int flags)
 {
 	// LOCAL VARIABLES
@@ -666,6 +719,101 @@ int realloc_sock_dynamic(char **output_buf, size_t *output_size)
 	{
 		*output_buf = tmp_ptr;  // Store the pointer
 		*output_size = new_size;  // Update the size
+	}
+
+	// DONE
+	return result;
+}
+
+
+int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
+	                         char **output_buf, size_t *output_size)
+{
+	// LOCAL VARIABLES
+	int result = validate_skid_fd(sockfd);       // Success of execution
+	char local_buf[SKID_NET_BUFF_SIZE] = { 0 };  // Local buffer
+	ssize_t num_read = 0;                        // Number of bytes read
+	size_t output_len = 0;                       // The length of *output_buf's string
+	char *tmp_ptr = NULL;                        // Temp pointer
+
+	// INPUT VALIDATION
+	if (ENOERR == result)
+	{
+		result = validate_sn_args(output_buf, output_size);
+	}
+
+	// SETUP
+	if (ENOERR == result)
+	{
+		result = check_sn_pre_alloc(output_buf, output_size);
+	}
+
+	// RECVFROM DYNAMIC
+	if (ENOERR == result)
+	{
+		while (1)
+		{
+			output_len = strlen(*output_buf);  // Get the current length of output_buf
+			// Read into local buff
+			num_read = recvfrom(sockfd, local_buf, sizeof(local_buf), flags, src_addr, addrlen);
+			if (0 == num_read)
+			{
+				 FPRINTF_ERR("%s - Call to recvfrom() reached EOF\n", DEBUG_INFO_STR);
+				 break;  // Done reading
+			}
+			// Check for room
+			if (false == check_sn_space(num_read, output_len, *output_size))
+			{
+				// Not enough room?  Reallocate.
+				result = realloc_sock_dynamic(output_buf, output_size);
+				if (ENOERR != result)
+				{
+					PRINT_ERROR(The call to realloc_sock_dynamic() failed);
+					PRINT_ERRNO(result);
+					break;  // Stop on error
+				}
+			}
+			// Copy local buff into *output_buf
+			if (true == check_sn_space(num_read, output_len, *output_size))
+			{
+				strncat(*output_buf, local_buf, *output_size - output_len);  // Add local to output
+				memset(local_buf, 0x0, sizeof(local_buf));  // Zeroize the local buffer
+			}
+			else
+			{
+				PRINT_ERROR(Logic Failure - realloc_sock_dynamic succeeded incorrectly);
+				result = EOVERFLOW;
+			}
+		}
+	}
+
+	// VERIFY NUL-TERMINATED
+	if (ENOERR == result)
+	{
+		if (output_len == *output_size)
+		{
+			tmp_ptr = copy_skid_string(*output_buf, &result);
+			if (ENOERR == result)
+			{
+				free_skid_mem((void **)output_buf);  // Free the old buffer
+				*output_buf = tmp_ptr;  // Save the new buffer
+				*output_size += 1;  // Made room for nul-termination
+			}
+		}
+	}
+
+	// CLEANUP
+	if (ENOERR != result)
+	{
+		// output_buf
+		free_skid_mem((void **)output_buf);
+		// output_size
+		if (output_size)
+		{
+			*output_size = 0;
+		}
+		// tmp_ptr
+		free_skid_mem((void **)&tmp_ptr);
 	}
 
 	// DONE
