@@ -20,7 +20,6 @@
 #include <unistd.h>					// fork()
 #include "skid_debug.h"				// FPRINTF_ERR(), PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_network.h"
-#include "skid_signals.h"			// handle_all_children(), set_signal_handler()
 
 
 #define SERVER_SLEEP 1  			// Number of seconds the server sleeps while awiting connection
@@ -42,6 +41,7 @@ int main(int argc, char *argv[])
 	struct addrinfo *servinfo = NULL;            // Out argument for get_addr_info()
 	struct addrinfo *temp_serv = NULL;           // Use this to walk the servinfo linked list
 	char message[] = { "Hello, world!" };        // Message for the client to send to the server
+	int sendto_flags = 0;                        // See sendto(2)
 
 	// INPUT VALIDATION
 	if (argc != 1)
@@ -85,13 +85,14 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				exit_code = connect_socket(server_fd, temp_serv->ai_addr, temp_serv->ai_addrlen);
+				// Bind
+				exit_code = bind_struct(server_fd, temp_serv->ai_addr, temp_serv->ai_addrlen);
 				if (exit_code)
 				{
 					// Failed to connect the socket to the address
-					PRINT_ERROR(The call to connect_socket() failed);
+					PRINT_ERROR(The call to bind_struct() failed);
 					PRINT_ERRNO(exit_code);
-					FPRINTF_ERR("%s - The call was connect_socket(%d, %p, %d)\n", DEBUG_ERROR_STR,
+					FPRINTF_ERR("%s - The call was bind_struct(%d, %p, %d)\n", DEBUG_ERROR_STR,
 						        server_fd, temp_serv->ai_addr, temp_serv->ai_addrlen);
 					close_socket(&server_fd, false);  // This socket is no good
 					continue;  // Try the next node in the linked list
@@ -104,7 +105,7 @@ int main(int argc, char *argv[])
 		}
 		if (NULL == temp_serv)
 		{
-			FPRINTF_ERR("%s - Client: failed to connect to the server\n", DEBUG_ERROR_STR);
+			FPRINTF_ERR("%s - Client: failed to bind to a server\n", DEBUG_ERROR_STR);
 			exit_code = ETIMEDOUT;  // It's as close as anything else
 		}
 	}
@@ -122,14 +123,15 @@ int main(int argc, char *argv[])
 	if (!exit_code)
 	{
 		FPRINTF_ERR("%s - Client: attempting to send data...\n", DEBUG_INFO_STR);
-        exit_code = write_fd(server_fd, message);
+        exit_code = send_to_socket(server_fd, message, sendto_flags, temp_serv->ai_addr,
+								   temp_serv->ai_addrlen);
         if (!exit_code)
         {
 			FPRINTF_ERR("%s - Client: message sent!\n", DEBUG_INFO_STR);
         }
         else
         {
-			PRINT_ERROR(The call to write_fd() failed);
+			PRINT_ERROR(The call to send_to_socket() failed);
 			PRINT_ERRNO(exit_code);
         }
 	}
