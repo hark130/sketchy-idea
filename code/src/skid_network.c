@@ -527,6 +527,49 @@ char *recv_from_socket(int sockfd, int flags, struct sockaddr *src_addr, socklen
 }
 
 
+char *resolve_protocol(int protocol, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;                     // Errno values
+	struct protoent *protocol_entry = NULL;  // Return value from getprotobynumber()
+	bool opened = false;                     // Track whether the database may have been opened
+	char *official_name = NULL;              // Protocol's official name in heap memory
+
+	// INPUT VALIDATION
+	result = validate_skid_err(errnum);
+
+	// RESOLVE IT
+	// Get the protoent struct
+	if (ENOERR == result)
+	{
+		protocol_entry = getprotobynumber(protocol);
+		opened = true;
+		if (NULL == protocol_entry)
+		{
+			result = EPROTO;  // Unresolved protocol
+		}
+	}
+	// Copy the official name
+	if (ENOERR == result)
+	{
+		official_name = copy_skid_string(protocol_entry->p_name, &result);
+	}
+
+	// CLEANUP
+	if (true == opened)
+	{
+		endprotoent();  // Closes the connection to the protocols database
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return official_name;
+}
+
+
 int send_socket(int sockfd, const char *msg, int flags)
 {
 	// LOCAL VARIABLES

@@ -274,6 +274,22 @@ char *recv_socket(int sockfd, int flags, int *errnum);
  */
 char *recv_from_socket(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
 	                   int *errnum);
+/*
+ *	Description:
+ *		Use getprotobynumber() to resolve a protocol number into its official name and copy that
+ *		into a heap-allocated string.  It is the caller's responsibility to free the buffer
+ *		with free_skid_mem().
+ *
+ *	Args:
+ *		protocol: A protocol number expected to be found in the protocols database.
+ *			See: protocols(5).
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		Pointer to the heap-allocated buffer, on success.  NULL on error (check errnum for details).
+ *		EPROTO is used to indicate an unresolved protocol number.
+ */
+char *resolve_protocol(int protocol, int *errnum);
 
 /*
  *	Description:
