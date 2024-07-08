@@ -277,7 +277,7 @@ char *recv_from_socket(int sockfd, int flags, struct sockaddr *src_addr, socklen
 
 /*
  *	Description:
- *		Send a message on a socket file descriptor.
+ *		Send a message on a socket file descriptor using send().
  *
  *	Args:
  *		sockfd: A file descriptor that refers to a socket to send to.
@@ -286,8 +286,37 @@ char *recv_from_socket(int sockfd, int flags, struct sockaddr *src_addr, socklen
  *			MSG_CONFIRM, MSG_DONTROUTE, MSG_DONTWAIT, MSG_EOR, MSG_MORE, MSG_NOSIGNAL, MSG_OOB.
  *
  *	Returns:
- *		On success, zero is returned.  On error, errno is returned.
+ *		On success, zero is returned.  On error, errno is returned.  ENOTCONN is returned when
+ *		sockfd was not actually connected.
  */
 int send_socket(int sockfd, const char *msg, int flags);
+
+/*
+ *	Description:
+ *		Send a messsage on a socket file descriptor using sendto().
+ *
+ *	Note:
+ *		If this function is used on a connection-mode (SOCK_STREAM, SOCK_SEQPACKET) socket, the
+ *		arguments dest_addr and addrlen are ignored (and should be NULL and 0).  Otherwise, the
+ *		address of the target is given by dest_addr with addrlen specifying its size.
+ *		For connection-mode sockets, consider using send_socket().
+ *
+ *	Args:
+ *		sockfd: A file descriptor that refers to a socket to send to.
+ *		msg: The nul-terminated message to write to sockfd.
+ *		flags: A bit-wise OR of zero or more flags, as defined in sendto(2):
+ *			MSG_CONFIRM, MSG_DONTROUTE, MSG_DONTWAIT, MSG_EOR, MSG_MORE, MSG_NOSIGNAL, MSG_OOB.
+ *		dest_addr: [Optional] A pointer to the storage location for the destination address of
+ *			the message.  Not validated.  Passed directly to sendto().
+ *		addrlen: [Optional] A pointer to the storage location for the actual size of the
+ *			destination address.  Not validated.  Passed directly to sendto().
+ *
+ *	Returns:
+ *		On success, zero is returned.  On error, errno is returned.  EISCONN may be returned if
+ *		sockfd is a connection-based socket and dest_addr/addrlen were defined.  ENOTCONN is
+ *		returned when sockfd was not actually connected.
+ */
+int send_to_socket(int sockfd, const char *msg, int flags, const struct sockaddr *dest_addr,
+	               socklen_t addrlen);
 
 #endif  /* __SKID_NETWORK__ */
