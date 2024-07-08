@@ -26,7 +26,8 @@
 #define SERVER_DOMAIN AF_INET 	 	// Server socket domain
 #define SERVER_TYPE SOCK_DGRAM		// Server socket type
 #define SERVER_PROTOCOL IPPROTO_UDP	// Server socket protocol
-#define PORT "5678"					// The port clients will connect to
+#define SERVER_NAME "127.0.0.1"     // IP or hostname of the UDP server (can be NULL for localhost)
+#define SERVER_PORT "5678"			// The port clients will connect to
 
 
 int main(int argc, char *argv[])
@@ -63,7 +64,7 @@ int main(int argc, char *argv[])
 	// Get an address
 	if (!exit_code)
 	{
-		exit_code = get_addr_info(NULL, PORT, &hints, &servinfo);
+		exit_code = get_addr_info(SERVER_NAME, SERVER_PORT, &hints, &servinfo);
 	}
 	// Connect
 	if (!exit_code)
