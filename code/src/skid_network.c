@@ -838,7 +838,14 @@ int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, s
 			output_len = strlen(*output_buf);  // Get the current length of output_buf
 			// Read into local buff
 			num_read = recvfrom(sockfd, local_buf, sizeof(local_buf), flags, src_addr, addrlen);
-			if (0 == num_read)
+			if (num_read < 0)
+			{
+				result = errno;
+				PRINT_ERROR(The call to recvfrom() failed);
+				PRINT_ERRNO(result);
+				break;  // Error
+			}
+			else if (0 == num_read)
 			{
 				 FPRINTF_ERR("%s - Call to recvfrom() reached EOF\n", DEBUG_INFO_STR);
 				 break;  // Done reading
