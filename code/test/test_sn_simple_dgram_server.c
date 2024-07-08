@@ -131,43 +131,48 @@ int main(int argc, char *argv[])
 			exit_code = result;
 		}
 	}
-	// Block until data received from a client
-	if (!exit_code)
+	do
 	{
-		if (SERVER_PROTOCOL == server_protocol)
+		PRINT_ERROR(HERE!);  // DEBUGGING
+		// Block until data received from a client
+		if (!exit_code)
 		{
-			FPRINTF_ERR("%s - Setting the server socket to wait for a client\n", DEBUG_INFO_STR);
-			client_msg = recv_from_socket(server_fd, recv_flags, (struct sockaddr *)&their_addr,
-										  &sin_size, &exit_code);
-			if (exit_code)
+			if (SERVER_PROTOCOL == server_protocol)
 			{
-				PRINT_ERROR(The call to recv_from_socket() failed);
+				FPRINTF_ERR("%s - Setting the server socket to wait for a client\n", DEBUG_INFO_STR);
+				client_msg = recv_from_socket(server_fd, recv_flags, (struct sockaddr *)&their_addr,
+											  &sin_size, &exit_code);
+				if (exit_code)
+				{
+					PRINT_ERROR(The call to recv_from_socket() failed);
+					PRINT_ERRNO(exit_code);
+				}
+			}
+			else
+			{
+				protocol_name = resolve_protocol(server_protocol, &exit_code);  // Best effort
+				FPRINTF_ERR("%s - Skipping 'recvfrom' for an ineligible server protocol [%d]: %s\n",
+					        DEBUG_INFO_STR, server_protocol, protocol_name);
+				exit_code = EPROTONOSUPPORT;
+			}
+		}
+		// Output
+		if (!exit_code)
+		{
+			exit_code = convert_sas_ip(&their_addr, inet_addr, INET6_ADDRSTRLEN * sizeof(char));
+			if (!exit_code)
+			{
+				printf("%s - Server: received message from %s: %s\n",
+					   DEBUG_INFO_STR, inet_addr, client_msg);
+				break;  // We got a message, so stop listening
+			}
+			else
+			{
+				PRINT_ERROR(The call to convert_sas_ip() failed);
 				PRINT_ERRNO(exit_code);
 			}
 		}
-		else
-		{
-			protocol_name = resolve_protocol(server_protocol, &exit_code);  // Best effort
-			FPRINTF_ERR("%s - Skipping 'recvfrom' for an ineligible server protocol [%d]: %s\n",
-				        DEBUG_INFO_STR, server_protocol, protocol_name);
-			exit_code = EPROTONOSUPPORT;
-		}
-	}
-	// Output
-	if (!exit_code)
-	{
-		exit_code = convert_sas_ip(&their_addr, inet_addr, INET6_ADDRSTRLEN * sizeof(char));
-		if (!exit_code)
-		{
-			printf("%s - Server: received message from %s: %s\n",
-				   DEBUG_INFO_STR, inet_addr, client_msg);
-		}
-		else
-		{
-			PRINT_ERROR(The call to convert_sas_ip() failed);
-			PRINT_ERRNO(exit_code);
-		}
-	}
+	} while (ENOERR == exit_code);
 
 	// CLEANUP
 	free_skid_mem((void **)&protocol_name);  // Best effort
