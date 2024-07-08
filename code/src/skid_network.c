@@ -564,6 +564,45 @@ int send_socket(int sockfd, const char *msg, int flags)
 }
 
 
+int send_to_socket(int sockfd, const char *msg, int flags, const struct sockaddr *dest_addr,
+	               socklen_t addrlen)
+{
+	// LOCAL VARIABLES
+	size_t msg_len = 0;      // Length of msg
+	ssize_t bytes_sent = 0;  // Return value from send()
+	int result = ENOERR;     // Errno values
+
+	// INPUT VALIDATION
+	result = validate_skid_sockfd(sockfd);
+	if (ENOERR == result)
+	{
+		result = validate_skid_string(msg, false);  // Can not be empty
+	}
+
+	// SEND TO IT
+	if (ENOERR == result)
+	{
+		msg_len = strlen(msg);
+		bytes_sent = sendto(sockfd, msg, msg_len, flags, dest_addr, addrlen);
+		if (bytes_sent < 0)
+		{
+			result = errno;
+			PRINT_ERROR(The call to sendto() failed);
+			PRINT_ERRNO(result);
+		}
+		else if (bytes_sent < (msg_len * sizeof(char)))
+		{
+			PRINT_WARNG(The call to sendto() only finished a partial send);
+			// Finish sending or force error
+			result = send_to_socket(sockfd, msg + bytes_sent, flags, dest_addr, addrlen);
+		}
+	}
+
+	// DONE
+	return result;
+}
+
+
 /**************************************************************************************************/
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
