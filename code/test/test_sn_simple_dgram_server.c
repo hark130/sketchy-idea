@@ -136,8 +136,8 @@ int main(int argc, char *argv[])
 		if (SERVER_TYPE == server_protocol)
 		{
 			FPRINTF_ERR("%s - Setting the server socket to wait for a client\n", DEBUG_INFO_STR);
-			client_msg = recv_from_socket_dynamic(server_fd, recv_flags, &their_addr, &sin_size,
-				                                  &exit_code);
+			client_msg = recv_from_socket(server_fd, recv_flags, &their_addr, &sin_size,
+				                          &exit_code);
 		}
 		else
 		{
@@ -146,7 +146,22 @@ int main(int argc, char *argv[])
 		}
 		if (exit_code)
 		{
-			PRINT_ERROR(The call to recv_from_socket_dynamic() failed);
+			PRINT_ERROR(The call to recv_from_socket() failed);
+			PRINT_ERRNO(exit_code);
+		}
+	}
+	// Output
+	if (!exit_code)
+	{
+		exit_code = convert_sas_ip(&their_addr, inet_addr, INET6_ADDRSTRLEN * sizeof(char));
+		if (!exit_code)
+		{
+			printf("%s - Server: received message from %s: %s\n",
+				   DEBUG_INFO_STR, inet_addr, client_msg);
+		}
+		else
+		{
+			PRINT_ERROR(The call to convert_sas_ip() failed);
 			PRINT_ERRNO(exit_code);
 		}
 	}
