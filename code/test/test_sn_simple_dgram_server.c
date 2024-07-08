@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
 	char inet_addr[INET6_ADDRSTRLEN+1] = { 0 };  // Converted socket address to human readable IP
 	char *client_msg = NULL;                     // Message read from the client file descriptor
 	int recv_flags = 0;                          // See recv(2)
+	char *protocol_name = NULL;                  // Official name of the server_protocol
 
 	// INPUT VALIDATION
 	if (argc != 1)
@@ -133,21 +134,23 @@ int main(int argc, char *argv[])
 	// Block until data received from a client
 	if (!exit_code)
 	{
-		if (SERVER_TYPE == server_protocol)
+		if (SERVER_PROTOCOL == server_protocol)
 		{
 			FPRINTF_ERR("%s - Setting the server socket to wait for a client\n", DEBUG_INFO_STR);
-			client_msg = recv_from_socket(server_fd, recv_flags, &their_addr, &sin_size,
-				                          &exit_code);
+			client_msg = recv_from_socket(server_fd, recv_flags, (struct sockaddr *)&their_addr,
+										  &sin_size, &exit_code);
+			if (exit_code)
+			{
+				PRINT_ERROR(The call to recv_from_socket() failed);
+				PRINT_ERRNO(exit_code);
+			}
 		}
 		else
 		{
-			FPRINTF_ERR("%s - Skipping 'recvfrom' for an ineligible server socket protocol\n",
-				        DEBUG_INFO_STR);  // Not an error
-		}
-		if (exit_code)
-		{
-			PRINT_ERROR(The call to recv_from_socket() failed);
-			PRINT_ERRNO(exit_code);
+			protocol_name = resolve_protocol(server_protocol, &exit_code);  // Best effort
+			FPRINTF_ERR("%s - Skipping 'recvfrom' for an ineligible server protocol [%d]: %s\n",
+				        DEBUG_INFO_STR, server_protocol, protocol_name);
+			exit_code = EPROTONOSUPPORT;
 		}
 	}
 	// Output
@@ -167,6 +170,7 @@ int main(int argc, char *argv[])
 	}
 
 	// CLEANUP
+	free_skid_mem((void **)&protocol_name);  // Best effort
 	free_skid_mem((void **)&client_msg);  // Best effort
 	close_socket(&server_fd, true);  // Best effort
 
