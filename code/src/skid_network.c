@@ -208,7 +208,7 @@ int bind_struct(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 		if (bind(sockfd, addr, addrlen))
 		{
 			result = errno;
-			PRINT_ERROR(The call to socket() failed);
+			PRINT_ERROR(The call to bind() failed);
 			PRINT_ERRNO(result);
 		}
 	}
