@@ -43,6 +43,7 @@ int main(int argc, char *argv[])
 	int server_protocol = SERVER_PROTOCOL;       // Server socket protocol
 	int server_fd = SKID_BAD_FD;                 // Server file descriptor
 	int client_fd = SKID_BAD_FD;			     // Client file descriptor
+	const char *node = NULL;                     // Hostname/IP to use for the server
 	struct addrinfo hints;                       // Selection criteria
 	struct addrinfo *servinfo = NULL;            // Out argument for get_addr_info()
 	struct addrinfo *temp_serv = NULL;           // Use this to walk the servinfo linked list
@@ -53,9 +54,13 @@ int main(int argc, char *argv[])
 	int recv_flags = 0;                          // See recv(2)
 
 	// INPUT VALIDATION
-	if (argc != 1)
+	if (argc == 2)
 	{
-	   fprintf(stderr, "Usage: %s\n", argv[0]);
+		node = argv[1];  // User has specified a node to use
+	}
+	else if (argc != 1)
+	{
+	   fprintf(stderr, "Usage: %s [Optional hostname/IP]\n", argv[0]);
 	   exit_code = EINVAL;
 	}
 
@@ -73,7 +78,7 @@ int main(int argc, char *argv[])
 	// Get an address
 	if (!exit_code)
 	{
-		exit_code = get_addr_info(NULL, PORT, &hints, &servinfo);
+		exit_code = get_addr_info(node, PORT, &hints, &servinfo);
 	}
 	// "Name the socket"
 	if (!exit_code)
