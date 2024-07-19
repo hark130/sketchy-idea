@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 		}
 		if (NULL == temp_serv)
 		{
-			FPRINTF_ERR("%s - Server: failed to name a socket", DEBUG_ERROR_STR);
+			FPRINTF_ERR("%s - Server: failed to name a socket\n", DEBUG_ERROR_STR);
 			exit_code = ETIMEDOUT;  // It's as close as anything else
 		}
 	}
