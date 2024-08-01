@@ -725,6 +725,7 @@ void *get_inet_addr(struct sockaddr *sa, int *errnum)
 		}
 		else
 		{
+			FPRINTF_ERR("%s - IPv4 is %u, IPv6 is %u but this is %u!\n", DEBUG_INFO_STR, AF_INET, AF_INET6, sa->sa_family);  // DEBUGGING
 			inet_addr = NULL;
 			result = EPFNOSUPPORT;  // Unsupported sa_family
 		}

@@ -13,7 +13,9 @@
 
 #define SKID_DEBUG			// Enable DEBUG logging
 
+#include <arpa/inet.h>				// inet_addr()
 #include <errno.h>					// EINVAL
+#include <netinet/in.h>				// inet_addr()
 #include <stdio.h>					// fprintf()
 #include <stdlib.h>					// exit()
 #include <sys/socket.h>				// AF_INET
@@ -28,28 +30,31 @@
 #define SERVER_DOMAIN AF_INET 		 // Server socket domain
 #define SERVER_TYPE SOCK_DGRAM		 // Server socket type
 #define SERVER_PROTOCOL IPPROTO_UDP  // Server socket protocol
-#define PORT "5678"					 // The port clients will connect to
+#define SERVER_PORT 5678			 // The port clients will connect to
 
 
 int main(int argc, char *argv[])
 {
 	// LOCAL VARIABLES
-	int exit_code = 0;                           // Store errno and/or results here
-	int result = 0;                              // Additional errno values
-	int server_domain = SERVER_DOMAIN;           // Server socket domain
-	int server_type = SERVER_TYPE;               // Server socket type
-	int server_protocol = SERVER_PROTOCOL;       // Server socket protocol
-	int server_fd = SKID_BAD_FD;                 // Server file descriptor
-	const char *node = NULL;                     // Hostname/IP to use for the server
-	struct addrinfo hints;                       // Selection criteria
-	struct addrinfo *servinfo = NULL;            // Out argument for get_addr_info()
-	struct addrinfo *temp_serv = NULL;           // Use this to walk the servinfo linked list
-	struct sockaddr_storage their_addr;          // Client's address information
-	socklen_t sin_size = 0;                      // The size of their_addr
-	char inet_addr[INET6_ADDRSTRLEN+1] = { 0 };  // Converted socket address to human readable IP
-	char *client_msg = NULL;                     // Message read from the client file descriptor
-	int recv_flags = 0;                          // See recv(2)
-	char *protocol_name = NULL;                  // Official name of the server_protocol
+	int exit_code = 0;                             // Store errno and/or results here
+	// int result = 0;                                // Additional errno values
+	int server_domain = SERVER_DOMAIN;             // Server socket domain
+	int server_type = SERVER_TYPE;                 // Server socket type
+	int server_protocol = SERVER_PROTOCOL;         // Server socket protocol
+	int socket_fd = SKID_BAD_FD;                   // Server file descriptor
+	const char *node = NULL;                       // Hostname/IP to use for the server
+	// struct addrinfo hints;                         // Selection criteria
+	// struct addrinfo *servinfo = NULL;              // Out argument for get_addr_info()
+	// struct addrinfo *temp_serv = NULL;             // Use this to walk the servinfo linked list
+	// struct sockaddr_storage their_addr;          // Client's address information
+	// socklen_t sin_size = 0;                      // The size of their_addr
+	char client_addr[INET6_ADDRSTRLEN+1] = { 0 };  // Converted socket address to human readable IP
+	char *client_msg = NULL;                       // Message read from the client file descriptor
+	// int recv_flags = 0;                            // See recv(2)
+	char *protocol_name = NULL;                    // Official name of the server_protocol
+	struct sockaddr_in servaddr;			       // Server address
+	struct sockaddr_in cliaddr;					   // Client address
+	socklen_t cliaddr_size = 0;                    // The size of cliaddr
 
 	// INPUT VALIDATION
 	if (argc == 2)
@@ -62,78 +67,53 @@ int main(int argc, char *argv[])
 	   exit_code = EINVAL;
 	}
 
-	// SETUP SERVER
-	// Setup hints
+	// SETUP
+	// Setup server struct
 	if (!exit_code)
 	{
-		// Zeroize the struct
-		memset(&hints, 0x0, sizeof(hints));
-	    hints.ai_family = server_domain;  // AKA domain
-	    hints.ai_socktype = server_type;
-	    hints.ai_protocol = server_protocol;
-	    hints.ai_flags = AI_PASSIVE; // use my IP
+		// Zeroize the server struct
+		memset(&servaddr, 0x0, sizeof(servaddr));
+		if (node)
+		{
+			servaddr.sin_addr.s_addr = inet_addr(node);
+		}
+		else
+		{
+			servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+		}
+		servaddr.sin_port = htons(SERVER_PORT);
+	    servaddr.sin_family = server_domain;  // AKA domain
 	}
-	// Zeroize Socket Address Storage struct
+	// Setup client struct
 	if (!exit_code)
 	{
-		memset(&their_addr, 0x0, sizeof(their_addr));
-	}
-	// Get an address
-	if (!exit_code)
-	{
-		exit_code = get_addr_info(node, PORT, &hints, &servinfo);
+		memset(&cliaddr, 0x0, sizeof(cliaddr));  // Zeroize
 	}
 	// "Name the socket"
 	if (!exit_code)
 	{
-		for (temp_serv = servinfo; NULL != temp_serv; temp_serv = temp_serv->ai_next)
+		// Open the socket
+		socket_fd = open_socket(server_domain, server_type, 0, &exit_code);
+		if (SKID_BAD_FD == socket_fd)
 		{
-			// Open the socket
-			server_fd = open_socket(temp_serv->ai_family, temp_serv->ai_socktype,
-				                    temp_serv->ai_protocol, &exit_code);
-			if (SKID_BAD_FD == server_fd)
+			// Failed to open the socket with this domain, type, and protocol
+			PRINT_ERROR(The call to open_socket() failed);
+			PRINT_ERRNO(exit_code);
+			FPRINTF_ERR("%s - The call was open_socket(%d, %d, %d, %p)\n", DEBUG_ERROR_STR,
+				        server_domain, server_type, 0, &exit_code);
+		}
+		else
+		{
+			exit_code = bind_struct(socket_fd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+			if (exit_code)
 			{
-				// Failed to open the socket with this domain, type, and protocol
-				PRINT_ERROR(The call to open_socket() failed);
+				// Failed to "name the socket"
+				PRINT_ERROR(The call to bind_struct() failed);
 				PRINT_ERRNO(exit_code);
-				FPRINTF_ERR("%s - The call was open_socket(%d, %d, %d, %p)\n", DEBUG_ERROR_STR,
-					        temp_serv->ai_family, temp_serv->ai_socktype, temp_serv->ai_protocol,
-					        &exit_code);
-				continue;  // Try the next node in the linked list
+				FPRINTF_ERR("%s - The call was bind_struct(%d, %p, %lu)\n", DEBUG_ERROR_STR,
+					        socket_fd, &servaddr, sizeof(servaddr));
+				close_socket(&socket_fd, false);  // This socket is no good
 			}
-			else
-			{
-				exit_code = bind_struct(server_fd, temp_serv->ai_addr, temp_serv->ai_addrlen);
-				if (exit_code)
-				{
-					// Failed to "name the socket"
-					PRINT_ERROR(The call to bind_struct() failed);
-					PRINT_ERRNO(exit_code);
-					FPRINTF_ERR("%s - The call was bind_struct(%d, %p, %d)\n", DEBUG_ERROR_STR,
-						        server_fd, temp_serv->ai_addr, temp_serv->ai_addrlen);
-					close_socket(&server_fd, false);  // This socket is no good
-					continue;  // Try the next node in the linked list
-				}
-				else
-				{
-					server_protocol = temp_serv->ai_protocol;  // Store the *actual* protocol
-					break;  // We got one!
-				}
-			}
-		}
-		if (NULL == temp_serv)
-		{
-			FPRINTF_ERR("%s - Server: failed to name a socket\n", DEBUG_ERROR_STR);
-			exit_code = ETIMEDOUT;  // It's as close as anything else
-		}
-	}
-	// Success or failure, we're done with the addrinfo linked list
-	if (NULL != servinfo)
-	{
-		result = free_addr_info(&servinfo);
-		if (!exit_code)
-		{
-			exit_code = result;
 		}
 	}
 	do
@@ -144,13 +124,19 @@ int main(int argc, char *argv[])
 			if (SERVER_PROTOCOL == server_protocol)
 			{
 				FPRINTF_ERR("%s - Setting the server socket to wait for a client\n", DEBUG_INFO_STR);
-				client_msg = recv_from_socket(server_fd, recv_flags, (struct sockaddr *)&their_addr,
-											  &sin_size, &exit_code);
-				if (exit_code)
-				{
-					PRINT_ERROR(The call to recv_from_socket() failed);
-					PRINT_ERRNO(exit_code);
-				}
+				// client_msg = recv_from_socket(socket_fd, recv_flags, (struct sockaddr *)&cliaddr,
+				// 							  &cliaddr_size, &exit_code);
+				// if (exit_code)
+				// {
+				// 	PRINT_ERROR(The call to recv_from_socket() failed);
+				// 	PRINT_ERRNO(exit_code);
+				// }
+				char client_msg[1024 + 1] = { 0 };
+				int n = recvfrom(socket_fd, client_msg, sizeof(client_msg) - 1, 0,
+				                 (struct sockaddr*)&cliaddr, &cliaddr_size); // recv from client
+			    client_msg[n] = '\0';
+			    FPRINTF_ERR("%s - Received %s\n", DEBUG_INFO_STR, client_msg);  // DEBUGGING
+			    cliaddr.sin_family = server_domain;  // IT'S COMING IN AS ZERO (0)?!
 			}
 			else
 			{
@@ -163,11 +149,12 @@ int main(int argc, char *argv[])
 		// Output
 		if (!exit_code)
 		{
-			exit_code = convert_sas_ip(&their_addr, inet_addr, INET6_ADDRSTRLEN * sizeof(char));
+			exit_code = convert_sas_ip((struct sockaddr_storage *)&cliaddr, client_addr,
+				                       INET6_ADDRSTRLEN * sizeof(char));
 			if (!exit_code)
 			{
 				printf("%s - Server: received message from %s: %s\n",
-					   DEBUG_INFO_STR, inet_addr, client_msg);
+					   DEBUG_INFO_STR, client_addr, client_msg);
 				break;  // We got a message, so stop listening
 			}
 			else
@@ -181,7 +168,7 @@ int main(int argc, char *argv[])
 	// CLEANUP
 	free_skid_mem((void **)&protocol_name);  // Best effort
 	free_skid_mem((void **)&client_msg);  // Best effort
-	close_socket(&server_fd, true);  // Best effort
+	close_socket(&socket_fd, true);  // Best effort
 
 	// DONE
 	exit(exit_code);
