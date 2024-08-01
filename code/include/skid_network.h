@@ -324,8 +324,8 @@ int send_socket(int sockfd, const char *msg, int flags);
  *			MSG_CONFIRM, MSG_DONTROUTE, MSG_DONTWAIT, MSG_EOR, MSG_MORE, MSG_NOSIGNAL, MSG_OOB.
  *		dest_addr: [Optional] A pointer to the storage location for the destination address of
  *			the message.  Not validated.  Passed directly to sendto().
- *		addrlen: [Optional] A pointer to the storage location for the actual size of the
- *			destination address.  Not validated.  Passed directly to sendto().
+ *		addrlen: [Optional] The actual size of the dest_addr (destination address) argument.
+ *			Not validated.  Passed directly to sendto().
  *
  *	Returns:
  *		On success, zero is returned.  On error, errno is returned.  EISCONN may be returned if
