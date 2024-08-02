@@ -3,14 +3,18 @@
  *	This binary use the function wrappers to replicate this behavior:
  *		https://github.com/beejjorgensen/bgnet/blob/main/src/bgnet_part_0600_clientserver.md
  *
- *	Copy/paste the following...
+ *	Copy/paste one or more of the following...
 
-# All values are hard-coded so no arguments are necessary
+# NORMAL - All values are hard-coded so no arguments are necessary
 ./code/dist/test_sn_simple_dgram_server.bin <SERVER_IP_ADDR>
 
-# Manual compilation with ASAN
+# VALGRIND - Testing with Valgrind
+valgrind --leak-check=full --show-leak-kinds=all ./code/dist/test_sn_simple_dgram_server.bin <SERVER_IP_ADDR>
+
+# ASAN - Manual compilation with ASAN
 gcc -fsanitize=address -g -Wall -Werror -Wfatal-errors -o code/dist/test_sn_simple_dgram_server.bin -I code/include/ \
 code/test/test_sn_simple_dgram_server.c code/src/skid_network.c code/src/skid_memory.c code/src/skid_validation.c code/src/skid_file_descriptors.c
+# ...then execute normally
 
  *
  */
