@@ -6,44 +6,40 @@
  *	Copy/paste the following...
 
 # All values are hard-coded so no arguments are necessary
-./code/dist/test_sn_simple_dgram_client.bin
+./code/dist/test_sn_simple_dgram_client.bin <SERVER>
 
  *
  */
 
-#define SKID_DEBUG					// Enable DEBUG logging
+#define SKID_DEBUG					 // Enable DEBUG logging
 
-#include <arpa/inet.h>				// inet_addr()
-#include <errno.h>					// EINVAL
-#include <netinet/in.h>				// inet_addr()
-#include <stdio.h>					// fprintf()
-#include <stdlib.h>					// exit()
-#include <sys/socket.h>				// AF_INET
-#include <unistd.h>					// fork()
-#include "skid_debug.h"				// FPRINTF_ERR(), PRINT_ERRNO(), PRINT_ERROR()
+#include <arpa/inet.h>				 // inet_addr()
+#include <errno.h>					 // EINVAL
+#include <netinet/in.h>				 // inet_addr()
+#include <stdio.h>					 // fprintf()
+#include <stdlib.h>					 // exit()
+#include <sys/socket.h>				 // AF_INET
+#include <unistd.h>					 // fork()
+#include "skid_debug.h"				 // FPRINTF_ERR(), PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_network.h"
 
 
-#define SERVER_SLEEP 1  			// Number of seconds the server sleeps while awiting connection
-#define SERVER_DOMAIN AF_INET 	 	// Server socket domain
-#define SERVER_TYPE SOCK_DGRAM		// Server socket type
-#define SERVER_PROTOCOL IPPROTO_UDP	// Server socket protocol
-#define SERVER_PORT 5678			// The port clients will connect to
+#define SERVER_SLEEP 1  			 // Number of seconds the server sleeps while awiting connection
+#define SERVER_DOMAIN AF_INET 	 	 // Server socket domain
+#define SERVER_TYPE SOCK_DGRAM		 // Server socket type
+#define SERVER_PROTOCOL IPPROTO_UDP  // Server socket protocol
+#define SERVER_PORT 5678			 // The port clients will connect to
 
 
 int main(int argc, char *argv[])
 {
 	// LOCAL VARIABLES
 	int exit_code = 0;                           // Store errno and/or results here
-	// int result = 0;                              // Additional errno values
 	int server_domain = SERVER_DOMAIN;           // Server socket domain
 	int server_type = SERVER_TYPE;               // Server socket type
 	unsigned short server_port = SERVER_PORT;    // Port the server is listening on
 	int socket_fd = SKID_BAD_FD;                 // Server file descriptor
 	const char *node = "127.0.0.1";              // Hostname/IP of the server
-	// struct addrinfo hints;                       // Selection criteria
-	// struct addrinfo *servinfo = NULL;            // Out argument for get_addr_info()
-	// struct addrinfo *temp_serv = NULL;           // Use this to walk the servinfo linked list
 	char message[] = { "Hello, world!" };        // Message for the client to send to the server
 	int sendto_flags = 0;                        // See sendto(2)
 	struct sockaddr_in servaddr;

@@ -6,7 +6,7 @@
  *	Copy/paste the following...
 
 # All values are hard-coded so no arguments are necessary
-./code/dist/test_sn_simple_dgram_server.bin
+./code/dist/test_sn_simple_dgram_server.bin <SERVER_IP_ADDR>
 
  *
  */
@@ -37,17 +37,11 @@ int main(int argc, char *argv[])
 {
 	// LOCAL VARIABLES
 	int exit_code = 0;                             // Store errno and/or results here
-	// int result = 0;                                // Additional errno values
 	int server_domain = SERVER_DOMAIN;             // Server socket domain
 	int server_type = SERVER_TYPE;                 // Server socket type
 	int server_protocol = SERVER_PROTOCOL;         // Server socket protocol
 	int socket_fd = SKID_BAD_FD;                   // Server file descriptor
 	const char *node = NULL;                       // Hostname/IP to use for the server
-	// struct addrinfo hints;                         // Selection criteria
-	// struct addrinfo *servinfo = NULL;              // Out argument for get_addr_info()
-	// struct addrinfo *temp_serv = NULL;             // Use this to walk the servinfo linked list
-	// struct sockaddr_storage their_addr;          // Client's address information
-	// socklen_t sin_size = 0;                      // The size of their_addr
 	char client_addr[INET6_ADDRSTRLEN+1] = { 0 };  // Converted socket address to human readable IP
 	char *client_msg = NULL;                       // Message read from the client file descriptor
 	int recv_flags = 0;                            // See recv(2)
@@ -127,7 +121,8 @@ int main(int argc, char *argv[])
 			{
 				if (SERVER_PROTOCOL == server_protocol)
 				{
-					client_msg = recv_from_socket(socket_fd, recv_flags, (struct sockaddr *)&cliaddr,
+					client_msg = recv_from_socket(socket_fd, recv_flags,
+						                          (struct sockaddr *)&cliaddr,
 												  &cliaddr_size, &exit_code);
 					if (exit_code)
 					{
@@ -138,7 +133,7 @@ int main(int argc, char *argv[])
 				else
 				{
 					protocol_name = resolve_protocol(server_protocol, &exit_code);  // Best effort
-					FPRINTF_ERR("%s - Skipping 'recvfrom' for an ineligible server protocol [%d]: %s\n",
+					FPRINTF_ERR("%s - Skipping recv from an ineligible client protocol [%d]: %s\n",
 						        DEBUG_INFO_STR, server_protocol, protocol_name);
 					exit_code = EPROTONOSUPPORT;
 				}
@@ -152,7 +147,6 @@ int main(int argc, char *argv[])
 				{
 					printf("%s - Server: received message from %s: %s\n",
 						   DEBUG_INFO_STR, client_addr, client_msg);
-					// break;  // We got a message, so stop listening
 				}
 				else
 				{
