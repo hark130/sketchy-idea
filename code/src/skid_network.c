@@ -692,7 +692,8 @@ bool check_sn_space(size_t bytes_read, size_t output_len, size_t output_size)
 	// CHECK IT
 	if (bytes_read > 0 && output_size > 0)
 	{
-		if ((output_size - output_len) >= bytes_read)
+		// Leave an extra byte for the nul-terminator
+		if ((output_size - output_len) >= (bytes_read + 1))
 		{
 			has_room = true;
 		}
@@ -836,7 +837,7 @@ int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, s
 	{
 		output_len = strlen(*output_buf);  // Get the current length of output_buf
 		// Read into local buff
-		num_read = recvfrom(sockfd, local_buf, sizeof(local_buf), flags, src_addr, addrlen);
+		num_read = recvfrom(sockfd, local_buf, SKID_NET_BUFF_SIZE * sizeof(char), flags, src_addr, addrlen);
 		if (num_read < 0)
 		{
 			result = errno;
@@ -849,6 +850,7 @@ int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, s
 		}
 		else
 		{
+			FPRINTF_ERR("%s - local_buf STRING IS %s\n", DEBUG_INFO_STR, local_buf);  // DEBUGGING
 			// Check for room
 			if (false == check_sn_space(num_read, output_len, *output_size))
 			{
@@ -871,8 +873,12 @@ int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, s
 					FPRINTF_ERR("%s - output_size IS %p\n", DEBUG_INFO_STR, output_size);  // DEBUGGING
 					FPRINTF_ERR("%s - *output_size IS %lu\n", DEBUG_INFO_STR, *output_size);  // DEBUGGING
 					FPRINTF_ERR("%s - output_len IS %lu\n", DEBUG_INFO_STR, output_len);  // DEBUGGING
+					FPRINTF_ERR("%s - *output_buf STRING IS %s\n", DEBUG_INFO_STR, *output_buf);  // DEBUGGING
+					FPRINTF_ERR("%s - local_buf STRING IS %s\n", DEBUG_INFO_STR, local_buf);  // DEBUGGING
+					FPRINTF_ERR("%s - sizeof(local_buf) IS %lu\n", DEBUG_INFO_STR, sizeof(local_buf));  // DEBUGGING
+					FPRINTF_ERR("%s - strlen(local_buf) IS %lu\n", DEBUG_INFO_STR, strlen(local_buf));  // DEBUGGING
 					// Add local to output
-					strncat(*output_buf, local_buf, *output_size - output_len);
+					strncat(*output_buf, local_buf, (*output_size) - output_len);
 					memset(local_buf, 0x0, sizeof(local_buf));  // Zeroize the local buffer
 				}
 				else
