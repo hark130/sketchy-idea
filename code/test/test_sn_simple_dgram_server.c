@@ -50,11 +50,11 @@ int main(int argc, char *argv[])
 	// socklen_t sin_size = 0;                      // The size of their_addr
 	char client_addr[INET6_ADDRSTRLEN+1] = { 0 };  // Converted socket address to human readable IP
 	char *client_msg = NULL;                       // Message read from the client file descriptor
-	// int recv_flags = 0;                            // See recv(2)
+	int recv_flags = 0;                            // See recv(2)
 	char *protocol_name = NULL;                    // Official name of the server_protocol
 	struct sockaddr_in servaddr;			       // Server address
 	struct sockaddr_in cliaddr;					   // Client address
-	socklen_t cliaddr_size = 0;                    // The size of cliaddr
+	socklen_t cliaddr_size = sizeof(cliaddr);      // The size of cliaddr
 
 	// INPUT VALIDATION
 	if (argc == 2)
@@ -116,54 +116,52 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-	do
+	// Receive data
+	if (!exit_code)
 	{
-		// Block until data received from a client
-		if (!exit_code)
+		FPRINTF_ERR("%s - Setting the server socket to wait for a client\n", DEBUG_INFO_STR);
+		do
 		{
-			if (SERVER_PROTOCOL == server_protocol)
-			{
-				FPRINTF_ERR("%s - Setting the server socket to wait for a client\n", DEBUG_INFO_STR);
-				// client_msg = recv_from_socket(socket_fd, recv_flags, (struct sockaddr *)&cliaddr,
-				// 							  &cliaddr_size, &exit_code);
-				// if (exit_code)
-				// {
-				// 	PRINT_ERROR(The call to recv_from_socket() failed);
-				// 	PRINT_ERRNO(exit_code);
-				// }
-				char client_msg[1024 + 1] = { 0 };
-				int n = recvfrom(socket_fd, client_msg, sizeof(client_msg) - 1, 0,
-				                 (struct sockaddr*)&cliaddr, &cliaddr_size); // recv from client
-			    client_msg[n] = '\0';
-			    FPRINTF_ERR("%s - Received %s\n", DEBUG_INFO_STR, client_msg);  // DEBUGGING
-			    cliaddr.sin_family = server_domain;  // IT'S COMING IN AS ZERO (0)?!
-			}
-			else
-			{
-				protocol_name = resolve_protocol(server_protocol, &exit_code);  // Best effort
-				FPRINTF_ERR("%s - Skipping 'recvfrom' for an ineligible server protocol [%d]: %s\n",
-					        DEBUG_INFO_STR, server_protocol, protocol_name);
-				exit_code = EPROTONOSUPPORT;
-			}
-		}
-		// Output
-		if (!exit_code)
-		{
-			exit_code = convert_sas_ip((struct sockaddr_storage *)&cliaddr, client_addr,
-				                       INET6_ADDRSTRLEN * sizeof(char));
+			// Block until data received from a client
 			if (!exit_code)
 			{
-				printf("%s - Server: received message from %s: %s\n",
-					   DEBUG_INFO_STR, client_addr, client_msg);
-				break;  // We got a message, so stop listening
+				if (SERVER_PROTOCOL == server_protocol)
+				{
+					client_msg = recv_from_socket(socket_fd, recv_flags, (struct sockaddr *)&cliaddr,
+												  &cliaddr_size, &exit_code);
+					if (exit_code)
+					{
+						PRINT_ERROR(The call to recv_from_socket() failed);
+						PRINT_ERRNO(exit_code);
+					}
+				}
+				else
+				{
+					protocol_name = resolve_protocol(server_protocol, &exit_code);  // Best effort
+					FPRINTF_ERR("%s - Skipping 'recvfrom' for an ineligible server protocol [%d]: %s\n",
+						        DEBUG_INFO_STR, server_protocol, protocol_name);
+					exit_code = EPROTONOSUPPORT;
+				}
 			}
-			else
+			// Output
+			if (!exit_code)
 			{
-				PRINT_ERROR(The call to convert_sas_ip() failed);
-				PRINT_ERRNO(exit_code);
+				exit_code = convert_sas_ip((struct sockaddr_storage *)&cliaddr, client_addr,
+					                       INET6_ADDRSTRLEN * sizeof(char));
+				if (!exit_code)
+				{
+					printf("%s - Server: received message from %s: %s\n",
+						   DEBUG_INFO_STR, client_addr, client_msg);
+					// break;  // We got a message, so stop listening
+				}
+				else
+				{
+					PRINT_ERROR(The call to convert_sas_ip() failed);
+					PRINT_ERRNO(exit_code);
+				}
 			}
-		}
-	} while (ENOERR == exit_code);
+		} while (ENOERR == exit_code);
+	}
 
 	// CLEANUP
 	free_skid_mem((void **)&protocol_name);  // Best effort
