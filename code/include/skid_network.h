@@ -271,6 +271,7 @@ char *recv_socket(int sockfd, int flags, int *errnum);
  *
  *	Returns:
  *		Pointer to the heap-allocated buffer, on success.  NULL on error (check errnum for details).
+ *		ENODATA is used to indicate there was no data to receive.
  */
 char *recv_from_socket(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
 	                   int *errnum);
