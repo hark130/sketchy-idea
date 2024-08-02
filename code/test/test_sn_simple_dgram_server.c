@@ -134,8 +134,17 @@ int main(int argc, char *argv[])
 												  &cliaddr_size, &exit_code);
 					if (exit_code)
 					{
-						PRINT_ERROR(The call to recv_from_socket() failed);
-						PRINT_ERRNO(exit_code);
+						if (ENODATA == exit_code)
+						{
+							exit_code = ENOERR;  // Nothing to see here
+							sleep(1);  // Avoid CPU thrash with a tasteful sleep
+							continue;  // Keep waiting for data
+						}
+						else
+						{
+							PRINT_ERROR(The call to recv_from_socket() failed);
+							PRINT_ERRNO(exit_code);
+						}
 					}
 				}
 				else
