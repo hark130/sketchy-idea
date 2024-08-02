@@ -8,6 +8,10 @@
 # All values are hard-coded so no arguments are necessary
 ./code/dist/test_sn_simple_dgram_client.bin <SERVER>
 
+# Manual compilation with ASAN
+gcc -fsanitize=address -g -Wall -Werror -Wfatal-errors -o code/dist/test_sn_simple_dgram_client.bin -I code/include/ \
+code/test/test_sn_simple_dgram_client.c code/src/skid_network.c code/src/skid_validation.c code/src/skid_file_descriptors.c code/src/skid_memory.c
+
  *
  */
 
@@ -40,7 +44,8 @@ int main(int argc, char *argv[])
 	unsigned short server_port = SERVER_PORT;    // Port the server is listening on
 	int socket_fd = SKID_BAD_FD;                 // Server file descriptor
 	const char *node = "127.0.0.1";              // Hostname/IP of the server
-	char message[] = { "Hello, world!" };        // Message for the client to send to the server
+	// char message[] = { "Hello, world!" };        // Message for the client to send to the server
+	char message[2048 + 1] = { 0 };        // Message for the client to send to the server
 	int sendto_flags = 0;                        // See sendto(2)
 	struct sockaddr_in servaddr;
 
@@ -63,6 +68,11 @@ int main(int argc, char *argv[])
 		servaddr.sin_family = server_domain;
 		servaddr.sin_addr.s_addr = inet_addr(node);
 		servaddr.sin_port = htons(server_port);
+	}
+	/* SETUP MANUAL TEST INPUT FOR DEBUGGING */
+	for (int i = 0; i < 2048; i++)
+	{
+		message[i] = (i % (0x7E - 0x21)) + 0x21;
 	}
 
 	// CONNECT
