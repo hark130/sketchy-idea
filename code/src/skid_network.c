@@ -33,6 +33,27 @@
 
 /*
  *	Description:
+ *		Standardize the call to recvfrom() and response to its return values.
+ *
+ *	Args:
+ *		sockfd: Socket file descriptor to recv from.
+ *		flags: A bit-wise OR of zero or more flags (see: recvfrom(2)).  Passed directly to
+ *			recvfrom() without validation.
+ *		src_addr: [Optional/Out] Passed directly to recvfrom() without validation.
+ *		addrlen: [Optional/Out] Passed directly to recvfrom() without validation.
+ *		buff: [Out] Pointer to buffer to read into.
+ *		buff_size: The size of buf in bytes.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		The number of bytes read by recvfrom() on success, -1 on failure (sets errno value in
+ *		errnum).
+ */
+ssize_t call_recvfrom(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
+	                  char *buff, size_t buff_size, int *errnum);
+
+/*
+ *	Description:
  *		Check for an existing buffer pointer.  If one does not exist, make the first allocation.
  *
  *	Args:
@@ -77,6 +98,19 @@ void *get_inet_addr(struct sockaddr *sa, int *errnum);
 
 /*
  *	Description:
+ *		Use getsockname() to determine the socket family associated with sockfd.
+ *
+ *	Args:
+ *		sockfd: Socket file descriptor to fetch information about.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		The struct sockaddr.sa_family value on success, 0 on failure (sets errno value in errnum).
+ */
+sa_family_t get_socket_family(int sockfd, int *errnum);
+
+/*
+ *	Description:
  *		Reallocate a buffer: allocate a new buffer double the *output_size, copy the contents of
  *		*output_buf into the new buffer, free the old buffer, update the Out arguments.
  *		It is the caller's responsibility to free the buffer with free_skid_mem().
@@ -92,6 +126,27 @@ void *get_inet_addr(struct sockaddr *sa, int *errnum);
  *		be doubled without overflowing the size_t data type.
  */
 int realloc_sock_dynamic(char **output_buf, size_t *output_size);
+
+/*
+ *	Description:
+ *		Determine the size of the data waiting to be read from sockfd.  Calls recvfrom() with
+ *		the MSG_PEEK, MSG_TRUNC, and MSG_DONTWAIT flags.
+ *
+ *	Notes:
+ *		This will not work for unix(7) sockets (e.g., AF_UNIX, AF_LOCAL) (see: recv(2)).
+ *		Datagram sockets in various domains permit zero-length datagrams.  When such a datagram
+ *			is received, the return value is 0.
+ *
+ *	Args:
+ *		sockfd: Socket file descriptor to recv from.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		The real length of the packet or datagram.  Some "error" situations will be treated as
+ *		"nothing to read" and 0 will be returned: zero-length datagrams, no data to read, etc.
+ *		On an actual error, -1 is returned but the errno value will be stored in errnum.
+ */
+ssize_t recv_from_size(int sockfd, int *errnum);
 
 /*
  *	Description:
@@ -501,9 +556,10 @@ char *recv_from_socket(int sockfd, int flags, struct sockaddr *src_addr, socklen
 	                   int *errnum)
 {
 	// LOCAL VARIABLES
-	char *msg = NULL;                            // Heap-allocated copy of the msg read from sockfd
-	size_t msg_len = 0;                          // The length of msg (after it's recv()'d)
-	int result = ENOERR;                         // Errno values
+	char *msg = NULL;       // Heap-allocated copy of the msg read from sockfd
+	// size_t msg_len = 0;     // The length of msg (after it's recv()'d)
+	ssize_t data_size = 0;  // Size of the data waiting in sockfd
+	int result = ENOERR;    // Errno values
 
 	// INPUT VALIDATION
 	result = validate_skid_sockfd(sockfd);
@@ -513,9 +569,44 @@ char *recv_from_socket(int sockfd, int flags, struct sockaddr *src_addr, socklen
 	}
 
 	// RECV FROM IT
+	// if (ENOERR == result)
+	// {
+	// 	result = recv_from_socket_dynamic(sockfd, flags, src_addr, addrlen, &msg, &msg_len);
+	// }
+
+	// Size it
 	if (ENOERR == result)
 	{
-		result = recv_from_socket_dynamic(sockfd, flags, src_addr, addrlen, &msg, &msg_len);
+		data_size = recv_from_size(sockfd, &result);
+		if (data_size < 0)
+		{
+			PRINT_ERROR(The call to recv_from_size() failed);
+			PRINT_ERRNO(result);
+		}
+		else if (0 == data_size)
+		{
+			result = ENODATA;  // No data to receive
+		}
+	}
+	// Allocate
+	if (ENOERR == result)
+	{
+		msg = alloc_skid_mem(data_size + 1, 1, &result);
+	}
+	// Read
+	if (ENOERR == result)
+	{
+		if (data_size != call_recvfrom(sockfd, flags, src_addr, addrlen, msg, data_size, &result))
+		{
+			PRINT_ERROR(The call to call_recvfrom() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+
+	// CLEANUP
+	if (ENOERR != result)
+	{
+		free_skid_mem((void **)&msg);  // Best effort
 	}
 
 	// DONE
@@ -651,6 +742,65 @@ int send_to_socket(int sockfd, const char *msg, int flags, const struct sockaddr
 /**************************************************************************************************/
 
 
+ssize_t call_recvfrom(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
+	                  char *buff, size_t buff_size, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = validate_skid_fd(sockfd);       // Success of execution
+	ssize_t num_read = -1;                       // Number of bytes read on success, -1 for error
+	static bool mentioned_block = false;         // Only DEBUG blocking results once
+	bool print = true;                           // Dynamically avoid copy/pasted statements
+
+	// INPUT VALIDATION
+	if (ENOERR == result)
+	{
+		if (NULL == errnum || NULL == buff || buff_size <= 0)
+		{
+			result = EINVAL;  // Invalid input
+		}
+	}
+
+	// RECEIVE FROM IT
+	if (ENOERR == result)
+	{
+		num_read = recvfrom(sockfd, buff, buff_size, flags, src_addr, addrlen);
+		if (num_read >= 0) {FPRINTF_ERR("%s - The call to recvfrom() read %lu bytes\n", DEBUG_INFO_STR, num_read);}  // DEBUGGING
+		if (num_read < 0)
+		{
+			result = errno;
+			if (MSG_DONTWAIT == (MSG_DONTWAIT & flags) \
+				&& (EAGAIN == result || EWOULDBLOCK == result))
+			{
+				if (false == mentioned_block)
+				{
+					mentioned_block = true;  // Avoid verbose "waiting" messages
+				}
+				else
+				{
+					print = false;  // Skip mentioning it
+				}
+			}
+			if (true == print)
+			{
+				PRINT_ERROR(The call to recvfrom() failed);
+				PRINT_ERRNO(result);
+			}
+		}
+		else if (0 == num_read)
+		{
+			 FPRINTF_ERR("%s - Call to recvfrom() reached EOF\n", DEBUG_INFO_STR);
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return num_read;
+}
+
+
 int check_sn_pre_alloc(char **output_buf, size_t *output_size)
 {
 	// LOCAL VARIABLES
@@ -726,7 +876,8 @@ void *get_inet_addr(struct sockaddr *sa, int *errnum)
 		}
 		else
 		{
-			FPRINTF_ERR("%s - IPv4 is %u, IPv6 is %u but this is %u!\n", DEBUG_INFO_STR, AF_INET, AF_INET6, sa->sa_family);  // DEBUGGING
+			FPRINTF_ERR("%s - IPv4 is %u, IPv6 is %u but this is %u!\n",
+			            DEBUG_INFO_STR, AF_INET, AF_INET6, sa->sa_family);  // DEBUGGING
 			inet_addr = NULL;
 			result = EPFNOSUPPORT;  // Unsupported sa_family
 		}
@@ -738,6 +889,50 @@ void *get_inet_addr(struct sockaddr *sa, int *errnum)
 		*errnum = result;
 	}
 	return inet_addr;
+}
+
+
+sa_family_t get_socket_family(int sockfd, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = validate_skid_fd(sockfd);         // Success of execution
+	sa_family_t sock_fam = 0;                      // Socket family
+	struct sockaddr sock_data;                     // Socket data struct
+	socklen_t sock_data_size = sizeof(sock_data);  // Size of the sockaddr struct
+
+	// INPUT VALIDATION
+	if (ENOERR == result)
+	{
+		result = validate_skid_err(errnum);
+	}
+
+	// SETUP
+	if (ENOERR == result)
+	{
+		memset(&sock_data, 0x0, sock_data_size);  // Zeroize the struct
+	}
+
+	// GET FAMILY
+	if (ENOERR == result)
+	{
+		if (getsockname(sockfd, &sock_data, &sock_data_size))
+		{
+			result = errno;
+			PRINT_ERROR(The call to getsockname() failed);
+			PRINT_ERRNO(result);
+		}
+		else
+		{
+			sock_fam = sock_data.sa_family;
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return sock_fam;
 }
 
 
@@ -810,6 +1005,67 @@ int realloc_sock_dynamic(char **output_buf, size_t *output_size)
 }
 
 
+ssize_t recv_from_size(int sockfd, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = validate_skid_fd(sockfd);            // Success of execution
+	ssize_t data_size = 0;                            // Size of sockfd's data
+	sa_family_t sock_fam = 0;                         // Family associated with sockfd
+	int flags = MSG_PEEK | MSG_TRUNC | MSG_DONTWAIT;  // Flags passed to recvfrom()
+	char small_buff[1] = { 0 };                       // Very small buffer
+	size_t small_size = sizeof(small_buff);           // Very small size
+
+	// INPUT VALIDATION
+	if (ENOERR == result)
+	{
+		result = validate_skid_err(errnum);
+	}
+	if (ENOERR == result)
+	{
+		sock_fam = get_socket_family(sockfd, &result);
+		if (0 == sock_fam)
+		{
+			PRINT_ERROR(The call to get_socket_family() failed);
+			PRINT_ERRNO(result);
+		}
+		else if (AF_UNIX == sock_fam || AF_LOCAL == sock_fam)
+		{
+			result = EAFNOSUPPORT;  // MSG_TRUNC support not implemented for this domain/family
+			PRINT_ERROR(The flags used here have not been implemented with this socket family);
+		}
+	}
+
+	// SIZE IT
+	if (ENOERR == result)
+	{
+		// data_size = recvfrom(sockfd, NULL, 0, flags);
+		// Just get the size of the data in sockfd
+		data_size = call_recvfrom(sockfd, flags, NULL, NULL, small_buff, small_size, &result);
+		if (data_size < 0)
+		{
+			// Dynamically handle results
+			if (EAGAIN == result || EWOULDBLOCK == result)
+			{
+				data_size = 0;  // Nothing to read
+				result = ENOERR;  // Everything is fine.  Nothing to see here.
+			}
+			else if (result)
+			{
+				PRINT_ERROR(The call to recvfrom() failed);
+				PRINT_ERRNO(result);
+			}
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return data_size;
+}
+
+
 int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
 	                         char **output_buf, size_t *output_size)
 {
@@ -837,18 +1093,9 @@ int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, s
 	{
 		output_len = strlen(*output_buf);  // Get the current length of output_buf
 		// Read into local buff
-		num_read = recvfrom(sockfd, local_buf, SKID_NET_BUFF_SIZE * sizeof(char), flags, src_addr, addrlen);
-		if (num_read < 0)
-		{
-			result = errno;
-			PRINT_ERROR(The call to recvfrom() failed);
-			PRINT_ERRNO(result);
-		}
-		else if (0 == num_read)
-		{
-			 FPRINTF_ERR("%s - Call to recvfrom() reached EOF\n", DEBUG_INFO_STR);
-		}
-		else
+		num_read = call_recvfrom(sockfd, flags, src_addr, addrlen, local_buf,
+			                     SKID_NET_BUFF_SIZE * sizeof(char), &result);
+		if (num_read > 0)
 		{
 			FPRINTF_ERR("%s - local_buf STRING IS %s\n", DEBUG_INFO_STR, local_buf);  // DEBUGGING
 			// Check for room
