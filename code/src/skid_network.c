@@ -814,7 +814,7 @@ int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, s
 {
 	// LOCAL VARIABLES
 	int result = validate_skid_fd(sockfd);       // Success of execution
-	char local_buf[SKID_NET_BUFF_SIZE] = { 0 };  // Local buffer
+	char local_buf[SKID_NET_BUFF_SIZE + 1] = { 0 };  // Local buffer
 	ssize_t num_read = 0;                        // Number of bytes read
 	size_t output_len = 0;                       // The length of *output_buf's string
 	char *tmp_ptr = NULL;                        // Temp pointer
@@ -865,6 +865,12 @@ int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, s
 				// Copy local buff into *output_buf
 				if (true == check_sn_space(num_read, output_len, *output_size))
 				{
+					FPRINTF_ERR("%s - output_buf IS %p\n", DEBUG_INFO_STR, output_buf);  // DEBUGGING
+					FPRINTF_ERR("%s - *output_buf IS %p\n", DEBUG_INFO_STR, *output_buf);  // DEBUGGING
+					FPRINTF_ERR("%s - local_buf IS %p\n", DEBUG_INFO_STR, local_buf);  // DEBUGGING
+					FPRINTF_ERR("%s - output_size IS %p\n", DEBUG_INFO_STR, output_size);  // DEBUGGING
+					FPRINTF_ERR("%s - *output_size IS %lu\n", DEBUG_INFO_STR, *output_size);  // DEBUGGING
+					FPRINTF_ERR("%s - output_len IS %lu\n", DEBUG_INFO_STR, output_len);  // DEBUGGING
 					// Add local to output
 					strncat(*output_buf, local_buf, *output_size - output_len);
 					memset(local_buf, 0x0, sizeof(local_buf));  // Zeroize the local buffer
