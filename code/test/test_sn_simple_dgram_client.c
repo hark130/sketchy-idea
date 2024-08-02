@@ -3,14 +3,13 @@
  *	This binary use the function wrappers to replicate this behavior:
  *		https://github.com/beejjorgensen/bgnet/blob/main/src/bgnet_part_0600_clientserver.md
  *
- *	Copy/paste the following...
+ *	Copy/paste one or more of the following...
 
 # All values are hard-coded so no arguments are necessary
 ./code/dist/test_sn_simple_dgram_client.bin <SERVER>
 
-# Manual compilation with ASAN
-gcc -fsanitize=address -g -Wall -Werror -Wfatal-errors -o code/dist/test_sn_simple_dgram_client.bin -I code/include/ \
-code/test/test_sn_simple_dgram_client.c code/src/skid_network.c code/src/skid_validation.c code/src/skid_file_descriptors.c code/src/skid_memory.c
+# Testing with Valgrind (because ASAN segfaults)
+valgrind --leak-check=full --show-leak-kinds=all ./code/dist/test_sn_simple_dgram_client.bin <SERVER>
 
  *
  */
@@ -33,6 +32,7 @@ code/test/test_sn_simple_dgram_client.c code/src/skid_network.c code/src/skid_va
 #define SERVER_TYPE SOCK_DGRAM		 // Server socket type
 #define SERVER_PROTOCOL IPPROTO_UDP  // Server socket protocol
 #define SERVER_PORT 5678			 // The port clients will connect to
+#define MSG_BUF_SIZE 4096			 // Normally, this is right-sized but I have been testing...
 
 
 int main(int argc, char *argv[])
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	int socket_fd = SKID_BAD_FD;                 // Server file descriptor
 	const char *node = "127.0.0.1";              // Hostname/IP of the server
 	// char message[] = { "Hello, world!" };        // Message for the client to send to the server
-	char message[2048 + 1] = { 0 };        // Message for the client to send to the server
+	char message[MSG_BUF_SIZE + 1] = { 0 };        // Message for the client to send to the server
 	int sendto_flags = 0;                        // See sendto(2)
 	struct sockaddr_in servaddr;
 
@@ -70,9 +70,9 @@ int main(int argc, char *argv[])
 		servaddr.sin_port = htons(server_port);
 	}
 	/* SETUP MANUAL TEST INPUT FOR DEBUGGING */
-	for (int i = 0; i < 2048; i++)
+	for (int i = 0; i < MSG_BUF_SIZE; i++)
 	{
-		message[i] = (i % (0x7E - 0x21)) + 0x21;
+		message[i] = (i % (0x7E - 0x21)) + 0x21;  // Iterate through printable characters
 	}
 
 	// CONNECT
