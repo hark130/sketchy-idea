@@ -8,6 +8,10 @@
 # All values are hard-coded so no arguments are necessary
 ./code/dist/test_sn_simple_dgram_server.bin <SERVER_IP_ADDR>
 
+# Manual compilation with ASAN
+gcc -fsanitize=address -g -Wall -Werror -Wfatal-errors -o code/dist/test_sn_simple_dgram_server.bin -I code/include/ \
+code/test/test_sn_simple_dgram_server.c code/src/skid_network.c code/src/skid_memory.c code/src/skid_validation.c code/src/skid_file_descriptors.c
+
  *
  */
 
@@ -81,7 +85,7 @@ int main(int argc, char *argv[])
 	// Setup client struct
 	if (!exit_code)
 	{
-		memset(&cliaddr, 0x0, sizeof(cliaddr));  // Zeroize
+		memset(&cliaddr, 0x0, cliaddr_size);  // Zeroize
 	}
 	// "Name the socket"
 	if (!exit_code)
@@ -147,6 +151,7 @@ int main(int argc, char *argv[])
 				{
 					printf("%s - Server: received message from %s: %s\n",
 						   DEBUG_INFO_STR, client_addr, client_msg);
+					// break;  // DEBUGGING
 				}
 				else
 				{
