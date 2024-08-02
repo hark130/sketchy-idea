@@ -834,23 +834,21 @@ int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, s
 	// RECVFROM DYNAMIC
 	if (ENOERR == result)
 	{
-		while (1)
+		output_len = strlen(*output_buf);  // Get the current length of output_buf
+		// Read into local buff
+		num_read = recvfrom(sockfd, local_buf, sizeof(local_buf), flags, src_addr, addrlen);
+		if (num_read < 0)
 		{
-			output_len = strlen(*output_buf);  // Get the current length of output_buf
-			// Read into local buff
-			num_read = recvfrom(sockfd, local_buf, sizeof(local_buf), flags, src_addr, addrlen);
-			if (num_read < 0)
-			{
-				result = errno;
-				PRINT_ERROR(The call to recvfrom() failed);
-				PRINT_ERRNO(result);
-				break;  // Error
-			}
-			else if (0 == num_read)
-			{
-				 FPRINTF_ERR("%s - Call to recvfrom() reached EOF\n", DEBUG_INFO_STR);
-				 break;  // Done reading
-			}
+			result = errno;
+			PRINT_ERROR(The call to recvfrom() failed);
+			PRINT_ERRNO(result);
+		}
+		else if (0 == num_read)
+		{
+			 FPRINTF_ERR("%s - Call to recvfrom() reached EOF\n", DEBUG_INFO_STR);
+		}
+		else
+		{
 			// Check for room
 			if (false == check_sn_space(num_read, output_len, *output_size))
 			{
@@ -860,19 +858,22 @@ int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, s
 				{
 					PRINT_ERROR(The call to realloc_sock_dynamic() failed);
 					PRINT_ERRNO(result);
-					break;  // Stop on error
 				}
 			}
-			// Copy local buff into *output_buf
-			if (true == check_sn_space(num_read, output_len, *output_size))
+			if (ENOERR == result)
 			{
-				strncat(*output_buf, local_buf, *output_size - output_len);  // Add local to output
-				memset(local_buf, 0x0, sizeof(local_buf));  // Zeroize the local buffer
-			}
-			else
-			{
-				PRINT_ERROR(Logic Failure - realloc_sock_dynamic succeeded incorrectly);
-				result = EOVERFLOW;
+				// Copy local buff into *output_buf
+				if (true == check_sn_space(num_read, output_len, *output_size))
+				{
+					// Add local to output
+					strncat(*output_buf, local_buf, *output_size - output_len);
+					memset(local_buf, 0x0, sizeof(local_buf));  // Zeroize the local buffer
+				}
+				else
+				{
+					PRINT_ERROR(Logic Failure - realloc_sock_dynamic succeeded incorrectly);
+					result = EOVERFLOW;
+				}
 			}
 		}
 	}
