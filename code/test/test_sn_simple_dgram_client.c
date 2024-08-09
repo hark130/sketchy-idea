@@ -47,7 +47,8 @@ int main(int argc, char *argv[])
 	// char message[] = { "Hello, world!" };        // Message for the client to send to the server
 	char message[MSG_BUF_SIZE + 1] = { 0 };        // Message for the client to send to the server
 	int sendto_flags = 0;                        // See sendto(2)
-	struct sockaddr_in servaddr;
+	struct sockaddr_in servaddr;                 // The server to send to
+	bool chunk_it = true;                        // Chunk the message if it's too large
 
 	// INPUT VALIDATION
 	if (argc == 2)
@@ -118,7 +119,8 @@ int main(int argc, char *argv[])
 	if (!exit_code)
 	{
 		FPRINTF_ERR("%s - Client: attempting to send data...\n", DEBUG_INFO_STR);
-        exit_code = send_to_socket(socket_fd, message, sendto_flags, (struct sockaddr *)NULL, 0);
+        exit_code = send_to_socket(socket_fd, message, sendto_flags, (struct sockaddr *)NULL, 0,
+								   chunk_it);
         if (!exit_code)
         {
 			FPRINTF_ERR("%s - Client: message sent!\n", DEBUG_INFO_STR);
