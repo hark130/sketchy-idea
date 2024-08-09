@@ -337,6 +337,8 @@ int send_socket(int sockfd, const char *msg, int flags);
  *			the message.  Not validated.  Passed directly to sendto().
  *		addrlen: [Optional] The actual size of the dest_addr (destination address) argument.
  *			Not validated.  Passed directly to sendto().
+ *		chunk_it: If true, avoid EMSGSIZE errors by chunking the msg to fit in sockfd's
+ *			send buffer.  If false, sendto() msg as-is.
  *
  *	Returns:
  *		On success, zero is returned.  On error, errno is returned.  EISCONN may be returned if
@@ -344,6 +346,6 @@ int send_socket(int sockfd, const char *msg, int flags);
  *		returned when sockfd was not actually connected.
  */
 int send_to_socket(int sockfd, const char *msg, int flags, const struct sockaddr *dest_addr,
-	               socklen_t addrlen);
+	               socklen_t addrlen, bool chunk_it);
 
 #endif  /* __SKID_NETWORK__ */

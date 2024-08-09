@@ -224,6 +224,53 @@ int recv_socket_dynamic(int sockfd, int flags, char **output_buf, size_t *output
 
 /*
  *	Description:
+ *		A "lite" wrapper around the module's call to sendto(), standardizing error response.
+ *		This function does not validate input.  It does, however, attempt to recursively
+ *		complete partial sends (bytes successfully sent are less than len).
+ *
+ *	Args:
+ *		sockfd: Specifies the socket file descriptor.
+ *		buf: Points to a buffer containing the message to be sent.
+ *		len: Specifies the size of the message in bytes.
+ *		flags: Specifies the type of message transmission.
+ *		dest_addr: Points to a sockaddr structure containing the destination address.
+ *			The length and format of the address depend on the address family of the socket.
+ *		addrlen: Specifies the length of the sockaddr structure pointed to by the dest_addr arg.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		Upon successful completion, send_to() shall return the number of bytes sent.
+ *		Partial sends, number of bytes sent < len, are treated as successful.
+ *		Otherwise, -1 shall be returned and errnum set to indicate the error.
+ */
+ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
+	            const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum);
+
+/*
+ *	Description:
+ *		Chunks buf into get_socket_opt_sndbuf() segments and passes them to send_to().
+ *		This function barely validates input: non-NULL buf and valid len.
+ *
+ *	Args:
+ *		sockfd: Specifies the socket file descriptor.
+ *		buf: Points to a buffer containing the message to be sent.
+ *		len: Specifies the size of the message in bytes.
+ *		flags: Specifies the type of message transmission.
+ *		dest_addr: Points to a sockaddr structure containing the destination address.
+ *			The length and format of the address depend on the address family of the socket.
+ *		addrlen: Specifies the length of the sockaddr structure pointed to by the dest_addr arg.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		Upon successful completion, send_to() shall return the number of bytes sent.
+ *		Partial sends, number of bytes sent < len, are treated as successful.
+ *		Otherwise, -1 shall be returned and errnum set to indicate the error.
+ */
+ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
+	                  const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum);
+
+/*
+ *	Description:
  *		Validate common In/Out args on behalf of the library.
  *
  *	Args:
@@ -751,12 +798,13 @@ int send_socket(int sockfd, const char *msg, int flags)
 
 
 int send_to_socket(int sockfd, const char *msg, int flags, const struct sockaddr *dest_addr,
-				   socklen_t addrlen)
+				   socklen_t addrlen, bool chunk_it)
 {
 	// LOCAL VARIABLES
-	size_t msg_len = 0;      // Length of msg
+	size_t msg_size = 0;     // Size of msg
 	ssize_t bytes_sent = 0;  // Return value from send()
 	int result = ENOERR;     // Errno values
+	int snd_buf_size = 0;    // Size of sockfd's send buffer (see: chunk_it)
 
 	// INPUT VALIDATION
 	result = validate_skid_sockfd(sockfd);
@@ -765,22 +813,51 @@ int send_to_socket(int sockfd, const char *msg, int flags, const struct sockaddr
 		result = validate_skid_string(msg, false);  // Can not be empty
 	}
 
+	// CHUNK?
+	if (ENOERR == result && true == chunk_it)
+	{
+		// Get the size of the send buffer
+		snd_buf_size = get_socket_opt_sndbuf(sockfd, &result);
+		if (snd_buf_size < 0)
+		{
+			PRINT_ERROR(The call to get_socket_opt_sndbuf() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+
 	// SEND TO IT
 	if (ENOERR == result)
 	{
-		msg_len = strlen(msg);
-		bytes_sent = sendto(sockfd, msg, msg_len, flags, dest_addr, addrlen);
+		msg_size = strlen(msg) * sizeof(char);
+		// Chunk it?
+		if (snd_buf_size < msg_size && true == chunk_it)
+		{
+			bytes_sent = send_to_chunk(sockfd, msg, msg_size, flags, dest_addr, addrlen, &result);
+		}
+		else
+		{
+			bytes_sent = send_to(sockfd, msg, msg_size, flags, dest_addr, addrlen, &result);
+		}
+		// Validate bytes sent
 		if (bytes_sent < 0)
 		{
-			result = errno;
-			PRINT_ERROR(The call to sendto() failed);
+			PRINT_ERROR(The call to send_to() failed);
 			PRINT_ERRNO(result);
 		}
-		else if (bytes_sent < (msg_len * sizeof(char)))
+		else if (bytes_sent < msg_size)
 		{
-			PRINT_WARNG(The call to sendto() only finished a partial send);
-			// Finish sending or force error
-			result = send_to_socket(sockfd, msg + bytes_sent, flags, dest_addr, addrlen);
+			PRINT_WARNG(The call to send_to() only succeeded in a partial send);
+		}
+		else if (bytes_sent == msg_size)
+		{
+			FPRINTF_ERR("%s - The call to send_to() perfectly sent %lu bytes.\n",
+				        DEBUG_INFO_STR, bytes_sent);
+		}
+		else
+		{
+			PRINT_ERROR(The call to send_to() sent more bytes than expected);
+			FPRINTF_ERR("%s - The call to send_to() sent %lu bytes instead of %lu.\n",
+				        DEBUG_ERROR_STR, bytes_sent, msg_size);
 		}
 	}
 
@@ -1322,6 +1399,148 @@ int recv_socket_dynamic(int sockfd, int flags, char **output_buf, size_t *output
 
 	// DONE
 	return result;
+}
+
+
+ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
+	            const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;     // Validation result
+	ssize_t bytes_sent = 0;  // Number of bytes sent
+	ssize_t more_bytes = 0;  // Additional send
+
+	// SEND IT
+	bytes_sent = sendto(sockfd, buf, len, flags, dest_addr, addrlen);
+	if (bytes_sent < 0)
+	{
+		result = errno;
+		PRINT_ERROR(The call to sendto() failed);
+		PRINT_ERRNO(result);
+	}
+	else
+	{
+		// Handle partial sends
+		while (bytes_sent < len)
+		{
+			PRINT_WARNG(The call to sendto() only finished a partial send);
+			// Finish sending or force error
+			more_bytes = send_to(sockfd, buf + bytes_sent, len - bytes_sent,
+							     flags, dest_addr, addrlen, &result);
+			if (more_bytes < 0)
+			{
+				PRINT_ERROR(The recursive call to send_to() failed to finish the partial send);
+				PRINT_ERRNO(result);
+				result = ENOERR;  // Inform the caller of the partial success
+				break;  // Avoid the infinite loop
+			}
+			else
+			{
+				bytes_sent += more_bytes;  // We sent more so report more
+			}
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return bytes_sent;
+}
+
+
+ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
+	                  const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = validate_skid_fd(sockfd);  // Validation result
+	ssize_t bytes_sent = 0;                 // Number of bytes sent
+	int snd_buf_size = 0;                   // Size of sockfd's send buffer
+	int chunk_size = 0;                     // Size of each chunk to send
+	int num_runs = 0;                       // Number of runs to iterate through
+	ssize_t tmp_sent = 0;                   // Temporary bytes sent for iterating send_to() calls
+	size_t tmp_len = 0;                     // Temporary bytes to send for iterating send_to() calls
+
+	// INPUT VALIDATION
+	if (ENOERR == result)
+	{
+		if (NULL == buf || len <= 0)
+		{
+			result = EINVAL;  // Invalid input
+		}
+	}
+
+	// SEND CHUNKS
+	// Size the send buffer
+	if (ENOERR == result)
+	{
+		// Get the size of the send buffer
+		snd_buf_size = get_socket_opt_sndbuf(sockfd, &result);
+		if (snd_buf_size < 0)
+		{
+			PRINT_ERROR(The call to get_socket_opt_sndbuf() failed);
+			PRINT_ERRNO(result);
+		}
+		else
+		{
+			// chunk_size = snd_buf_size - 256;
+			// chunk_size = 65535;  // Max UDP datagram (8 byte header + 65527 bytes of data)
+			// chunk_size = 65527;  // Max UDP datagram bytes of data
+			chunk_size = 512;  // https://stackoverflow.com/a/1099359
+			// chunk_size = 508;  // https://stackoverflow.com/a/35697810
+			chunk_size = 1380;  // https://superuser.com/a/1341026
+		}
+	}
+	// Chunk it?
+	if (ENOERR == result)
+	{
+		if (snd_buf_size >= len)
+		{
+			bytes_sent = send_to(sockfd, buf, len, flags, dest_addr, addrlen, &result);
+		}
+		else
+		{
+			num_runs = len / chunk_size;
+			if (len % chunk_size)
+			{
+				num_runs++;  // One last run for the remainder
+			}
+			FPRINTF_ERR("%s - NUMBER OF RUNS (LEN / BUF SIZE): (%lu / %d) = %d\n",
+			            DEBUG_INFO_STR, len, chunk_size, num_runs);  // DEBUGGING
+			for (int i = 0; i < num_runs; i++)
+			{
+				FPRINTF_ERR("%s - This is run #%d\n", DEBUG_INFO_STR, i + 1);  // DEBUGGING
+				tmp_len = (i + 1 == num_runs) ? (len % chunk_size) : chunk_size;  // Last run?
+				FPRINTF_ERR("%s - TMP LEN == %ld\n", DEBUG_INFO_STR, tmp_len);  // DEBUGGING
+				tmp_sent = send_to(sockfd, buf + (i * chunk_size), tmp_len, flags, dest_addr,
+					               addrlen, &result);
+				FPRINTF_ERR("%s - TMP_SENT == %ld\n", DEBUG_INFO_STR, tmp_sent);  // DEBUGGING
+				if (tmp_sent < 0)
+				{
+					PRINT_ERROR(The send_to_chunk() call to send_to() failed);
+					PRINT_ERRNO(result);
+					break;  // Error
+				}
+				else
+				{
+					bytes_sent += tmp_sent;  // Keep track of the number of bytes sent
+					if (tmp_sent < tmp_len)
+					{
+						PRINT_ERROR(The send_to_chunk() send_to() call resulted in a partial send);
+						break;  // Stop iterating because it throws off the algorithm
+					}
+				}
+			}
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return bytes_sent;
 }
 
 
