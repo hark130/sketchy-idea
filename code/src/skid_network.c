@@ -111,6 +111,37 @@ sa_family_t get_socket_family(int sockfd, int *errnum);
 
 /*
  *	Description:
+ *		A "lite" wrapper around getsockopt().  Not for external use as the necessary option_value
+ *		size isn't standard.
+ *
+ *	Notes:
+ *		Most socket-level options utilize an int argument for option_value.
+ *		For Boolean options, a zero value indicates that the option is disabled and a non-zero
+ *			value indicates that the option is enabled.
+ *		If the size of the option value is greater than option_len, the value stored in the
+ *			object pointed to by the option_value argument shall be silently truncated.
+ *
+ *	Args:
+ *		sockfd: Socket file descriptor to fetch information about.
+ *		level: The appropriate level identifier for the protocol controlling the option.
+ *			Common examples include: SOL_SOCKET (socket API level), IPPROTO_TCP (TCP),
+ *			and IPPROTO_UDP (UDP).  See: The <netinet/in.h> header, getsockopt(2), getprotoent(3),
+ *			and protocols(5) for more information.
+ *		option_name: The singled option to be retrieved.  The include file <sys/socket.h> contains
+ *			definitions for socket level options.  Common examples include: SO_ERROR (socket error
+ *			status), SO_SNDBUF (send buffer size), SO_TYPE (socket type).
+ *		option_value: [Optional/Out] Option value of sockfd at the specified protocol level.
+ *			If no option value is to be supplied or returned, option_value may be NULL.
+ *		option_len: [Optional/In] The size of option_value.
+ *
+ *	Returns:
+ *		0 on success, errno on failure.
+ */
+int get_socket_option(int sockfd, int level, int option_name,
+                      void *restrict option_value, socklen_t *restrict option_len);
+
+/*
+ *	Description:
  *		Reallocate a buffer: allocate a new buffer double the *output_size, copy the contents of
  *		*output_buf into the new buffer, free the old buffer, update the Out arguments.
  *		It is the caller's responsibility to free the buffer with free_skid_mem().
@@ -435,6 +466,33 @@ int listen_socket(int sockfd, int backlog)
 
 	// DONE
 	return result;
+}
+
+
+int get_socket_opt_sndbuf(int sockfd, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = validate_skid_err(errnum);  // Errno values
+	int optval = -1;                         // Option value
+	socklen_t optlen = sizeof(optval);       // Size of option value
+
+	// GET SNDBUF
+	if (ENOERR == result)
+	{
+		result = get_socket_option(sockfd, SOL_SOCKET, SO_SNDBUF, &optval, &optlen);
+		if (ENOERR != result)
+		{
+			PRINT_ERROR(The call to get_socket_option() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return optval;
 }
 
 
@@ -924,6 +982,28 @@ sa_family_t get_socket_family(int sockfd, int *errnum)
 		*errnum = result;
 	}
 	return sock_fam;
+}
+
+
+int get_socket_option(int sockfd, int level, int option_name,
+                      void *restrict option_value, socklen_t *restrict option_len)
+{
+	// LOCAL VARIABLES
+	int result = validate_skid_fd(sockfd);   // Success of execution
+
+	// GET IT
+	if (ENOERR == result)
+	{
+		if (getsockopt(sockfd, level, option_name, option_value, option_len))
+		{
+			result = errno;
+			PRINT_ERROR(The call to getsockopt() failed);
+			PRINT_ERRNO(result);
+		}
+	}
+
+	// DONE
+	return result;
 }
 
 

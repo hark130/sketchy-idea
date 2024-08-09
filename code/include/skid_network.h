@@ -180,9 +180,19 @@ int listen_socket(int sockfd, int backlog);
 
 /*
  *	Description:
- *		TO DO: DON'T DO NOW... CONTINUE HERE(?) FOR THE MANUAL TEST IMPLEMENTATION?
+ *		Use getsockopt() to get the send buffer size information at the socket API level.
+ *		See: getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, ...) for more information.
+ *
+ *	Args:
+ *		sockfd: Socket file descriptor to fetch information about.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		On success, the size of sockfd's send buffer.
+ *		On failure, -1 and errnum is set appropriately.
  */
-// int open_named_socket();
+int get_socket_opt_sndbuf(int sockfd, int *errnum);
+
 
 /*
  *	Description:
