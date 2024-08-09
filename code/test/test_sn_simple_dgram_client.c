@@ -32,7 +32,7 @@ valgrind --leak-check=full --show-leak-kinds=all ./code/dist/test_sn_simple_dgra
 #define SERVER_TYPE SOCK_DGRAM		 // Server socket type
 #define SERVER_PROTOCOL IPPROTO_UDP  // Server socket protocol
 #define SERVER_PORT 5678			 // The port clients will connect to
-#define MSG_BUF_SIZE 212991			 // Normally, this is right-sized but I have been testing...
+#define MSG_BUF_SIZE 3000			 // Normally, this is right-sized but I have been testing...
 
 
 int main(int argc, char *argv[])
