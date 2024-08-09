@@ -50,7 +50,7 @@
  *		errnum).
  */
 ssize_t call_recvfrom(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
-	                  char *buff, size_t buff_size, int *errnum);
+					  char *buff, size_t buff_size, int *errnum);
 
 /*
  *	Description:
@@ -169,7 +169,7 @@ ssize_t recv_from_size(int sockfd, int *errnum);
  *		0 on success, errno on failure.
  */
 int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
-	                         char **output_buf, size_t *output_size);
+							 char **output_buf, size_t *output_size);
 
 /*
  *	Description:
@@ -370,7 +370,7 @@ int free_addr_info(struct addrinfo **res)
 
 
 int get_addr_info(const char *node, const char *service, const struct addrinfo *hints,
-	              struct addrinfo **res)
+				  struct addrinfo **res)
 {
 	// LOCAL VARIABLES
 	int result = ENOERR;  // Errno values
@@ -526,9 +526,9 @@ char *receive_socket(int sockfd, int flags, int protocol, int *errnum)
 char *recv_socket(int sockfd, int flags, int *errnum)
 {
 	// LOCAL VARIABLES
-	char *msg = NULL;                            // Heap-allocated copy of the msg read from sockfd
-	size_t msg_len = 0;                          // The length of msg (after it's recv()'d)
-	int result = ENOERR;                         // Errno values
+	char *msg = NULL;     // Heap-allocated copy of the msg read from sockfd
+	size_t msg_len = 0;   // The length of msg (after it's recv()'d)
+	int result = ENOERR;  // Errno values
 
 	// INPUT VALIDATION
 	result = validate_skid_sockfd(sockfd);
@@ -553,11 +553,10 @@ char *recv_socket(int sockfd, int flags, int *errnum)
 
 
 char *recv_from_socket(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
-	                   int *errnum)
+					   int *errnum)
 {
 	// LOCAL VARIABLES
 	char *msg = NULL;       // Heap-allocated copy of the msg read from sockfd
-	// size_t msg_len = 0;     // The length of msg (after it's recv()'d)
 	ssize_t data_size = 0;  // Size of the data waiting in sockfd
 	int result = ENOERR;    // Errno values
 
@@ -568,12 +567,7 @@ char *recv_from_socket(int sockfd, int flags, struct sockaddr *src_addr, socklen
 		result = validate_skid_err(errnum);
 	}
 
-	// RECV FROM IT
-	// if (ENOERR == result)
-	// {
-	// 	result = recv_from_socket_dynamic(sockfd, flags, src_addr, addrlen, &msg, &msg_len);
-	// }
-
+	// RECEIVE IT
 	// Size it
 	if (ENOERR == result)
 	{
@@ -699,7 +693,7 @@ int send_socket(int sockfd, const char *msg, int flags)
 
 
 int send_to_socket(int sockfd, const char *msg, int flags, const struct sockaddr *dest_addr,
-	               socklen_t addrlen)
+				   socklen_t addrlen)
 {
 	// LOCAL VARIABLES
 	size_t msg_len = 0;      // Length of msg
@@ -743,7 +737,7 @@ int send_to_socket(int sockfd, const char *msg, int flags, const struct sockaddr
 
 
 ssize_t call_recvfrom(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
-	                  char *buff, size_t buff_size, int *errnum)
+					  char *buff, size_t buff_size, int *errnum)
 {
 	// LOCAL VARIABLES
 	int result = validate_skid_fd(sockfd);       // Success of execution
@@ -764,7 +758,6 @@ ssize_t call_recvfrom(int sockfd, int flags, struct sockaddr *src_addr, socklen_
 	if (ENOERR == result)
 	{
 		num_read = recvfrom(sockfd, buff, buff_size, flags, src_addr, addrlen);
-		if (num_read >= 0) {FPRINTF_ERR("%s - The call to recvfrom() read %lu bytes\n", DEBUG_INFO_STR, num_read);}  // DEBUGGING
 		if (num_read < 0)
 		{
 			result = errno;
@@ -876,8 +869,6 @@ void *get_inet_addr(struct sockaddr *sa, int *errnum)
 		}
 		else
 		{
-			FPRINTF_ERR("%s - IPv4 is %u, IPv6 is %u but this is %u!\n",
-			            DEBUG_INFO_STR, AF_INET, AF_INET6, sa->sa_family);  // DEBUGGING
 			inet_addr = NULL;
 			result = EPFNOSUPPORT;  // Unsupported sa_family
 		}
@@ -1067,7 +1058,7 @@ ssize_t recv_from_size(int sockfd, int *errnum)
 
 
 int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
-	                         char **output_buf, size_t *output_size)
+							 char **output_buf, size_t *output_size)
 {
 	// LOCAL VARIABLES
 	int result = validate_skid_fd(sockfd);       // Success of execution
@@ -1094,10 +1085,9 @@ int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, s
 		output_len = strlen(*output_buf);  // Get the current length of output_buf
 		// Read into local buff
 		num_read = call_recvfrom(sockfd, flags, src_addr, addrlen, local_buf,
-			                     SKID_NET_BUFF_SIZE * sizeof(char), &result);
+								 SKID_NET_BUFF_SIZE * sizeof(char), &result);
 		if (num_read > 0)
 		{
-			FPRINTF_ERR("%s - local_buf STRING IS %s\n", DEBUG_INFO_STR, local_buf);  // DEBUGGING
 			// Check for room
 			if (false == check_sn_space(num_read, output_len, *output_size))
 			{
@@ -1114,16 +1104,6 @@ int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, s
 				// Copy local buff into *output_buf
 				if (true == check_sn_space(num_read, output_len, *output_size))
 				{
-					FPRINTF_ERR("%s - output_buf IS %p\n", DEBUG_INFO_STR, output_buf);  // DEBUGGING
-					FPRINTF_ERR("%s - *output_buf IS %p\n", DEBUG_INFO_STR, *output_buf);  // DEBUGGING
-					FPRINTF_ERR("%s - local_buf IS %p\n", DEBUG_INFO_STR, local_buf);  // DEBUGGING
-					FPRINTF_ERR("%s - output_size IS %p\n", DEBUG_INFO_STR, output_size);  // DEBUGGING
-					FPRINTF_ERR("%s - *output_size IS %lu\n", DEBUG_INFO_STR, *output_size);  // DEBUGGING
-					FPRINTF_ERR("%s - output_len IS %lu\n", DEBUG_INFO_STR, output_len);  // DEBUGGING
-					FPRINTF_ERR("%s - *output_buf STRING IS %s\n", DEBUG_INFO_STR, *output_buf);  // DEBUGGING
-					FPRINTF_ERR("%s - local_buf STRING IS %s\n", DEBUG_INFO_STR, local_buf);  // DEBUGGING
-					FPRINTF_ERR("%s - sizeof(local_buf) IS %lu\n", DEBUG_INFO_STR, sizeof(local_buf));  // DEBUGGING
-					FPRINTF_ERR("%s - strlen(local_buf) IS %lu\n", DEBUG_INFO_STR, strlen(local_buf));  // DEBUGGING
 					// Add local to output
 					strncat(*output_buf, local_buf, (*output_size) - output_len);
 					memset(local_buf, 0x0, sizeof(local_buf));  // Zeroize the local buffer
