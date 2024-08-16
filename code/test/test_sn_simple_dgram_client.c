@@ -32,7 +32,6 @@ valgrind --leak-check=full --show-leak-kinds=all ./code/dist/test_sn_simple_dgra
 #define SERVER_TYPE SOCK_DGRAM		 // Server socket type
 #define SERVER_PROTOCOL IPPROTO_UDP  // Server socket protocol
 #define SERVER_PORT 5678			 // The port clients will connect to
-#define MSG_BUF_SIZE 65507			 // Normally, this is right-sized but I have been testing...
 
 
 int main(int argc, char *argv[])
@@ -44,11 +43,10 @@ int main(int argc, char *argv[])
 	unsigned short server_port = SERVER_PORT;    // Port the server is listening on
 	int socket_fd = SKID_BAD_FD;                 // Server file descriptor
 	const char *node = "127.0.0.1";              // Hostname/IP of the server
-	// char message[] = { "Hello, world!" };        // Message for the client to send to the server
-	char message[MSG_BUF_SIZE + 1] = { 0 };        // Message for the client to send to the server
+	char message[] = { "Hello, world!" };        // Message for the client to send to the server
 	int sendto_flags = 0;                        // See sendto(2)
 	struct sockaddr_in servaddr;                 // The server to send to
-	bool chunk_it = false;                        // Chunk the message if it's too large
+	bool chunk_it = false;                       // Chunk the message if it's too large
 
 	// INPUT VALIDATION
 	if (argc == 2)
@@ -69,11 +67,6 @@ int main(int argc, char *argv[])
 		servaddr.sin_family = server_domain;
 		servaddr.sin_addr.s_addr = inet_addr(node);
 		servaddr.sin_port = htons(server_port);
-	}
-	/* SETUP MANUAL TEST INPUT FOR DEBUGGING */
-	for (int i = 0; i < MSG_BUF_SIZE; i++)
-	{
-		message[i] = (i % (0x7E - 0x21)) + 0x21;  // Iterate through printable characters
 	}
 
 	// CONNECT

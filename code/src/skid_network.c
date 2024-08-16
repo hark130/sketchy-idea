@@ -1512,16 +1512,11 @@ ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
 			{
 				num_runs++;  // One last run for the remainder
 			}
-			FPRINTF_ERR("%s - NUMBER OF RUNS (LEN / BUF SIZE): (%lu / %d) = %d\n",
-			            DEBUG_INFO_STR, len, chunk_size, num_runs);  // DEBUGGING
 			for (int i = 0; i < num_runs; i++)
 			{
-				FPRINTF_ERR("%s - This is run #%d\n", DEBUG_INFO_STR, i + 1);  // DEBUGGING
 				tmp_len = (i + 1 == num_runs) ? (len % chunk_size) : chunk_size;  // Last run?
-				FPRINTF_ERR("%s - TMP LEN == %ld\n", DEBUG_INFO_STR, tmp_len);  // DEBUGGING
 				tmp_sent = send_to(sockfd, buf + (i * chunk_size), tmp_len, flags, dest_addr,
 					               addrlen, &result);
-				FPRINTF_ERR("%s - TMP_SENT == %ld\n", DEBUG_INFO_STR, tmp_sent);  // DEBUGGING
 				if (tmp_sent < 0)
 				{
 					PRINT_ERROR(The send_to_chunk() call to send_to() failed);

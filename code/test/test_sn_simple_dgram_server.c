@@ -164,7 +164,6 @@ int main(int argc, char *argv[])
 				{
 					printf("%s - Server: received message from %s: %s\n",
 						   DEBUG_INFO_STR, client_addr, client_msg);
-					break;  // DEBUGGING
 				}
 				else
 				{
