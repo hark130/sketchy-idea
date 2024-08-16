@@ -804,33 +804,32 @@ int send_to_socket(int sockfd, const char *msg, int flags, const struct sockaddr
 	size_t msg_size = 0;     // Size of msg
 	ssize_t bytes_sent = 0;  // Return value from send()
 	int result = ENOERR;     // Errno values
-	int snd_buf_size = 0;    // Size of sockfd's send buffer (see: chunk_it)
 
 	// INPUT VALIDATION
+	// sockfd
 	result = validate_skid_sockfd(sockfd);
+	// msg
 	if (ENOERR == result)
 	{
 		result = validate_skid_string(msg, false);  // Can not be empty
 	}
-
-	// CHUNK?
-	if (ENOERR == result && true == chunk_it)
+	// Message size
+	if (ENOERR == result)
 	{
-		// Get the size of the send buffer
-		snd_buf_size = get_socket_opt_sndbuf(sockfd, &result);
-		if (snd_buf_size < 0)
+		msg_size = strlen(msg) * sizeof(char);
+		if (msg_size > SKID_MAX_DGRAM_DATA_IPV4 && false == chunk_it)
 		{
-			PRINT_ERROR(The call to get_socket_opt_sndbuf() failed);
-			PRINT_ERRNO(result);
+			FPRINTF_ERR("%s - A message size of %lu exceeds known limits and is expected to fail "
+				        "with a [%d] '%s' error (without chunking enabled).\n",
+				        DEBUG_WARNG_STR, msg_size, EMSGSIZE, strerror(EMSGSIZE));
 		}
 	}
 
 	// SEND TO IT
 	if (ENOERR == result)
 	{
-		msg_size = strlen(msg) * sizeof(char);
 		// Chunk it?
-		if (snd_buf_size < msg_size && true == chunk_it)
+		if (SKID_CHUNK_SIZE < msg_size && true == chunk_it)
 		{
 			bytes_sent = send_to_chunk(sockfd, msg, msg_size, flags, dest_addr, addrlen, &result);
 		}
@@ -1482,20 +1481,27 @@ ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
 			PRINT_ERROR(The call to get_socket_opt_sndbuf() failed);
 			PRINT_ERRNO(result);
 		}
+		else if (0 == snd_buf_size)
+		{
+			PRINT_ERROR(The call to get_socket_opt_sndbuf() succeeded with a size of zero);
+			result = ENOBUFS;  // No buffer space available
+		}
 		else
 		{
-			// chunk_size = snd_buf_size - 256;
-			// chunk_size = 65535;  // Max UDP datagram (8 byte header + 65527 bytes of data)
-			// chunk_size = 65527;  // Max UDP datagram bytes of data
-			chunk_size = 512;  // https://stackoverflow.com/a/1099359
-			// chunk_size = 508;  // https://stackoverflow.com/a/35697810
-			chunk_size = 1380;  // https://superuser.com/a/1341026
+			if (SKID_CHUNK_SIZE < snd_buf_size)
+			{
+				chunk_size = SKID_CHUNK_SIZE;
+			}
+			else
+			{
+				chunk_size = snd_buf_size;  // Send buffer is smaller so we have to use that value
+			}
 		}
 	}
 	// Chunk it?
 	if (ENOERR == result)
 	{
-		if (snd_buf_size >= len)
+		if (chunk_size >= len)
 		{
 			bytes_sent = send_to(sockfd, buf, len, flags, dest_addr, addrlen, &result);
 		}
