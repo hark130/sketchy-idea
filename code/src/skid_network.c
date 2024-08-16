@@ -33,27 +33,6 @@
 
 /*
  *	Description:
- *		Standardize the call to recvfrom() and response to its return values.
- *
- *	Args:
- *		sockfd: Socket file descriptor to recv from.
- *		flags: A bit-wise OR of zero or more flags (see: recvfrom(2)).  Passed directly to
- *			recvfrom() without validation.
- *		src_addr: [Optional/Out] Passed directly to recvfrom() without validation.
- *		addrlen: [Optional/Out] Passed directly to recvfrom() without validation.
- *		buff: [Out] Pointer to buffer to read into.
- *		buff_size: The size of buf in bytes.
- *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
- *
- *	Returns:
- *		The number of bytes read by recvfrom() on success, -1 on failure (sets errno value in
- *		errnum).
- */
-ssize_t call_recvfrom(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
-					  char *buff, size_t buff_size, int *errnum);
-
-/*
- *	Description:
  *		Check for an existing buffer pointer.  If one does not exist, make the first allocation.
  *
  *	Args:
@@ -138,7 +117,7 @@ sa_family_t get_socket_family(int sockfd, int *errnum);
  *		0 on success, errno on failure.
  */
 int get_socket_option(int sockfd, int level, int option_name,
-                      void *restrict option_value, socklen_t *restrict option_len);
+					  void *restrict option_value, socklen_t *restrict option_len);
 
 /*
  *	Description:
@@ -244,7 +223,7 @@ int recv_socket_dynamic(int sockfd, int flags, char **output_buf, size_t *output
  *		Otherwise, -1 shall be returned and errnum set to indicate the error.
  */
 ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
-	            const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum);
+				const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum);
 
 /*
  *	Description:
@@ -267,7 +246,7 @@ ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
  *		Otherwise, -1 shall be returned and errnum set to indicate the error.
  */
 ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
-	                  const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum);
+					  const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum);
 
 /*
  *	Description:
@@ -348,6 +327,64 @@ int bind_struct(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 
 	// DONE
 	return result;
+}
+
+
+ssize_t call_recvfrom(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
+					  char *buff, size_t buff_size, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = validate_skid_fd(sockfd);       // Success of execution
+	ssize_t num_read = -1;                       // Number of bytes read on success, -1 for error
+	static bool mentioned_block = false;         // Only DEBUG blocking results once
+	bool print = true;                           // Dynamically avoid copy/pasted statements
+
+	// INPUT VALIDATION
+	if (ENOERR == result)
+	{
+		if (NULL == errnum || NULL == buff || buff_size <= 0)
+		{
+			result = EINVAL;  // Invalid input
+		}
+	}
+
+	// RECEIVE FROM IT
+	if (ENOERR == result)
+	{
+		num_read = recvfrom(sockfd, buff, buff_size, flags, src_addr, addrlen);
+		if (num_read < 0)
+		{
+			result = errno;
+			if (MSG_DONTWAIT == (MSG_DONTWAIT & flags) \
+				&& (EAGAIN == result || EWOULDBLOCK == result))
+			{
+				if (false == mentioned_block)
+				{
+					mentioned_block = true;  // Avoid verbose "waiting" messages
+				}
+				else
+				{
+					print = false;  // Skip mentioning it
+				}
+			}
+			if (true == print)
+			{
+				PRINT_ERROR(The call to recvfrom() failed);
+				PRINT_ERRNO(result);
+			}
+		}
+		else if (0 == num_read)
+		{
+			 FPRINTF_ERR("%s - Call to recvfrom() reached EOF\n", DEBUG_INFO_STR);
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return num_read;
 }
 
 
@@ -717,6 +754,55 @@ char *recv_from_socket(int sockfd, int flags, struct sockaddr *src_addr, socklen
 }
 
 
+int resolve_alias(const char *proto_alias, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;                   // Store errno values
+	struct protoent *protocol_ptr = NULL;  // Protocol database entry
+	int protocol_num = -1;                 // Resolved protocol number
+
+	// INPUT VALIDATION
+	if (NULL == errnum || NULL == proto_alias || !(*proto_alias))
+	{
+		result = EINVAL;  // Bad input
+	}
+
+	// RESOLVE IT
+	if (ENOERR == result)
+	{
+		result = ENOPROTOOPT;  // Default result, post-validation
+		while (protocol_num < 0)
+		{
+			errno = 0;  // Clear errno
+			protocol_ptr = getprotoent();
+			if (NULL == protocol_ptr)
+			{
+				break;
+			}
+			for (int i = 0; NULL != protocol_ptr->p_aliases[i]; i++)
+			{
+				if (!strcmp(proto_alias, protocol_ptr->p_aliases[i]))
+				{
+					protocol_num = protocol_ptr->p_proto;  // Found it!
+					result = ENOERR;
+					break;
+				}
+			}
+		}
+
+		// CLEANUP
+		endprotoent();  // Close the database connection
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return protocol_num;
+}
+
+
 char *resolve_protocol(int protocol, int *errnum)
 {
 	// LOCAL VARIABLES
@@ -820,8 +906,8 @@ int send_to_socket(int sockfd, const char *msg, int flags, const struct sockaddr
 		if (msg_size > SKID_MAX_DGRAM_DATA_IPV4 && false == chunk_it)
 		{
 			FPRINTF_ERR("%s - A message size of %lu exceeds known limits and is expected to fail "
-				        "with a [%d] '%s' error (without chunking enabled).\n",
-				        DEBUG_WARNG_STR, msg_size, EMSGSIZE, strerror(EMSGSIZE));
+						"with a [%d] '%s' error (without chunking enabled).\n",
+						DEBUG_WARNG_STR, msg_size, EMSGSIZE, strerror(EMSGSIZE));
 		}
 	}
 
@@ -850,13 +936,13 @@ int send_to_socket(int sockfd, const char *msg, int flags, const struct sockaddr
 		else if (bytes_sent == msg_size)
 		{
 			FPRINTF_ERR("%s - The call to send_to() perfectly sent %lu bytes.\n",
-				        DEBUG_INFO_STR, bytes_sent);
+						DEBUG_INFO_STR, bytes_sent);
 		}
 		else
 		{
 			PRINT_ERROR(The call to send_to() sent more bytes than expected);
 			FPRINTF_ERR("%s - The call to send_to() sent %lu bytes instead of %lu.\n",
-				        DEBUG_ERROR_STR, bytes_sent, msg_size);
+						DEBUG_ERROR_STR, bytes_sent, msg_size);
 		}
 	}
 
@@ -868,64 +954,6 @@ int send_to_socket(int sockfd, const char *msg, int flags, const struct sockaddr
 /**************************************************************************************************/
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
-
-
-ssize_t call_recvfrom(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
-					  char *buff, size_t buff_size, int *errnum)
-{
-	// LOCAL VARIABLES
-	int result = validate_skid_fd(sockfd);       // Success of execution
-	ssize_t num_read = -1;                       // Number of bytes read on success, -1 for error
-	static bool mentioned_block = false;         // Only DEBUG blocking results once
-	bool print = true;                           // Dynamically avoid copy/pasted statements
-
-	// INPUT VALIDATION
-	if (ENOERR == result)
-	{
-		if (NULL == errnum || NULL == buff || buff_size <= 0)
-		{
-			result = EINVAL;  // Invalid input
-		}
-	}
-
-	// RECEIVE FROM IT
-	if (ENOERR == result)
-	{
-		num_read = recvfrom(sockfd, buff, buff_size, flags, src_addr, addrlen);
-		if (num_read < 0)
-		{
-			result = errno;
-			if (MSG_DONTWAIT == (MSG_DONTWAIT & flags) \
-				&& (EAGAIN == result || EWOULDBLOCK == result))
-			{
-				if (false == mentioned_block)
-				{
-					mentioned_block = true;  // Avoid verbose "waiting" messages
-				}
-				else
-				{
-					print = false;  // Skip mentioning it
-				}
-			}
-			if (true == print)
-			{
-				PRINT_ERROR(The call to recvfrom() failed);
-				PRINT_ERRNO(result);
-			}
-		}
-		else if (0 == num_read)
-		{
-			 FPRINTF_ERR("%s - Call to recvfrom() reached EOF\n", DEBUG_INFO_STR);
-		}
-	}
-
-	// DONE
-	if (errnum)
-	{
-		*errnum = result;
-	}
-	return num_read;
-}
 
 
 int check_sn_pre_alloc(char **output_buf, size_t *output_size)
@@ -1062,7 +1090,7 @@ sa_family_t get_socket_family(int sockfd, int *errnum)
 
 
 int get_socket_option(int sockfd, int level, int option_name,
-                      void *restrict option_value, socklen_t *restrict option_len)
+					  void *restrict option_value, socklen_t *restrict option_len)
 {
 	// LOCAL VARIABLES
 	int result = validate_skid_fd(sockfd);   // Success of execution
@@ -1402,7 +1430,7 @@ int recv_socket_dynamic(int sockfd, int flags, char **output_buf, size_t *output
 
 
 ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
-	            const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum)
+				const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum)
 {
 	// LOCAL VARIABLES
 	int result = ENOERR;     // Validation result
@@ -1425,7 +1453,7 @@ ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
 			PRINT_WARNG(The call to sendto() only finished a partial send);
 			// Finish sending or force error
 			more_bytes = send_to(sockfd, buf + bytes_sent, len - bytes_sent,
-							     flags, dest_addr, addrlen, &result);
+								 flags, dest_addr, addrlen, &result);
 			if (more_bytes < 0)
 			{
 				PRINT_ERROR(The recursive call to send_to() failed to finish the partial send);
@@ -1450,7 +1478,7 @@ ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
 
 
 ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
-	                  const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum)
+					  const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum)
 {
 	// LOCAL VARIABLES
 	int result = validate_skid_fd(sockfd);  // Validation result
@@ -1516,7 +1544,7 @@ ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
 			{
 				tmp_len = (i + 1 == num_runs) ? (len % chunk_size) : chunk_size;  // Last run?
 				tmp_sent = send_to(sockfd, buf + (i * chunk_size), tmp_len, flags, dest_addr,
-					               addrlen, &result);
+								   addrlen, &result);
 				if (tmp_sent < 0)
 				{
 					PRINT_ERROR(The send_to_chunk() call to send_to() failed);

@@ -65,6 +65,27 @@ int bind_struct(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 
 /*
  *	Description:
+ *		Standardize the call to recvfrom() and response to its return values.
+ *
+ *	Args:
+ *		sockfd: Socket file descriptor to recv from.
+ *		flags: A bit-wise OR of zero or more flags (see: recvfrom(2)).  Passed directly to
+ *			recvfrom() without validation.
+ *		src_addr: [Optional/Out] Passed directly to recvfrom() without validation.
+ *		addrlen: [Optional/Out] Passed directly to recvfrom() without validation.
+ *		buff: [Out] Pointer to buffer to read into.
+ *		buff_size: The size of buf in bytes.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		The number of bytes read by recvfrom() on success, -1 on failure (sets errno value in
+ *		errnum).
+ */
+ssize_t call_recvfrom(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
+					  char *buff, size_t buff_size, int *errnum);
+
+/*
+ *	Description:
  *		Close a socket file descriptor and sets it to SKID_BAD_FD (if it was successfully closed).
  *
  *	Args:
@@ -194,7 +215,6 @@ int listen_socket(int sockfd, int backlog);
  */
 int get_socket_opt_sndbuf(int sockfd, int *errnum);
 
-
 /*
  *	Description:
  *		Open a socket.  It is the caller's responsibility to close the socket file descriptor
@@ -286,6 +306,22 @@ char *recv_socket(int sockfd, int flags, int *errnum);
  */
 char *recv_from_socket(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
 	                   int *errnum);
+
+/*
+ *	Description:
+ *		Resolve a protocol alias into its protocol number by searching the protocols database
+ *		(see: protocols(5)).
+ *
+ *	Args:
+ *		proto_alias: The alias to search for.
+ *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *
+ *	Returns:
+ *		The matching protocol number on success.  -1 on failure and errnum is set appropriately.
+ *		Uses ENOPROTOOPT to indicate the protocol alias wasn't found in the database.
+ */
+int resolve_alias(const char *proto_alias, int *errnum);
+
 /*
  *	Description:
  *		Use getprotobynumber() to resolve a protocol number into its official name and copy that
