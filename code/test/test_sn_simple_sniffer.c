@@ -1,0 +1,167 @@
+/*
+ *	Use skid_network to implement a basic packet sniffer.
+ *
+ *	Copy/paste one or more of the following...
+
+sudo ./code/dist/test_sn_simple_sniffer.bin ICMP
+sudo ./code/dist/test_sn_simple_sniffer.bin RAW
+sudo ./code/dist/test_sn_simple_sniffer.bin TCP
+sudo ./code/dist/test_sn_simple_sniffer.bin UDP
+
+ *
+ */
+
+#define SKID_DEBUG					// Enable DEBUG logging
+
+#include <arpa/inet.h>				// inet_ntoa()
+#include <errno.h>					// EINVAL
+#include <netinet/ip.h>				// struct iphdr
+// #include <stdio.h>					 // fprintf()
+#include <stdlib.h>					 // exit()
+// #include <sys/socket.h>				 // AF_INET
+#include <unistd.h>					// sleep()
+#include "skid_debug.h"				// FPRINTF_ERR(), PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_memory.h"			// alloc_skid_mem(), free_skid_mem()
+#include "skid_network.h"			// call_recvfrom()
+
+
+#define SOCKET_DOMAIN AF_INET 	 	 // Socket domain
+#define SOCKET_TYPE SOCK_RAW		 // Socket type
+#define RAW_ALIAS "RAW"              // Use this alias to check for a raw socket protocol
+
+
+/*
+ *	Description:
+ *		Print the usage.
+ *
+ *	Args:
+ *		prog_name: argv[0].
+ *		unsupported_alias: [Optional] If defined, tell the user this alias is unsupported.
+ */
+void print_usage(const char *prog_name, const char *unsupported_alias);
+
+
+int main(int argc, char *argv[])
+{
+	// LOCAL VARIABLES
+	int exit_code = 0;                // Store errno and/or results here
+	int sock_domain = SOCKET_DOMAIN;  // Socket domain
+	int sock_type = SOCKET_TYPE;      // Socket type
+	int sock_protocol = IPPROTO_RAW;  // Socket protocol
+	int socket_fd = SKID_BAD_FD;      // Socket file descriptor
+	struct iphdr *ip_packet = NULL;   // IP Header
+	struct sockaddr_in src_address;	  // Source information
+	struct sockaddr_in dst_address;   // Destination information
+	ssize_t packet_size = 0;          // Packet size, in bytes, as reported by recvfrom()
+	void *raw_packet = NULL;          // Heap-allocated memory
+	int flags = 0;                    // recvfrom() flags
+	size_t buff_size = 65536;         // Size of the raw_packet buffer
+
+	// INPUT VALIDATION
+	if (argc != 2)
+	{
+		print_usage(argv[0], NULL);
+		exit_code = EINVAL;
+	}
+	else if (!strcmp(argv[1], RAW_ALIAS))
+	{
+		sock_protocol = IPPROTO_RAW;
+	}
+	else
+	{
+		sock_protocol = resolve_alias(argv[1], &exit_code);
+		if (sock_protocol < 0)
+		{
+			PRINT_ERROR(The call to resolve_alias() failed);
+			PRINT_ERRNO(exit_code);
+		}
+		else if (sock_protocol != IPPROTO_ICMP && sock_protocol != IPPROTO_RAW \
+				 && sock_protocol != IPPROTO_TCP && sock_protocol != IPPROTO_UDP)
+		{
+			print_usage(argv[0], argv[1]);
+			exit_code = ENOPROTOOPT;  // This protocol is not supported
+		}
+	}
+	
+	// SETUP
+	// Allocate memory
+	if (ENOERR == exit_code)
+	{
+		raw_packet = alloc_skid_mem(buff_size, 1, &exit_code);
+	}
+	// Open the socket
+	if (ENOERR == exit_code)
+	{
+		socket_fd = open_socket(sock_domain, sock_type, sock_protocol, &exit_code);
+		if (SKID_BAD_FD == socket_fd)
+		{
+			// Failed to open the socket with this domain, type, and protocol
+			PRINT_ERROR(The call to open_socket() failed);
+			PRINT_ERRNO(exit_code);
+			FPRINTF_ERR("%s - The call was open_socket(%d, %d, %d, %p)\n", DEBUG_ERROR_STR,
+						sock_domain, sock_type, sock_protocol, &exit_code);  // DEBUGGING
+			if (EPERM == exit_code)
+			{
+				fprintf(stderr, "%s.\nDid you neglect to elevate your privileges?\n"
+					    "Consider the CAP_NET_RAW capability or sudo.\n", strerror(exit_code));
+			}
+		}
+		else
+		{
+			printf("Starting to sniff around for %s packets...\n", argv[1]);
+		}
+	}
+
+	// SNIFF
+	while (ENOERR == exit_code)
+	{
+		// Read from the socket
+		packet_size = call_recvfrom(socket_fd, flags, NULL, 0, raw_packet, buff_size, &exit_code);
+
+		// Parse it
+		if (packet_size > 0 && ENOERR == exit_code)
+		{
+			ip_packet = (struct iphdr *)raw_packet;
+			// Zeroize the structs
+			memset(&src_address, 0x0, sizeof(src_address));
+			memset(&dst_address, 0x0, sizeof(dst_address));
+			// Setup the structs
+			src_address.sin_addr.s_addr = ip_packet->saddr;
+			dst_address.sin_addr.s_addr = ip_packet->daddr;
+			printf("%s - FM: %15s\tTO: %15s\tSZ: %5d\tID: %d\n", argv[1],
+				   (char *)inet_ntoa(src_address.sin_addr),
+				   (char *)inet_ntoa(dst_address.sin_addr),
+				   ntohs(ip_packet->tot_len), ntohs(ip_packet->id));
+		}
+		else if (EAGAIN == exit_code || EWOULDBLOCK == exit_code)
+		{
+			exit_code = ENOERR;  // Nothing to see here
+			sleep(1);  // Avoid CPU thrash with a tasteful sleep
+			continue;  // Keep waiting for data			
+		}
+		else
+		{
+			FPRINTF_ERR("%s - call_recvfrom() read %ld bytes\n", DEBUG_INFO_STR, packet_size);
+			PRINT_ERROR(The call to call_recvfrom() failed);
+			PRINT_ERRNO(exit_code);
+		}
+	}
+
+	// CLEANUP
+	close_socket(&socket_fd, true);  // Best effort
+	free_skid_mem(&raw_packet);  // Best effort
+
+	// DONE
+	exit(exit_code);
+}
+
+
+void print_usage(const char *prog_name, const char *unsupported_alias)
+{
+	if (unsupported_alias)
+	{
+		fprintf(stderr, "The protocol alias '%s' is not supported.\n\n", unsupported_alias);
+	}
+	fprintf(stderr, "Usage: %s <PROTOCOL: [ICMP/RAW/TCP/UDP]>\nReceiving of all IP protocols "
+			"via IPPROTO_RAW is not possible using raw sockets.  See: raw(7).\n", prog_name);
+}
