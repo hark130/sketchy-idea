@@ -189,7 +189,8 @@ int listen_socket(int sockfd, int backlog);
  *
  *	Returns:
  *		On success, the size of sockfd's send buffer.
- *		On failure, -1 and errnum is set appropriately.
+ *		On failure, -1 and errnum is set appropriately.  ENOBUFS is used to indicate a socket
+ *			that reported a send buffer size of zero (0).
  */
 int get_socket_opt_sndbuf(int sockfd, int *errnum);
 
@@ -338,7 +339,8 @@ int send_socket(int sockfd, const char *msg, int flags);
  *		addrlen: [Optional] The actual size of the dest_addr (destination address) argument.
  *			Not validated.  Passed directly to sendto().
  *		chunk_it: If true, avoid EMSGSIZE errors by chunking the msg to fit in sockfd's
- *			send buffer.  If false, sendto() msg as-is.
+ *			send buffer.  The default chunk size is SKID_CHUNK_SIZE (see: skid_macros.h).
+ *			If false, sendto() msg as-is.
  *
  *	Returns:
  *		On success, zero is returned.  On error, errno is returned.  EISCONN may be returned if
