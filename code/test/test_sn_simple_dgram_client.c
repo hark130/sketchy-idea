@@ -32,7 +32,7 @@ valgrind --leak-check=full --show-leak-kinds=all ./code/dist/test_sn_simple_dgra
 #define SERVER_TYPE SOCK_DGRAM		 // Server socket type
 #define SERVER_PROTOCOL IPPROTO_UDP  // Server socket protocol
 #define SERVER_PORT 5678			 // The port clients will connect to
-#define MSG_BUF_SIZE 300000			 // Normally, this is right-sized but I have been testing...
+#define MSG_BUF_SIZE 65507			 // Normally, this is right-sized but I have been testing...
 
 
 int main(int argc, char *argv[])
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 	char message[MSG_BUF_SIZE + 1] = { 0 };        // Message for the client to send to the server
 	int sendto_flags = 0;                        // See sendto(2)
 	struct sockaddr_in servaddr;                 // The server to send to
-	bool chunk_it = true;                        // Chunk the message if it's too large
+	bool chunk_it = false;                        // Chunk the message if it's too large
 
 	// INPUT VALIDATION
 	if (argc == 2)
@@ -100,18 +100,6 @@ int main(int argc, char *argv[])
 		{
 			PRINT_ERROR(The call to connect_socket() failed);
 			PRINT_ERRNO(exit_code);
-		}
-	}
-
-	// TESTING
-	if (!exit_code)
-	{
-		int sndbuf_size = get_socket_opt_sndbuf(socket_fd, &exit_code);
-		if (sizeof(message) > sndbuf_size)
-		{
-			FPRINTF_ERR("%s - You're gonna have a bad time.  The message size is %lu but the "
-				        "socket's send buffer size is %d\n", DEBUG_INFO_STR, sizeof(message),
-				        sndbuf_size);
 		}
 	}
 
