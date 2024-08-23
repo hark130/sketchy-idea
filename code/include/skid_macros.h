@@ -37,5 +37,7 @@
 #define SKID_MAX_DGRAM_DATA_IPV4 65507  // Maximum UDP payload size, in bytes, over IPv4
 // This value was based on the "maximum safe datagram payload size"
 #define SKID_CHUNK_SIZE 508  // The default chunk size for any network send func w/ chunking
+// This literal is used to translate the IPPROTO_RAW protocol number into an alias
+#define SKID_RAW_SOCK_ALIAS "RAW"  // Use this alias to check for a raw socket protocol
 
 #endif  /* __SKID_MACROS__ */
