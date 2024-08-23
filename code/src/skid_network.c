@@ -818,17 +818,25 @@ char *resolve_protocol(int protocol, int *errnum)
 	// Get the protoent struct
 	if (ENOERR == result)
 	{
-		protocol_entry = getprotobynumber(protocol);
-		opened = true;
-		if (NULL == protocol_entry)
+		if (IPPROTO_RAW == protocol)
 		{
-			result = EPROTO;  // Unresolved protocol
+			// Copy the library's alias name
+			official_name = copy_skid_string(SKID_RAW_SOCK_ALIAS, &result);
 		}
-	}
-	// Copy the official name
-	if (ENOERR == result)
-	{
-		official_name = copy_skid_string(protocol_entry->p_name, &result);
+		else
+		{
+			protocol_entry = getprotobynumber(protocol);
+			opened = true;
+			if (NULL == protocol_entry)
+			{
+				result = EPROTO;  // Unresolved protocol
+			}
+			else
+			{
+				// Copy the official name
+				official_name = copy_skid_string(protocol_entry->p_name, &result);
+			}
+		}
 	}
 
 	// CLEANUP

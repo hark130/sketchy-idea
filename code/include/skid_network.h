@@ -335,7 +335,8 @@ int resolve_alias(const char *proto_alias, int *errnum);
  *
  *	Returns:
  *		Pointer to the heap-allocated buffer, on success.  NULL on error (check errnum for details).
- *		EPROTO is used to indicate an unresolved protocol number.
+ *		EPROTO is used to indicate an unresolved protocol number.  The IPPROTO_RAW protocol number
+ *		is resolved as SKID_RAW_SOCK_ALIAS (see: skid_macros.h).
  */
 char *resolve_protocol(int protocol, int *errnum);
 
