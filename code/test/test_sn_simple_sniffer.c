@@ -39,10 +39,9 @@ sudo ./code/dist/test_sn_simple_sniffer.bin UDP
  *		allocated buffer, which subsequent calls will overwrite.
  *
  *	Args:
- *		protocol: argv[1].
  *		packet: Data read from socket.
  */
-void print_packet(const char *protocol, struct iphdr *packet);
+void print_packet(struct iphdr *packet);
 
 /*
  *	Description:
@@ -134,7 +133,7 @@ int main(int argc, char *argv[])
 		if (packet_size > 0 && ENOERR == exit_code)
 		{
 			ip_packet = (struct iphdr *)raw_packet;
-			print_packet(argv[1], ip_packet);
+			print_packet(ip_packet);
 		}
 		else if (EAGAIN == exit_code || EWOULDBLOCK == exit_code)
 		{
@@ -159,13 +158,17 @@ int main(int argc, char *argv[])
 }
 
 
-void print_packet(const char *protocol, struct iphdr *packet)
+void print_packet(struct iphdr *packet)
 {
 	// LOCAL VARIABLES
+	int results = 0;                 // Store errno values
 	struct sockaddr_in src_address;  // Source information
 	struct sockaddr_in dst_address;  // Destination information
 	char src_str[16] = { 0 };        // IPv4 source address in dotted decimal
 	char dst_str[16] = { 0 };        // IPv4 source address in dotted decimal
+	uint16_t id_num = 0;             // IP header ID number
+	uint8_t proto_num = 0;           // IP header layer 4 protocol number
+	char *proto_alias = NULL;        // IP header layer 4 protocol alias
 
 	// INPUT VALIDATION
 	if (packet)
@@ -175,13 +178,25 @@ void print_packet(const char *protocol, struct iphdr *packet)
 		memset(&dst_address, 0x0, sizeof(dst_address));
 		src_address.sin_addr.s_addr = packet->saddr;
 		dst_address.sin_addr.s_addr = packet->daddr;
+		id_num = ntohs(packet->id);
+		proto_num = packet->protocol;
+		proto_alias = resolve_protocol(proto_num, &results);
+		if (ENOERR != results)
+		{
+			PRINT_ERROR(The call to resolve_protocol() failed);
+			PRINT_ERRNO(results);
+		}
 		// TRANSLATE
 		strncpy(src_str, (char *)inet_ntoa(src_address.sin_addr), 15);
 		strncpy(dst_str, (char *)inet_ntoa(dst_address.sin_addr), 15);
 
 		// PRINT
-		printf("%s - FM: %15s\tTO: %15s\tSZ: %5d\tID: %d\n", protocol, src_str, dst_str,
-			   ntohs(packet->tot_len), ntohs(packet->id));
+		printf("FM: %15s\tTO: %15s\tSZ: %5d\tID: 0x%04x (%05d)\tTTL: %3u\tPROTO: %s (%d)\n",
+			   src_str, dst_str, ntohs(packet->tot_len), id_num, id_num,
+			   packet->ttl, proto_alias, proto_num);
+
+		// CLEANUP
+		free_skid_mem((void **)&proto_alias);  // Best effort
 	}
 	else
 	{
