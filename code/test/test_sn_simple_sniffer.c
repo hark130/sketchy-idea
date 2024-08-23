@@ -16,18 +16,15 @@ sudo ./code/dist/test_sn_simple_sniffer.bin UDP
 #include <arpa/inet.h>				// inet_ntoa()
 #include <errno.h>					// EINVAL
 #include <netinet/ip.h>				// struct iphdr
-// #include <stdio.h>					 // fprintf()
-#include <stdlib.h>					 // exit()
-// #include <sys/socket.h>				 // AF_INET
+#include <stdlib.h>					// exit()
 #include <unistd.h>					// sleep()
 #include "skid_debug.h"				// FPRINTF_ERR(), PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_memory.h"			// alloc_skid_mem(), free_skid_mem()
 #include "skid_network.h"			// call_recvfrom()
 
 
-#define SOCKET_DOMAIN AF_INET 	 	 // Socket domain
-#define SOCKET_TYPE SOCK_RAW		 // Socket type
-#define RAW_ALIAS "RAW"              // Use this alias to check for a raw socket protocol
+#define SOCKET_DOMAIN AF_INET 	 	// Socket domain
+#define SOCKET_TYPE SOCK_RAW		// Socket type
 
 
 /*
@@ -74,7 +71,7 @@ int main(int argc, char *argv[])
 		print_usage(argv[0], NULL);
 		exit_code = EINVAL;
 	}
-	else if (!strcmp(argv[1], RAW_ALIAS))
+	else if (!strcmp(argv[1], SKID_RAW_SOCK_ALIAS))
 	{
 		sock_protocol = IPPROTO_RAW;
 	}
