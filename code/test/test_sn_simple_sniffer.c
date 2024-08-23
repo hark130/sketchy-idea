@@ -32,6 +32,20 @@ sudo ./code/dist/test_sn_simple_sniffer.bin UDP
 
 /*
  *	Description:
+ *		Print the packet details.
+ *
+ *	Note:  The inet_ntoa() function converts the Internet host address
+ *		to a string in IPv4 dotted-decimal notation.  The string is returned in a statically
+ *		allocated buffer, which subsequent calls will overwrite.
+ *
+ *	Args:
+ *		protocol: argv[1].
+ *		packet: Data read from socket.
+ */
+void print_packet(const char *protocol, struct iphdr *packet);
+
+/*
+ *	Description:
  *		Print the usage.
  *
  *	Args:
@@ -50,8 +64,6 @@ int main(int argc, char *argv[])
 	int sock_protocol = IPPROTO_RAW;  // Socket protocol
 	int socket_fd = SKID_BAD_FD;      // Socket file descriptor
 	struct iphdr *ip_packet = NULL;   // IP Header
-	struct sockaddr_in src_address;	  // Source information
-	struct sockaddr_in dst_address;   // Destination information
 	ssize_t packet_size = 0;          // Packet size, in bytes, as reported by recvfrom()
 	void *raw_packet = NULL;          // Heap-allocated memory
 	int flags = 0;                    // recvfrom() flags
@@ -122,16 +134,7 @@ int main(int argc, char *argv[])
 		if (packet_size > 0 && ENOERR == exit_code)
 		{
 			ip_packet = (struct iphdr *)raw_packet;
-			// Zeroize the structs
-			memset(&src_address, 0x0, sizeof(src_address));
-			memset(&dst_address, 0x0, sizeof(dst_address));
-			// Setup the structs
-			src_address.sin_addr.s_addr = ip_packet->saddr;
-			dst_address.sin_addr.s_addr = ip_packet->daddr;
-			printf("%s - FM: %15s\tTO: %15s\tSZ: %5d\tID: %d\n", argv[1],
-				   (char *)inet_ntoa(src_address.sin_addr),
-				   (char *)inet_ntoa(dst_address.sin_addr),
-				   ntohs(ip_packet->tot_len), ntohs(ip_packet->id));
+			print_packet(argv[1], ip_packet);
 		}
 		else if (EAGAIN == exit_code || EWOULDBLOCK == exit_code)
 		{
@@ -153,6 +156,37 @@ int main(int argc, char *argv[])
 
 	// DONE
 	exit(exit_code);
+}
+
+
+void print_packet(const char *protocol, struct iphdr *packet)
+{
+	// LOCAL VARIABLES
+	struct sockaddr_in src_address;  // Source information
+	struct sockaddr_in dst_address;  // Destination information
+	char src_str[16] = { 0 };        // IPv4 source address in dotted decimal
+	char dst_str[16] = { 0 };        // IPv4 source address in dotted decimal
+
+	// INPUT VALIDATION
+	if (packet)
+	{
+		// SETUP
+		memset(&src_address, 0x0, sizeof(src_address));
+		memset(&dst_address, 0x0, sizeof(dst_address));
+		src_address.sin_addr.s_addr = packet->saddr;
+		dst_address.sin_addr.s_addr = packet->daddr;
+		// TRANSLATE
+		strncpy(src_str, (char *)inet_ntoa(src_address.sin_addr), 15);
+		strncpy(dst_str, (char *)inet_ntoa(dst_address.sin_addr), 15);
+
+		// PRINT
+		printf("%s - FM: %15s\tTO: %15s\tSZ: %5d\tID: %d\n", protocol, src_str, dst_str,
+			   ntohs(packet->tot_len), ntohs(packet->id));
+	}
+	else
+	{
+		PRINT_ERROR(Received a NULL packet pointer);
+	}
 }
 
 
