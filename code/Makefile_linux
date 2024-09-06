@@ -100,6 +100,8 @@ MAN_TEST_SFL_PREFIX = $(MAN_TEST_PREFIX)sfl_
 MAN_TEST_SFMR_PREFIX = $(MAN_TEST_PREFIX)sfmr_
 # Prefix for all skid_file_metadata_read library manual tests
 MAN_TEST_SFMW_PREFIX = $(MAN_TEST_PREFIX)sfmw_
+# Prefix for all skid_dir_operations library manual tests
+MAN_TEST_SN_PREFIX = $(MAN_TEST_PREFIX)sn_
 # All test_*.c filenames found in TEST_DIR
 MAN_TEST_SRC_FILES := $(shell cd $(TEST_DIR); ls $(MAN_TEST_PREFIX)*$(SRC_FILE_EXT))
 # All MAN_TEST_SRC_FILES with the file extension stripped
@@ -233,6 +235,11 @@ $(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFMR_P
 
 # MANUAL TEST: Linking skid_file_metadata_write library manual test binaries
 $(DIST_DIR)$(MAN_TEST_SFMW_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFMW_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_write$(OBJ_FILE_EXT)
+	@echo "    Linking manual test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# MANUAL TEST: Linking skid_network library manual test binaries
+$(DIST_DIR)$(MAN_TEST_SN_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SN_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_network$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT)  $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 

@@ -5,6 +5,14 @@
 #ifndef __SKID_MACROS__
 #define __SKID_MACROS__
 
+/* GENERAL MACROS */
+#define SKID_BAD_FD (signed int)-1  // Use this to standardize "invalid" file descriptors
+#define SKID_MAX_SZ (~(size_t)0)    // Library's value for the maximum size_t value
+#ifndef ENOERR
+#define ENOERR ((int)0)  // Success value for errno
+#endif  /* ENOERR */
+
+/* FILE METADATA MACROS */
 // You may use these macros with SKID mode_t arguments.
 /* We translated the chown(2) macros so you don't have to! */
 // Owner Permissions
@@ -23,5 +31,13 @@
 #define SKID_MODE_SET_UID S_ISUID  // set-user-ID
 #define SKID_MODE_SET_GID S_ISGID  // set-user-ID
 #define SKID_MODE_STICKYB S_ISVTX  // sticky bit (see: unlink(2), restricted deletion flag)
+
+/* NETWORK MACROS */
+// This value is calculated from packet sizes but is not guaranteed to be successful
+#define SKID_MAX_DGRAM_DATA_IPV4 65507  // Maximum UDP payload size, in bytes, over IPv4
+// This value was based on the "maximum safe datagram payload size"
+#define SKID_CHUNK_SIZE 508  // The default chunk size for any network send func w/ chunking
+// This literal is used to translate the IPPROTO_RAW protocol number into an alias
+#define SKID_RAW_SOCK_ALIAS "RAW"  // Use this alias to check for a raw socket protocol
 
 #endif  /* __SKID_MACROS__ */
