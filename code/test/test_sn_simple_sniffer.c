@@ -106,8 +106,6 @@ int main(int argc, char *argv[])
 			// Failed to open the socket with this domain, type, and protocol
 			PRINT_ERROR(The call to open_socket() failed);
 			PRINT_ERRNO(exit_code);
-			FPRINTF_ERR("%s - The call was open_socket(%d, %d, %d, %p)\n", DEBUG_ERROR_STR,
-						sock_domain, sock_type, sock_protocol, &exit_code);  // DEBUGGING
 			if (EPERM == exit_code)
 			{
 				fprintf(stderr, "%s.\nDid you neglect to elevate your privileges?\n"
