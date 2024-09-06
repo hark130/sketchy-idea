@@ -3,7 +3,7 @@
  *
  *	Copy/paste the following...
 
-sudo ./code/dist/test_sn_simple_sniffer.bin
+sudo ./code/dist/test_sn_multi_sniffer.bin
 
  *
  */
