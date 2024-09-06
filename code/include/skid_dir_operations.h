@@ -81,19 +81,16 @@ int free_skid_dir_contents(char ***dir_contents);
  *		(AKA pick-and-choose what to keep) or use free_skid_dir_contents() to free the entire
  *		collection.
  *
- *	Notes:
- *		TO DO: DON'T DO NOW...
- *
  *	Args:
  *		dirname: Absolute or relative directory to read the contents of (must exist).
  *		recurse: If true, also include all sub-dirs and their files in the array.
  *		errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
- *		capacity: [Out] The total number of indices, NULL or otherwise, in the return value.
+ *		capacity: [Out] The total number of available indices, 0 or otherwise, in the return value.
  *
  *	Returns:
  *		An array of string pointers, on success.  If dirname is empty, this function will return
- *		NULL.  On failure, NULL an errnum will be set with an errno value (or -1 for an
- *		unspecified error).
+ *		NULL but errnum will be ENOERR.  On failure, NULL will be returned and errnum will be set
+ *		with an errno value (or -1 for an unspecified error).
  */
 char **read_dir_contents(const char *dirname, bool recurse, int *errnum, size_t *capacity);
 
