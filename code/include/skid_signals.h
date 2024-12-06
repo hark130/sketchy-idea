@@ -14,6 +14,9 @@
  *			struct sigaction.sa_handler.
  *		flags: Passed to sigaction() by way of struct sigaction.sa_flags.
  *		oldact: [Optional] If non-NULL, the previous action is saved here.
+ *
+ *	Returns:
+ *		On success, ENOERR is returned.  On error, errno is returned.
  */
 int set_signal_handler(int signum, SignalHandler handler, int flags, struct sigaction *oldact);
 
@@ -27,6 +30,9 @@ int set_signal_handler(int signum, SignalHandler handler, int flags, struct siga
  *			struct sigaction.sa_sigaction.
  *		flags: Passed to sigaction() by way of struct sigaction.sa_flags.
  *		oldact: [Optional] If non-NULL, the previous action is saved here.
+ *
+ *	Returns:
+ *		On success, ENOERR is returned.  On error, errno is returned.
  */
 int set_signal_handler_ext(int signum, SignalHandlerExt handler, int flags, struct sigaction *oldact);
 
