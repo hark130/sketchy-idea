@@ -24,7 +24,7 @@ typedef void (*SignalHandlerExt)(int signum, siginfo_t *info, void *context);
 void handle_all_children(int signum);
 
 /**************************************************************************************************/
-/****************************** SA_HANDLER (SignalHandler) FUNCTIONS ******************************/
+/*************************** SA_SIGACTION (SignalHandlerExt) FUNCTIONS ****************************/
 /**************************************************************************************************/
 
 #endif  /* __SKID_SIGNAL_HANDLERS__ */
