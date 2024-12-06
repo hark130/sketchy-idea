@@ -26,31 +26,31 @@
 
 void handle_all_children(int signum)
 {
-    // waitpid() might overwrite errno, so we save and restore it:
-    int errnum = errno;  // Perserve the errno value
-    pid_t result = 0;    // Result of waitpid
+	// waitpid() might overwrite errno, so we save and restore it:
+	int errnum = errno;  // Perserve the errno value
+	pid_t result = 0;    // Result of waitpid
 
-    // HANDLE IT
-    do
-    {
-    	result = waitpid(-1, NULL, WNOHANG);  // Wait for any child process
-    	if (result > 0)
-    	{
-    		// The PID of a child process that exited; Keep going
-    	}
-    	else if (0 == result)
-    	{
-    		// All child processes have exited
-    		break;
-    	}
-    	else if (-1 == result)
-    	{
-    		// An error occurred
-    	}
-    } while (result > 0);
+	// HANDLE IT
+	do
+	{
+		result = waitpid(-1, NULL, WNOHANG);  // Wait for any child process
+		if (result > 0)
+		{
+			// The PID of a child process that exited; Keep going
+		}
+		else if (0 == result)
+		{
+			// All child processes have exited
+			break;
+		}
+		else if (-1 == result)
+		{
+			// An error occurred
+		}
+	} while (result > 0);
 
-    // CLEANUP
-    errno = errnum;  // Restore the original errno value
+	// CLEANUP
+	errno = errnum;  // Restore the original errno value
 }
 
 
