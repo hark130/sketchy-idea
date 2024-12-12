@@ -53,6 +53,25 @@ int set_signal_handler_ext(int signum, SignalHandlerExt handler, int flags,
 
 /*
  *	Description:
+ *		Translate a signal number's signal code into a human-readable description.  This function
+ *		replicates the behavior of strsignal() but for signal codes (see: sigaction(2)'s
+ *		description of the siginfo_t data type's si_code field).
+ *		It is the caller's responsibility to free the return value using skid_memory's
+ *		free_skid_string().
+ *
+ *	Args:
+ *		signum: The signal number.
+ *		sigcode: The signal code.
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Heap-allocated string describing the signal code with relation to the signal number.
+ *		NULL on error (check errnum for details).
+ */
+char *translate_signal_code(int signum, int sigcode, int *errnum);
+
+/*
+ *	Description:
  *		Unblock a signal.  The signal number will be removed from the current set of blocked
  *		signals.  It is permissible to attempt to unblock a signal which is not blocked.
  *

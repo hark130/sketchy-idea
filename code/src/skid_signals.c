@@ -2,11 +2,20 @@
  *	This library defines functionality to help automate signal handling.
  */
 
+#ifndef _XOPEN_SOURCE
+#define _XOPEN_SOURCE					// Expose the TRAP_* signal code macros
+#endif  /* _XOPEN_SOURCE */
+#ifndef _XOPEN_SOURCE_EXTENDED
+#define _XOPEN_SOURCE_EXTENDED			// Expose the TRAP_* signal code macros
+#endif  /* _XOPEN_SOURCE_EXTENDED */
+
 #define SKID_DEBUG						// Enable DEBUG logging
 
 #include "skid_debug.h"				  	// PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_macros.h"				// NOERR
+#include "skid_memory.h"				// copy_skid_string()
 #include "skid_signals.h"				// Signal MACROs, SignalHandler
+#include "skid_validation.h"			// validate_skid_err()
 #include <errno.h>						// EINVAL
 #include <sys/types.h>					// pid_t
 #include <sys/wait.h>					// waitpid()
@@ -72,6 +81,125 @@ int initialize_sigaction_struct(struct sigaction *action);
  */
 int initialize_signal_set(sigset_t *set, int signum);
 
+/*
+ *	Description:
+ *		Translate signal codes for generic signals into a human-readable, heap-allocated string.
+ *
+ *	Args:
+ *		signum: The signal number.
+ *		sigcode: The signal code.
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Heap-allocated string describing the signal code with relation to the signal number.
+ *		NULL on error (check errnum for details).
+ */
+char *translate_signal_generic(int signum, int sigcode, int *errnum);
+
+/*
+ *	Description:
+ *		Translate SIGBUS signal codes into a human-readable, heap-allocated string.
+ *
+ *	Args:
+ *		signum: The signal number.
+ *		sigcode: The signal code.
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Heap-allocated string describing the signal code with relation to the signal number.
+ *		NULL on error (check errnum for details).
+ */
+char *translate_signal_sigbus(int signum, int sigcode, int *errnum);
+
+/*
+ *	Description:
+ *		Translate SIGCHLD signal codes into a human-readable, heap-allocated string.
+ *
+ *	Args:
+ *		signum: The signal number.
+ *		sigcode: The signal code.
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Heap-allocated string describing the signal code with relation to the signal number.
+ *		NULL on error (check errnum for details).
+ */
+char *translate_signal_sigchld(int signum, int sigcode, int *errnum);
+
+/*
+ *	Description:
+ *		Translate SIGSEGV signal codes into a human-readable, heap-allocated string.
+ *
+ *	Args:
+ *		signum: The signal number.
+ *		sigcode: The signal code.
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Heap-allocated string describing the signal code with relation to the signal number.
+ *		NULL on error (check errnum for details).
+ */
+char *translate_signal_sigsegv(int signum, int sigcode, int *errnum);
+
+/*
+ *	Description:
+ *		Translate SIGFPE signal codes into a human-readable, heap-allocated string.
+ *
+ *	Args:
+ *		signum: The signal number.
+ *		sigcode: The signal code.
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Heap-allocated string describing the signal code with relation to the signal number.
+ *		NULL on error (check errnum for details).
+ */
+char *translate_signal_sigfpe(int signum, int sigcode, int *errnum);
+
+/*
+ *	Description:
+ *		Translate SIGILL signal codes into a human-readable, heap-allocated string.
+ *
+ *	Args:
+ *		signum: The signal number.
+ *		sigcode: The signal code.
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Heap-allocated string describing the signal code with relation to the signal number.
+ *		NULL on error (check errnum for details).
+ */
+char *translate_signal_sigill(int signum, int sigcode, int *errnum);
+
+/*
+ *	Description:
+ *		Translate SIGIO signal codes into a human-readable, heap-allocated string.
+ *
+ *	Args:
+ *		signum: The signal number.
+ *		sigcode: The signal code.
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Heap-allocated string describing the signal code with relation to the signal number.
+ *		NULL on error (check errnum for details).
+ */
+char *translate_signal_sigio(int signum, int sigcode, int *errnum);
+
+/*
+ *	Description:
+ *		Translate SIGTRAP signal codes into a human-readable, heap-allocated string.
+ *
+ *	Args:
+ *		signum: The signal number.
+ *		sigcode: The signal code.
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Heap-allocated string describing the signal code with relation to the signal number.
+ *		NULL on error (check errnum for details).
+ */
+char *translate_signal_sigtrap(int signum, int sigcode, int *errnum);
 
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
@@ -169,6 +297,51 @@ int set_signal_handler_ext(int signum, SignalHandlerExt handler, int flags,
 
 	// DONE
 	return result;
+}
+
+
+char *translate_signal_code(int signum, int sigcode, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;       // Errno value
+	char *translation = NULL;  // Human readable signal code translation
+
+	// VALIDATION
+	result = validate_skid_err(errnum);
+
+	// TRANSLATE IT
+	if (ENOERR == result)
+	{
+		switch (signum)
+		{
+			case SIGILL:
+				translation = translate_signal_sigill(signum, sigcode, errnum);
+				break;
+			case SIGFPE:
+				translation = translate_signal_sigfpe(signum, sigcode, errnum);
+				break;
+		    case SIGSEGV:
+				translation = translate_signal_sigsegv(signum, sigcode, errnum);
+				break;
+		    case SIGBUS:
+				translation = translate_signal_sigbus(signum, sigcode, errnum);
+				break;
+		    case SIGTRAP:
+				translation = translate_signal_sigtrap(signum, sigcode, errnum);
+				break;
+		    case SIGCHLD:
+				translation = translate_signal_sigchld(signum, sigcode, errnum);
+				break;
+		    case SIGIO:  // Also SIGPOLL, apparently
+				translation = translate_signal_sigio(signum, sigcode, errnum);
+				break;
+			default:
+				translation = translate_signal_generic(signum, sigcode, errnum);
+		}
+	}
+
+	// DONE
+	return translation;
 }
 
 
@@ -332,4 +505,510 @@ int initialize_signal_set(sigset_t *set, int signum)
 
 	// DONE
 	return result;
+}
+
+
+char *translate_signal_generic(int signum, int sigcode, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;       // Errno value
+	char *temp_str = NULL;     // Temporary string to copy into translation
+	char *translation = NULL;  // Human readable signal code translation
+
+	// VALIDATION
+	result = validate_skid_err(errnum);
+
+	// TRANSLATE IT
+	if (ENOERR == result)
+	{
+		switch (sigcode)
+		{
+			case SI_USER:
+				temp_str = "SI_USER: kill command";
+				break;
+			case SI_KERNEL:
+				temp_str = "SI_KERNEL: Sent by the kernel";
+				break;
+		    case SI_QUEUE:
+				temp_str = "SI_QUEUE: See sigqueue(3)";
+				break;
+		    case SI_TIMER:
+				temp_str = "SI_TIMER: POSIX timer expired";
+				break;
+		    case SI_MESGQ:
+				temp_str = "SI_MESGQ: POSIX message queue state changed; see mq_notify(3)";
+				break;
+		    case SI_ASYNCIO:
+				temp_str = "SI_ASYNCIO: AIO completed";
+				break;
+		    case SI_SIGIO:
+				temp_str = "SI_SIGIO: Queued SIGIO (from a legacy kernel version)";
+				break;
+		    case SI_TKILL:
+				temp_str = "SI_TKILL: tkill(2) or tgkill(2)";
+				break;
+			default:
+				temp_str = "UNKNOWN SIGNAL CODE";
+		}
+	}
+	// COPY IT
+	if (ENOERR == result)
+	{
+		translation = copy_skid_string(temp_str, &result);
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return translation;
+}
+
+
+char *translate_signal_sigbus(int signum, int sigcode, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;       // Errno value
+	char *temp_str = NULL;     // Temporary string to copy into translation
+	char *translation = NULL;  // Human readable signal code translation
+
+	// VALIDATION
+	result = validate_skid_err(errnum);
+	if (ENOERR == result)
+	{
+		if (SIGBUS != signum)
+		{
+			result = EINVAL;  // Wrong signal
+		}
+	}
+
+	// TRANSLATE IT
+	if (ENOERR == result)
+	{
+		switch (sigcode)
+		{
+			case BUS_ADRALN:
+				temp_str = "BUS_ADRALN: Invalid address alignment";
+				break;
+			case BUS_ADRERR:
+				temp_str = "BUS_ADRERR: Nonexistent physical address";
+				break;
+			case BUS_OBJERR:
+				temp_str = "BUS_OBJERR: Object-specific hardware error";
+				break;
+			case BUS_MCEERR_AR:
+				temp_str = "BUS_MCEERR_AR: Hardware memory error consumed on a machine check; \
+				            action required";
+				break;
+			case BUS_MCEERR_AO:
+				temp_str = "BUS_MCEERR_AO: Hardware memory error detected in process but not \
+				            consumed; action optional";
+				break;
+		}
+	}
+	// COPY IT
+	if (ENOERR == result)
+	{
+		// Do we need to find a generic destription as a fallback?
+		if (NULL == temp_str)
+		{
+			translation = translate_signal_generic(signum, sigcode, &result);
+		}
+		else
+		{
+			translation = copy_skid_string(temp_str, &result);
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return translation;
+}
+
+
+char *translate_signal_sigchld(int signum, int sigcode, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;       // Errno value
+	char *temp_str = NULL;     // Temporary string to copy into translation
+	char *translation = NULL;  // Human readable signal code translation
+
+	// VALIDATION
+	result = validate_skid_err(errnum);
+	if (ENOERR == result)
+	{
+		if (SIGCHLD != signum)
+		{
+			result = EINVAL;  // Wrong signal
+		}
+	}
+
+	// TRANSLATE IT
+	if (ENOERR == result)
+	{
+		switch (sigcode)
+		{
+			case CLD_EXITED:
+				temp_str = "CLD_EXITED: Child has exited";
+				break;
+			case CLD_KILLED:
+				temp_str = "CLD_KILLED: Child was killed";
+				break;
+			case CLD_DUMPED:
+				temp_str = "CLD_DUMPED: Child terminated abnormally";
+				break;
+			case CLD_TRAPPED:
+				temp_str = "CLD_TRAPPED: Traced child has trapped";
+				break;
+			case CLD_STOPPED:
+				temp_str = "CLD_STOPPED: Child has stopped";
+				break;
+			case CLD_CONTINUED:
+				temp_str = "CLD_CONTINUED: Stopped child has continued";
+				break;
+		}
+	}
+	// COPY IT
+	if (ENOERR == result)
+	{
+		// Do we need to find a generic destription as a fallback?
+		if (NULL == temp_str)
+		{
+			translation = translate_signal_generic(signum, sigcode, &result);
+		}
+		else
+		{
+			translation = copy_skid_string(temp_str, &result);
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return translation;
+}
+
+
+char *translate_signal_sigsegv(int signum, int sigcode, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;       // Errno value
+	char *temp_str = NULL;     // Temporary string to copy into translation
+	char *translation = NULL;  // Human readable signal code translation
+
+	// VALIDATION
+	result = validate_skid_err(errnum);
+	if (ENOERR == result)
+	{
+		if (SIGSEGV != signum)
+		{
+			result = EINVAL;  // Wrong signal
+		}
+	}
+
+	// TRANSLATE IT
+	if (ENOERR == result)
+	{
+		switch (sigcode)
+		{
+			case SEGV_MAPERR:
+				temp_str = "SEGV_MAPERR: Address not mapped to object";
+				break;
+			case SEGV_ACCERR:
+				temp_str = "SEGV_ACCERR: Invalid permissions for mapped object";
+				break;
+		}
+	}
+	// COPY IT
+	if (ENOERR == result)
+	{
+		// Do we need to find a generic destription as a fallback?
+		if (NULL == temp_str)
+		{
+			translation = translate_signal_generic(signum, sigcode, &result);
+		}
+		else
+		{
+			translation = copy_skid_string(temp_str, &result);
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return translation;
+}
+
+
+char *translate_signal_sigfpe(int signum, int sigcode, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;       // Errno value
+	char *temp_str = NULL;     // Temporary string to copy into translation
+	char *translation = NULL;  // Human readable signal code translation
+
+	// VALIDATION
+	result = validate_skid_err(errnum);
+	if (ENOERR == result)
+	{
+		if (SIGFPE != signum)
+		{
+			result = EINVAL;  // Wrong signal
+		}
+	}
+
+	// TRANSLATE IT
+	if (ENOERR == result)
+	{
+		switch (sigcode)
+		{
+			case FPE_INTDIV:
+				temp_str = "FPE_INTDIV: Integer divide by zero";
+				break;
+			case FPE_INTOVF:
+				temp_str = "FPE_INTOVF: Integer overflow";
+				break;
+			case FPE_FLTDIV:
+				temp_str = "FPE_FLTDIV: Floating-point divide by zero";
+				break;
+			case FPE_FLTOVF:
+				temp_str = "FPE_FLTOVF: Floating-point overflow";
+				break;
+			case FPE_FLTUND:
+				temp_str = "FPE_FLTUND: Floating-point underflow";
+				break;
+			case FPE_FLTRES:
+				temp_str = "FPE_FLTRES: Floating-point inexact result";
+				break;
+			case FPE_FLTINV:
+				temp_str = "FPE_FLTINV: Floating-point invalid operation";
+				break;
+			case FPE_FLTSUB:
+				temp_str = "FPE_FLTSUB: Subscript out of range";
+				break;
+		}
+	}
+	// COPY IT
+	if (ENOERR == result)
+	{
+		// Do we need to find a generic destription as a fallback?
+		if (NULL == temp_str)
+		{
+			translation = translate_signal_generic(signum, sigcode, &result);
+		}
+		else
+		{
+			translation = copy_skid_string(temp_str, &result);
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return translation;
+}
+
+
+char *translate_signal_sigill(int signum, int sigcode, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;       // Errno value
+	char *temp_str = NULL;     // Temporary string to copy into translation
+	char *translation = NULL;  // Human readable signal code translation
+
+	// VALIDATION
+	result = validate_skid_err(errnum);
+	if (ENOERR == result)
+	{
+		if (SIGILL != signum)
+		{
+			result = EINVAL;  // Wrong signal
+		}
+	}
+
+	// TRANSLATE IT
+	if (ENOERR == result)
+	{
+		switch (sigcode)
+		{
+			case ILL_ILLOPC:
+				temp_str = "ILL_ILLOPC: Illegal opcode";
+				break;
+			case ILL_ILLOPN:
+				temp_str = "ILL_ILLOPN: Illegal operand";
+				break;
+			case ILL_ILLADR:
+				temp_str = "ILL_ILLADR: Illegal addressing mode";
+				break;
+			case ILL_ILLTRP:
+				temp_str = "ILL_ILLTRP: Illegal trap";
+				break;
+			case ILL_PRVOPC:
+				temp_str = "ILL_PRVOPC: Privileged opcode";
+				break;
+			case ILL_PRVREG:
+				temp_str = "ILL_PRVREG: Privileged register";
+				break;
+			case ILL_COPROC:
+				temp_str = "ILL_COPROC: Coprocessor error";
+				break;
+			case ILL_BADSTK:
+				temp_str = "ILL_BADSTK: Internal stack error";
+				break;
+		}
+	}
+	// COPY IT
+	if (ENOERR == result)
+	{
+		// Do we need to find a generic destription as a fallback?
+		if (NULL == temp_str)
+		{
+			translation = translate_signal_generic(signum, sigcode, &result);
+		}
+		else
+		{
+			translation = copy_skid_string(temp_str, &result);
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return translation;
+}
+
+
+char *translate_signal_sigio(int signum, int sigcode, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;       // Errno value
+	char *temp_str = NULL;     // Temporary string to copy into translation
+	char *translation = NULL;  // Human readable signal code translation
+
+	// VALIDATION
+	result = validate_skid_err(errnum);
+	if (ENOERR == result)
+	{
+		if (SIGIO != signum)
+		{
+			result = EINVAL;  // Wrong signal
+		}
+	}
+
+	// TRANSLATE IT
+	if (ENOERR == result)
+	{
+		switch (sigcode)
+		{
+			case POLL_IN:
+				temp_str = "POLL_IN: Data input available";
+				break;
+			case POLL_OUT:
+				temp_str = "POLL_OUT: Output buffers available";
+				break;
+			case POLL_MSG:
+				temp_str = "POLL_MSG: Input message available";
+				break;
+			case POLL_ERR:
+				temp_str = "POLL_ERR: I/O error";
+				break;
+			case POLL_PRI:
+				temp_str = "POLL_PRI: High priority input available";
+				break;
+			case POLL_HUP:
+				temp_str = "POLL_HUP: Device disconnected";
+				break;
+		}
+	}
+	// COPY IT
+	if (ENOERR == result)
+	{
+		// Do we need to find a generic destription as a fallback?
+		if (NULL == temp_str)
+		{
+			translation = translate_signal_generic(signum, sigcode, &result);
+		}
+		else
+		{
+			translation = copy_skid_string(temp_str, &result);
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return translation;
+}
+
+
+char *translate_signal_sigtrap(int signum, int sigcode, int *errnum)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;       // Errno value
+	char *temp_str = NULL;     // Temporary string to copy into translation
+	char *translation = NULL;  // Human readable signal code translation
+
+	// VALIDATION
+	result = validate_skid_err(errnum);
+	if (ENOERR == result)
+	{
+		if (SIGTRAP != signum)
+		{
+			result = EINVAL;  // Wrong signal
+		}
+	}
+
+	// TRANSLATE IT
+	if (ENOERR == result)
+	{
+		switch (sigcode)
+		{
+			case TRAP_BRKPT:
+				temp_str = "TRAP_BRKPT: Process breakpoint";
+				break;
+			case TRAP_TRACE:
+				temp_str = "TRAP_TRACE: Process trace trap";
+				break;
+			case TRAP_BRANCH:
+				temp_str = "TRAP_BRANCH: Process taken branch trap";
+				break;
+			case TRAP_HWBKPT:
+				temp_str = "TRAP_HWBKPT: Hardware breakpoint/watchpoint";
+				break;
+		}
+	}
+	// COPY IT
+	if (ENOERR == result)
+	{
+		// Do we need to find a generic destription as a fallback?
+		if (NULL == temp_str)
+		{
+			translation = translate_signal_generic(signum, sigcode, &result);
+		}
+		else
+		{
+			translation = copy_skid_string(temp_str, &result);
+		}
+	}
+
+	// DONE
+	if (errnum)
+	{
+		*errnum = result;
+	}
+	return translation;
 }
