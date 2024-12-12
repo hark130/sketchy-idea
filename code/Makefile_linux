@@ -104,6 +104,8 @@ MAN_TEST_SFMW_PREFIX = $(MAN_TEST_PREFIX)sfmw_
 MAN_TEST_SN_PREFIX = $(MAN_TEST_PREFIX)sn_
 # Prefix for all skid_signals library manual tests
 MAN_TEST_SS_PREFIX = $(MAN_TEST_PREFIX)ss_
+# Prefix for all skid_signal_handlers library manual tests
+MAN_TEST_SSH_PREFIX = $(MAN_TEST_PREFIX)ssh_
 # All test_*.c filenames found in TEST_DIR
 MAN_TEST_SRC_FILES := $(shell cd $(TEST_DIR); ls $(MAN_TEST_PREFIX)*$(SRC_FILE_EXT))
 # All MAN_TEST_SRC_FILES with the file extension stripped
@@ -247,6 +249,11 @@ $(DIST_DIR)$(MAN_TEST_SN_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SN_PREFI
 
 # MANUAL TEST: Linking skid_signals library manual test binaries
 $(DIST_DIR)$(MAN_TEST_SS_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SS_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_signals$(OBJ_FILE_EXT)
+	@echo "    Linking manual test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# MANUAL TEST: Linking skid_signal_handlers library manual test binaries
+$(DIST_DIR)$(MAN_TEST_SSH_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SSH_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_signals$(OBJ_FILE_EXT) $(DIST_DIR)skid_signal_handlers$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
