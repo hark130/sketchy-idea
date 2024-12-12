@@ -14,19 +14,16 @@
 #include <stdbool.h>				// bool, false, true
 #include <stdio.h>                  // fprintf()
 #include <stdlib.h>					// exit()
-#include <unistd.h>					// sleep()
 // Local includes
 #define SKID_DEBUG                  // The DEBUG output is doing double duty as test output
 #include "skid_debug.h"             // DEBUG_INFO_STR, DEBUG_WARNG_STR, PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_macros.h"			// ENOERR
 #include "skid_signals.h"			// block_signal(), unblock_signal()
 
-
 /*
  *	Check if signum is pending for delivery to the calling thread.
  */
 bool is_signal_pending(int signum, int *errnum);
-
 
 /*
  *	Raise a signal number by calling raise() (see: raise(3))
