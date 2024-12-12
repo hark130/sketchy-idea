@@ -19,8 +19,6 @@ kill -SIGINT `pidof ./code/dist/test_ssh_handle_interruptions.bin`
 
 // Standard includes
 #include <errno.h>                  // EINVAL, EINTR
-#include <signal.h>					// raise()
-#include <stdbool.h>				// bool, false, true
 #include <stdio.h>                  // fprintf()
 #include <stdlib.h>					// exit()
 #include <unistd.h>					// sleep()
