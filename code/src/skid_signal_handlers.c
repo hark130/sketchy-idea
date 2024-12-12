@@ -7,10 +7,17 @@
 #include "skid_debug.h"				  	// PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_macros.h"				// SignalHandler
 #include "skid_signals.h"				// SignalHandler
+#include "skid_signal_handlers.h"		// Externed atomic variables
 #include <errno.h>						// EINVAL
 #include <sys/types.h>					// pid_t
 #include <sys/wait.h>					// waitpid()
 
+/**************************************************************************************************/
+/*************************** SIGNAL HANDLER ATOMIC VARIABLE DEFINITION ****************************/
+/**************************************************************************************************/
+
+volatile sig_atomic_t skid_sig_hand_interrupted = 0;
+volatile sig_atomic_t skid_sig_hand_signum = 0;
 
 /**************************************************************************************************/
 /********************************* PRIVATE FUNCTION DECLARATIONS **********************************/
@@ -19,6 +26,8 @@
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
 /**************************************************************************************************/
+
+/****************************** SA_HANDLER (SignalHandler) FUNCTIONS ******************************/
 
 
 void handle_all_children(int signum)
@@ -49,6 +58,24 @@ void handle_all_children(int signum)
 	// CLEANUP
 	errno = errnum;  // Restore the original errno value
 }
+
+
+void handle_interruptions(int signum)
+{
+	if (SIGINT == signum)
+	{
+		skid_sig_hand_interrupted = 1;  // Handled SIGINT
+	}
+}
+
+
+void handle_signal_number(int signum)
+{
+	skid_sig_hand_signum = signum;  // The signal number handled
+}
+
+
+/*************************** SA_SIGACTION (SignalHandlerExt) FUNCTIONS ****************************/
 
 
 /**************************************************************************************************/
