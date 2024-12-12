@@ -17,6 +17,8 @@
 /**************************************************************************************************/
 
 volatile sig_atomic_t skid_sig_hand_interrupted = 0;
+volatile sig_atomic_t skid_sig_hand_ext = 0;
+volatile sig_atomic_t skid_sig_hand_sigcode = 0;
 volatile sig_atomic_t skid_sig_hand_signum = 0;
 
 /**************************************************************************************************/
@@ -76,6 +78,17 @@ void handle_signal_number(int signum)
 
 
 /*************************** SA_SIGACTION (SignalHandlerExt) FUNCTIONS ****************************/
+
+
+void handle_ext_signal_code(int signum, siginfo_t *info, void *context)
+{
+	if (NULL != info)
+	{
+		skid_sig_hand_signum = info->si_signo;
+		skid_sig_hand_sigcode = info->si_code;
+		skid_sig_hand_ext = 1;
+	}
+}
 
 
 /**************************************************************************************************/
