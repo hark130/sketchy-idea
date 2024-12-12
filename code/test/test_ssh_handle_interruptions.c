@@ -1,5 +1,6 @@
 /*
- *	Manually test skid_signals.h's block_signal() and unblock_signal() functions.
+ *	Manually test skid_signals.h's set_signal_handler() and
+ *	skid_signal_handlers.h's handle_interruptions() functions.
  *
  *	Copy/paste the following...
 
