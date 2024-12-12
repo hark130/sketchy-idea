@@ -49,7 +49,7 @@ void handle_interruptions(int signum);
 
 /*
  *	Description:
- *		This signal handler sets then skid_sig_hand_signum atomic variable when a signal is handled.
+ *		This signal handler sets the skid_sig_hand_signum atomic variable when a signal is handled.
  *		This function is reentrant and async-signal-safe.
  *
  *	Args:
