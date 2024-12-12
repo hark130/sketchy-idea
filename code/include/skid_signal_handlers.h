@@ -3,9 +3,29 @@
 
 #include <signal.h>     				// siginfo_t
 
-// Function pointer to be used with struct sigaction's sa_handler member
+/*
+ *	Description:
+ *		Function pointer to be used with struct sigaction's sa_handler member.
+ *		This function is reentrant and async-signal-safe.
+ *
+ *	Args:
+ *		signum: The signal number.
+ */
 typedef void (*SignalHandler)(int signum);
-// Function pointer to be used with struct sigaction's sa_sigaction member
+
+/*
+ *	Description:
+ *		Function pointer to be used with struct sigaction's sa_sigaction member.
+ *		This function is reentrant and async-signal-safe.
+ *
+ *	Args:
+ *		signum: The signal number.
+ *		info: A pointer to a structure used to provide additional information about the signal.
+ *		context: A pointer to a structure of type ucontext_t (defined in <ucontext.h>) which
+ *			allegedly provides user context information describing the process state prior to
+ *			invocation of the signal handler, including the previous signal mask and saved
+ *			register values.
+ */
 typedef void (*SignalHandlerExt)(int signum, siginfo_t *info, void *context);
 
 /**************************************************************************************************/
@@ -19,6 +39,8 @@ typedef void (*SignalHandlerExt)(int signum, siginfo_t *info, void *context);
 //	- Signal handlers in this library indicate some/all/none flags utilized, per handler.
 
 extern volatile sig_atomic_t skid_sig_hand_interrupted;  // Non-zero values indicate SIGINT handled
+extern volatile sig_atomic_t skid_sig_hand_ext;      	 // Non-zero values indicate ext reporting
+extern volatile sig_atomic_t skid_sig_hand_sigcode;      // siginfo_t.si_code value (signal code)
 extern volatile sig_atomic_t skid_sig_hand_signum;       // Non-zero values indicate the signal num
 
 /**************************************************************************************************/
@@ -29,36 +51,33 @@ extern volatile sig_atomic_t skid_sig_hand_signum;       // Non-zero values indi
  *	Description:
  *		This signal handler waits for all child processes to exit without hanging by calling:
  *			waitpid(-1, NULL, WNOHANG)
- *		This function conforms with SignalHandler type for use with struct sigaction.sa_handler.
- *		This function is reentrant and async-signal-safe.
- *
- *	Args:
- *		signum: The signal number.
  */
 void handle_all_children(int signum);
 
 /*
  *	Description:
  *		This handler sets the skid_sig_hand_interrupted atomic variable when SIGINT is handled.
- *		This function is reentrant and async-signal-safe.
- *
- *	Args:
- *		signum: The signal number.
  */
 void handle_interruptions(int signum);
 
 /*
  *	Description:
  *		This signal handler sets the skid_sig_hand_signum atomic variable when a signal is handled.
- *		This function is reentrant and async-signal-safe.
- *
- *	Args:
- *		signum: The signal number.
  */
 void handle_signal_number(int signum);
 
 /**************************************************************************************************/
 /*************************** SA_SIGACTION (SignalHandlerExt) FUNCTIONS ****************************/
 /**************************************************************************************************/
+
+/*
+ *	Description:
+ *		This signal handler sets the skid_sig_hand_ext atomic variable when it is ready to report.
+ *		If skid_sig_hand_ext is non-zero, retrieve values from:
+ *			- skid_sig_hand_sigcode
+ *			- skid_sig_hand_signum
+ *		This signal handler will not clear its own flags, merely overwrite them.
+ */
+void handle_ext_signal_code(int signum, siginfo_t *info, void *context);
 
 #endif  /* __SKID_SIGNAL_HANDLERS__ */
