@@ -28,6 +28,14 @@ typedef void (*SignalHandler)(int signum);
  */
 typedef void (*SignalHandlerExt)(int signum, siginfo_t *info, void *context);
 
+/*
+ *	Description:
+ *		Used by some extended signal handlers to indicate which atomic variable to read data from.
+ *		Avoid using zero (0) as a value since all atomic signal handler variables are initialized
+ *		to that value.
+ */
+typedef enum { Integer = 1, Pointer = 2 } QueueData_t;
+
 /**************************************************************************************************/
 /*************************** SIGNAL HANDLER ATOMIC VARIABLE DECLARATION ***************************/
 /**************************************************************************************************/
@@ -39,8 +47,11 @@ typedef void (*SignalHandlerExt)(int signum, siginfo_t *info, void *context);
 //	- Signal handlers in this library indicate some/all/none flags utilized, per handler.
 
 extern volatile sig_atomic_t skid_sig_hand_interrupted;  // Non-zero values indicate SIGINT handled
+extern volatile sig_atomic_t skid_sig_hand_data_int;     // Data (int)
+extern volatile sig_atomic_t skid_sig_hand_data_ptr;     // Data (void*)
 extern volatile sig_atomic_t skid_sig_hand_ext;      	 // Non-zero values indicate ext reporting
 extern volatile sig_atomic_t skid_sig_hand_pid;          // PID of a sending process
+extern volatile sig_atomic_t skid_sig_hand_queue;        // QueueData_t indicates queue data
 extern volatile sig_atomic_t skid_sig_hand_sigcode;      // siginfo_t.si_code value (signal code)
 extern volatile sig_atomic_t skid_sig_hand_signum;       // Non-zero values indicate the signal num
 extern volatile sig_atomic_t skid_sig_hand_uid;          // Real UID of a sending process
@@ -71,6 +82,24 @@ void handle_signal_number(int signum);
 /**************************************************************************************************/
 /*************************** SA_SIGACTION (SignalHandlerExt) FUNCTIONS ****************************/
 /**************************************************************************************************/
+
+/*
+ *	Description:
+ *		This extended signal handler will read integer data sent for signum via sigqueue().
+ *		It sets the skid_sig_hand_queue atomic variable when it is ready to report.  The value
+ *		indicates the type of data to be read.  Interpret that value as type QueueData_t.
+ *		If skid_sig_hand_queue is QueueData_t.Integer, retrieve values from:
+ *			- skid_sig_hand_data_int
+ *			- skid_sig_hand_pid
+ *			- skid_sig_hand_sigcode (SI_QUEUE)
+ *			- skid_sig_hand_signum
+ *			- skid_sig_hand_uid
+ *		This signal handler will not clear its own flags, merely overwrite them.  The user
+ *		should clear the flags if execution is to continue.  Also, this extended signal handler
+ *		will block further signum signals in an attempt to give the user a chance to process
+ *		the data before the next signal is handled.  The user must unblock signum after processing.
+ */
+void handle_ext_read_queue_int(int signum, siginfo_t *info, void *context);
 
 /*
  *	Description:
