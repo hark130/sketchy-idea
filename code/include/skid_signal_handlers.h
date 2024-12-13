@@ -40,8 +40,10 @@ typedef void (*SignalHandlerExt)(int signum, siginfo_t *info, void *context);
 
 extern volatile sig_atomic_t skid_sig_hand_interrupted;  // Non-zero values indicate SIGINT handled
 extern volatile sig_atomic_t skid_sig_hand_ext;      	 // Non-zero values indicate ext reporting
+extern volatile sig_atomic_t skid_sig_hand_pid;          // PID of a sending process
 extern volatile sig_atomic_t skid_sig_hand_sigcode;      // siginfo_t.si_code value (signal code)
 extern volatile sig_atomic_t skid_sig_hand_signum;       // Non-zero values indicate the signal num
+extern volatile sig_atomic_t skid_sig_hand_uid;          // Real UID of a sending process
 
 /**************************************************************************************************/
 /****************************** SA_HANDLER (SignalHandler) FUNCTIONS ******************************/
@@ -72,11 +74,28 @@ void handle_signal_number(int signum);
 
 /*
  *	Description:
- *		This signal handler sets the skid_sig_hand_ext atomic variable when it is ready to report.
+ *		This extended signal handler provides the PID and UID of the sending process for signals
+ *		sent via kill() or sigqueue().
+ *		It sets the skid_sig_hand_ext atomic variable when it is ready to report.
+ *		If skid_sig_hand_ext is non-zero, retrieve values from:
+ *			- skid_sig_hand_pid
+ *			- skid_sig_hand_sigcode (SI_QUEUE or SI_USER)
+ *			- skid_sig_hand_signum
+ *			- skid_sig_hand_uid
+ *		This signal handler will not clear its own flags, merely overwrite them.  The user
+ *		should clear the flags if execution is to continue.
+ */
+void handle_ext_sending_process(int signum, siginfo_t *info, void *context);
+
+/*
+ *	Description:
+ *		This signal handler will provide the signal number and the signal code.
+ *		It sets the skid_sig_hand_ext atomic variable when it is ready to report.
  *		If skid_sig_hand_ext is non-zero, retrieve values from:
  *			- skid_sig_hand_sigcode
  *			- skid_sig_hand_signum
- *		This signal handler will not clear its own flags, merely overwrite them.
+ *		This signal handler will not clear its own flags, merely overwrite them.  The user
+ *		should clear the flags if execution is to continue.
  */
 void handle_ext_signal_code(int signum, siginfo_t *info, void *context);
 
