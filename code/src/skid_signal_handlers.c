@@ -18,8 +18,10 @@
 
 volatile sig_atomic_t skid_sig_hand_interrupted = 0;
 volatile sig_atomic_t skid_sig_hand_ext = 0;
+volatile sig_atomic_t skid_sig_hand_pid = 0;
 volatile sig_atomic_t skid_sig_hand_sigcode = 0;
 volatile sig_atomic_t skid_sig_hand_signum = 0;
+volatile sig_atomic_t skid_sig_hand_uid = 0;
 
 /**************************************************************************************************/
 /********************************* PRIVATE FUNCTION DECLARATIONS **********************************/
@@ -78,6 +80,22 @@ void handle_signal_number(int signum)
 
 
 /*************************** SA_SIGACTION (SignalHandlerExt) FUNCTIONS ****************************/
+
+
+void handle_ext_sending_process(int signum, siginfo_t *info, void *context)
+{
+	if (NULL != info)
+	{
+		if (SI_QUEUE == info->si_code || SI_USER == info->si_code)
+		{
+			skid_sig_hand_signum = info->si_signo;
+			skid_sig_hand_sigcode = info->si_code;
+			skid_sig_hand_pid = info->si_pid;
+			skid_sig_hand_uid = info->si_uid;
+			skid_sig_hand_ext = 1;
+		}
+	}
+}
 
 
 void handle_ext_signal_code(int signum, siginfo_t *info, void *context)
