@@ -523,29 +523,29 @@ char *translate_signal_generic(int signum, int sigcode, int *errnum)
 	{
 		switch (sigcode)
 		{
-			case SI_USER:
-				temp_str = "SI_USER: kill command";
+		    case SI_ASYNCIO:
+				temp_str = "SI_ASYNCIO: AIO completed";
 				break;
 			case SI_KERNEL:
 				temp_str = "SI_KERNEL: Sent by the kernel";
 				break;
-		    case SI_QUEUE:
-				temp_str = "SI_QUEUE: See sigqueue(3)";
-				break;
-		    case SI_TIMER:
-				temp_str = "SI_TIMER: POSIX timer expired";
-				break;
 		    case SI_MESGQ:
 				temp_str = "SI_MESGQ: POSIX message queue state changed; see mq_notify(3)";
 				break;
-		    case SI_ASYNCIO:
-				temp_str = "SI_ASYNCIO: AIO completed";
+		    case SI_QUEUE:
+				temp_str = "SI_QUEUE: See sigqueue(3)";
 				break;
 		    case SI_SIGIO:
 				temp_str = "SI_SIGIO: Queued SIGIO (from a legacy kernel version)";
 				break;
+		    case SI_TIMER:
+				temp_str = "SI_TIMER: POSIX timer expired";
+				break;
 		    case SI_TKILL:
 				temp_str = "SI_TKILL: tkill(2) or tgkill(2)";
+				break;
+			case SI_USER:
+				temp_str = "SI_USER: kill command";
 				break;
 			default:
 				temp_str = "UNKNOWN SIGNAL CODE";
@@ -594,16 +594,16 @@ char *translate_signal_sigbus(int signum, int sigcode, int *errnum)
 			case BUS_ADRERR:
 				temp_str = "BUS_ADRERR: Nonexistent physical address";
 				break;
-			case BUS_OBJERR:
-				temp_str = "BUS_OBJERR: Object-specific hardware error";
+			case BUS_MCEERR_AO:
+				temp_str = "BUS_MCEERR_AO: Hardware memory error detected in process but not \
+				            consumed; action optional";
 				break;
 			case BUS_MCEERR_AR:
 				temp_str = "BUS_MCEERR_AR: Hardware memory error consumed on a machine check; \
 				            action required";
 				break;
-			case BUS_MCEERR_AO:
-				temp_str = "BUS_MCEERR_AO: Hardware memory error detected in process but not \
-				            consumed; action optional";
+			case BUS_OBJERR:
+				temp_str = "BUS_OBJERR: Object-specific hardware error";
 				break;
 		}
 	}
@@ -652,23 +652,23 @@ char *translate_signal_sigchld(int signum, int sigcode, int *errnum)
 	{
 		switch (sigcode)
 		{
+			case CLD_CONTINUED:
+				temp_str = "CLD_CONTINUED: Stopped child has continued";
+				break;
+			case CLD_DUMPED:
+				temp_str = "CLD_DUMPED: Child terminated abnormally";
+				break;
 			case CLD_EXITED:
 				temp_str = "CLD_EXITED: Child has exited";
 				break;
 			case CLD_KILLED:
 				temp_str = "CLD_KILLED: Child was killed";
 				break;
-			case CLD_DUMPED:
-				temp_str = "CLD_DUMPED: Child terminated abnormally";
-				break;
-			case CLD_TRAPPED:
-				temp_str = "CLD_TRAPPED: Traced child has trapped";
-				break;
 			case CLD_STOPPED:
 				temp_str = "CLD_STOPPED: Child has stopped";
 				break;
-			case CLD_CONTINUED:
-				temp_str = "CLD_CONTINUED: Stopped child has continued";
+			case CLD_TRAPPED:
+				temp_str = "CLD_TRAPPED: Traced child has trapped";
 				break;
 		}
 	}
@@ -717,11 +717,11 @@ char *translate_signal_sigsegv(int signum, int sigcode, int *errnum)
 	{
 		switch (sigcode)
 		{
-			case SEGV_MAPERR:
-				temp_str = "SEGV_MAPERR: Address not mapped to object";
-				break;
 			case SEGV_ACCERR:
 				temp_str = "SEGV_ACCERR: Invalid permissions for mapped object";
+				break;
+			case SEGV_MAPERR:
+				temp_str = "SEGV_MAPERR: Address not mapped to object";
 				break;
 		}
 	}
@@ -770,26 +770,26 @@ char *translate_signal_sigfpe(int signum, int sigcode, int *errnum)
 	{
 		switch (sigcode)
 		{
+			case FPE_FLTDIV:
+				temp_str = "FPE_FLTDIV: Floating-point divide by zero";
+				break;
+			case FPE_FLTINV:
+				temp_str = "FPE_FLTINV: Floating-point invalid operation";
+				break;
+			case FPE_FLTOVF:
+				temp_str = "FPE_FLTOVF: Floating-point overflow";
+				break;
+			case FPE_FLTRES:
+				temp_str = "FPE_FLTRES: Floating-point inexact result";
+				break;
+			case FPE_FLTUND:
+				temp_str = "FPE_FLTUND: Floating-point underflow";
+				break;
 			case FPE_INTDIV:
 				temp_str = "FPE_INTDIV: Integer divide by zero";
 				break;
 			case FPE_INTOVF:
 				temp_str = "FPE_INTOVF: Integer overflow";
-				break;
-			case FPE_FLTDIV:
-				temp_str = "FPE_FLTDIV: Floating-point divide by zero";
-				break;
-			case FPE_FLTOVF:
-				temp_str = "FPE_FLTOVF: Floating-point overflow";
-				break;
-			case FPE_FLTUND:
-				temp_str = "FPE_FLTUND: Floating-point underflow";
-				break;
-			case FPE_FLTRES:
-				temp_str = "FPE_FLTRES: Floating-point inexact result";
-				break;
-			case FPE_FLTINV:
-				temp_str = "FPE_FLTINV: Floating-point invalid operation";
 				break;
 			case FPE_FLTSUB:
 				temp_str = "FPE_FLTSUB: Subscript out of range";
@@ -841,14 +841,20 @@ char *translate_signal_sigill(int signum, int sigcode, int *errnum)
 	{
 		switch (sigcode)
 		{
+			case ILL_BADSTK:
+				temp_str = "ILL_BADSTK: Internal stack error";
+				break;
+			case ILL_COPROC:
+				temp_str = "ILL_COPROC: Coprocessor error";
+				break;
+			case ILL_ILLADR:
+				temp_str = "ILL_ILLADR: Illegal addressing mode";
+				break;
 			case ILL_ILLOPC:
 				temp_str = "ILL_ILLOPC: Illegal opcode";
 				break;
 			case ILL_ILLOPN:
 				temp_str = "ILL_ILLOPN: Illegal operand";
-				break;
-			case ILL_ILLADR:
-				temp_str = "ILL_ILLADR: Illegal addressing mode";
 				break;
 			case ILL_ILLTRP:
 				temp_str = "ILL_ILLTRP: Illegal trap";
@@ -858,12 +864,6 @@ char *translate_signal_sigill(int signum, int sigcode, int *errnum)
 				break;
 			case ILL_PRVREG:
 				temp_str = "ILL_PRVREG: Privileged register";
-				break;
-			case ILL_COPROC:
-				temp_str = "ILL_COPROC: Coprocessor error";
-				break;
-			case ILL_BADSTK:
-				temp_str = "ILL_BADSTK: Internal stack error";
 				break;
 		}
 	}
@@ -912,23 +912,23 @@ char *translate_signal_sigio(int signum, int sigcode, int *errnum)
 	{
 		switch (sigcode)
 		{
+			case POLL_ERR:
+				temp_str = "POLL_ERR: I/O error";
+				break;
+			case POLL_HUP:
+				temp_str = "POLL_HUP: Device disconnected";
+				break;
 			case POLL_IN:
 				temp_str = "POLL_IN: Data input available";
-				break;
-			case POLL_OUT:
-				temp_str = "POLL_OUT: Output buffers available";
 				break;
 			case POLL_MSG:
 				temp_str = "POLL_MSG: Input message available";
 				break;
-			case POLL_ERR:
-				temp_str = "POLL_ERR: I/O error";
+			case POLL_OUT:
+				temp_str = "POLL_OUT: Output buffers available";
 				break;
 			case POLL_PRI:
 				temp_str = "POLL_PRI: High priority input available";
-				break;
-			case POLL_HUP:
-				temp_str = "POLL_HUP: Device disconnected";
 				break;
 		}
 	}
@@ -977,17 +977,17 @@ char *translate_signal_sigtrap(int signum, int sigcode, int *errnum)
 	{
 		switch (sigcode)
 		{
-			case TRAP_BRKPT:
-				temp_str = "TRAP_BRKPT: Process breakpoint";
-				break;
-			case TRAP_TRACE:
-				temp_str = "TRAP_TRACE: Process trace trap";
-				break;
 			case TRAP_BRANCH:
 				temp_str = "TRAP_BRANCH: Process taken branch trap";
 				break;
+			case TRAP_BRKPT:
+				temp_str = "TRAP_BRKPT: Process breakpoint";
+				break;
 			case TRAP_HWBKPT:
 				temp_str = "TRAP_HWBKPT: Hardware breakpoint/watchpoint";
+				break;
+			case TRAP_TRACE:
+				temp_str = "TRAP_TRACE: Process trace trap";
 				break;
 		}
 	}
