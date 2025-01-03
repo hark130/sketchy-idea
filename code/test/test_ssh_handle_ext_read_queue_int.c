@@ -20,6 +20,7 @@
 #include <stdbool.h>				// bool, false, true
 #include <stdio.h>                  // fprintf()
 #include <stdlib.h>					// exit()
+#include <sys/wait.h>				// waitpid()
 #include <unistd.h>					// fork()
 // Local includes
 #define SKID_DEBUG                  // The DEBUG output is doing double duty as test output
@@ -76,9 +77,11 @@ int main(int argc, char *argv[])
 	// LOCAL VARIABLES
 	int exit_code = 0;       // Store errno and/or results here
 	int flags = SA_RESTART;  // Modifies signal behavior: restart system calls across signals
- 	int signum = SIGUSR1;    // Signal number to use for communication
- 	int num_vals = 0;        // Number of values to be sent by the child
- 	pid_t my_pid = 0;        // My PID
+	int signum = SIGUSR1;    // Signal number to use for communication
+	int num_vals = 0;        // Number of values to be sent by the child
+	pid_t my_pid = 0;        // My PID
+	pid_t wait_ret = 0;      // Return value from the call to waitpid()
+	int child_status = 0;    // Status information about the child process
 
 	// INPUT VALIDATION
 	if (argc != 2)
@@ -166,8 +169,49 @@ int main(int argc, char *argv[])
 		else if (my_pid > 0)
 		{
 			exit_code = unblock_signal(signum, NULL);  // Start receiving data
-			while (ENOERR == exit_code && num_vals > 0)
+			while (ENOERR == exit_code)
 			{
+				// Check the child process
+				wait_ret = waitpid(my_pid, &child_status, WNOHANG);  // Is the child alive?
+				if (my_pid == wait_ret)
+				{
+					// The child's state has changed
+					if (WIFEXITED(child_status) || WIFSIGNALED(child_status) \
+						|| WIFSTOPPED(child_status))
+					{
+						// The child is no more
+						if (num_vals > 0)
+						{
+							PRINT_WARNG(The child has exited without sending all expected values);
+						}
+						else
+						{
+							printf("%s PARENT - The child completed all values and exited\n",
+						           DEBUG_INFO_STR);
+						}
+						break;
+					}
+				}
+				else if (0 == wait_ret)
+				{
+					// The child didn't change state yet... be patient
+				}
+				else if (-1 == wait_ret)
+				{
+					PRINT_ERROR(PARENT - The waitpid() call failed);
+					exit_code = child_status;
+					PRINT_ERRNO(exit_code);
+					break;
+				}
+				else
+				{
+					PRINT_ERROR(PARENT - The call to waitpid() reported an unknown PID);
+					FPRINTF_ERR("PARENT - The call to waitpid() reported an unknown PID: %d\n",
+						        wait_ret);
+					break;
+				}
+
+				// Process Data
 				exit_code = process_queue(signum);
 				if (ENOERR == exit_code)
 				{
@@ -182,7 +226,6 @@ int main(int argc, char *argv[])
 					break;  // This error is bad so stop looping
 				}
 			}
-			// TO DO: DON'T DO NOW... Wait for child to die here
 		}
 	}
 
