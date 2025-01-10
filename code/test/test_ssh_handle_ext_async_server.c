@@ -150,14 +150,11 @@ int main(int argc, char *argv[])
 	// Start Receiving
 	while (ENOERR == exit_code)
 	{
-		// PRINT_ERROR(WAITING);  // DEBUGGING
 		exit_code = process_queue(signum, client_pid);
-		// FPRINTF_ERR("process_queue(%d, %d) returned %d", signum, client_pid, exit_code);  // DEBUGGING
 		if (ENODATA == exit_code)
 		{
 			exit_code = ENOERR;  // ENODATA is fine... there's no data yet, but not an error
 		}
-		// sleep(1);  // DEBUGGING
 	}
 
 	// DONE

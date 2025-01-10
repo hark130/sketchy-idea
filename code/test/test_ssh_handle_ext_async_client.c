@@ -173,7 +173,6 @@ int main(int argc, char *argv[])
 			user_input = fgetc(stdin);  // Read one character from the user
 			if (EOF != user_input)
 			{
-				// printf("READ %c (%d)\n", user_input, user_input);  // DEBUGGING
 				// Send it
 				exit_code = call_sigqueue(server_pid, signum, user_input);
 				if (ENOERR != exit_code)
@@ -184,13 +183,11 @@ int main(int argc, char *argv[])
 				}
 				else
 				{
-					// PRINT_ERROR(Waiting on read receipt from the server);  // DEBUGGING
 					// Verify receipt
 					while(1)
 					{
 						if (ENOERR == process_queue(signum, user_input))
 						{
-							// PRINT_ERROR(GOT IT);  // DEBUGGING
 							break;  // Receipt received and cleared
 						}
 					}
