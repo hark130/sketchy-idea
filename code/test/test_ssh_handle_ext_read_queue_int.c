@@ -237,8 +237,8 @@ int main(int argc, char *argv[])
 int call_sigqueue(pid_t pid, int signum, int sival_int)
 {
 	// LOCAL VARIABLES
-	int result = ENOERR;      // Results of execution
-	union sigval data;        // Data to send via sigqueue()
+	int result = ENOERR;                     // Results of execution
+	union sigval data = { .sival_int = 0 };  // Data to send via sigqueue()
 
 	// PREPARE
 	data.sival_int = sival_int;
