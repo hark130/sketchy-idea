@@ -26,6 +26,7 @@
 #include <unistd.h>					// fork()
 // Local includes
 #define SKID_DEBUG                  // The DEBUG output is doing double duty as test output
+#include "devops_code.h"			// call_sigqueue()
 #include "skid_debug.h"             // DEBUG_INFO_STR, DEBUG_WARNG_STR, PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_macros.h"			// ENOERR
 #include "skid_memory.h"			// free_skid_string()
@@ -33,11 +34,6 @@
 #include "skid_signals.h"			// set_signal_handler_ext(), translate_signal_code()
 
 #define REGISTRATION_SLEEP 1      // Number of seconds to sleep betweeen registration attempts
-
-/*
- *	Queue a signal and data to this process by calling sigqueue() (see: sigqueue(3))
- */
-int call_sigqueue(pid_t pid, int signum, int sival_int);
 
 /*
  *	Single point of truth for this manual test code's usage.
@@ -159,36 +155,6 @@ int main(int argc, char *argv[])
 
 	// DONE
 	exit(exit_code);
-}
-
-
-int call_sigqueue(pid_t pid, int signum, int sival_int)
-{
-	// LOCAL VARIABLES
-	int result = ENOERR;      // Results of execution
-	union sigval data;        // Data to send via sigqueue()
-
-	// PREPARE
-	data.sival_int = sival_int;
-
-	// QUEUE IT
-	if (sigqueue(pid, signum, data))
-	{
-		result = errno;
-		PRINT_ERROR(The call to sigqueue() failed);
-		if (ENOERR == result)
-		{
-			result = EINTR;  // Use this merely to indicate an error occurred
-		}
-		else
-		{
-			PRINT_ERRNO(result);
-		}
-		// FPRINTF_ERR("Attempted to sigqueue(%d, %d, %d)\n", pid, signum, sival_int);
-	}
-
-	// DONE
-	return result;
 }
 
 

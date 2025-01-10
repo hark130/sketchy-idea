@@ -25,6 +25,7 @@ kill -<SIGNAL_NAME> `pidof ./code/dist/test_ssh_handle_ext_sending_process.bin`
 #include <unistd.h>					// sleep()
 // Local includes
 #define SKID_DEBUG                  // The DEBUG output is doing double duty as test output
+#include "devops_code.h"			// call_sigqueue()
 #include "skid_debug.h"             // DEBUG_INFO_STR, DEBUG_WARNG_STR, PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_macros.h"			// ENOERR
 #include "skid_memory.h"			// free_skid_string()
@@ -33,11 +34,6 @@ kill -<SIGNAL_NAME> `pidof ./code/dist/test_ssh_handle_ext_sending_process.bin`
 
 
 #define SLEEP_TIME 60  // Number of seconds to sleep while waiting to be interrupted
-
-/*
- *	Queue a signal and data to this process by calling sigqueue() (see: sigqueue(3))
- */
-int call_sigqueue(int signum, int sival_int);
 
 
 int main(int argc, char *argv[])
@@ -100,7 +96,7 @@ int main(int argc, char *argv[])
 			countdown--;
 			if (countdown <= 0)
 			{
-				call_sigqueue(SIGUSR1, (int)'?');  // BOOM?
+				call_sigqueue(getpid(), SIGUSR1, (int)'?');  // BOOM?
 			}
 		}
 	}
@@ -134,35 +130,4 @@ int main(int argc, char *argv[])
 
 	// DONE
 	exit(exit_code);
-}
-
-
-int call_sigqueue(int signum, int sival_int)
-{
-	// LOCAL VARIABLES
-	int result = ENOERR;      // Results of execution
-	union sigval data;        // Data to send via sigqueue()
-	pid_t my_pid = getpid();  // This process' PID
-
-	// PREPARE
-	data.sival_int = sival_int;
-
-	// QUEUE IT
-	if (sigqueue(my_pid, signum, data))
-	{
-		result = errno;
-		PRINT_ERROR(The call to sigqueue() failed);
-		if (ENOERR == result)
-		{
-			result = EINTR;  // Use this merely to indicate an error occurred
-		}
-		else
-		{
-			PRINT_ERRNO(result);
-		}
-		FPRINTF_ERR("Attempted to sigqueue(%d, %d, %d)\n", my_pid, signum, sival_int);
-	}
-
-	// DONE
-	return result;
 }
