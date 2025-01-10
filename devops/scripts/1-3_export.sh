@@ -43,8 +43,7 @@ run_manual_test_command()
     return $EXIT_CODE
 }
 
-BOOKEND="***"    # SPOT for output formatting
-SLEEPY_TIME="2"  # Number of seconds for the script's "tasteful sleep"
+BOOKEND="***"  # SPOT for output formatting
 
 # 1. Stores the date
 date && \
@@ -65,11 +64,11 @@ printf "%s Extended Signal Handler: Parent process reads integer data sent from 
 run_manual_test_command "code/dist/test_ssh_handle_ext_read_queue_int.bin 10"
 # 2. Translating signal codes
 printf "%s Extended Signal Handler: Translating signal codes %s\n" "$BOOKEND" "$BOOKEND"
-run_manual_test_command "code/dist/test_ssh_handle_ext_signal_code.bin &"
-run_manual_test_command "sleep $SLEEPY_TIME"
-run_manual_test_command "kill -SIGUSR1 `pidof test_ssh_handle_ext_signal_code.bin`"
+printf "Send the following command to speed this proccess up:\nkill -SIGUSR1 \`pidof test_ssh_handle_ext_signal_code.bin\`\n"
+run_manual_test_command "code/dist/test_ssh_handle_ext_signal_code.bin"
+# kill -SIGUSR1 `pidof test_ssh_handle_ext_signal_code.bin`
 # 3. Identifying the sending process
 printf "%s Extended Signal Handler: Identifying the sending process %s\n" "$BOOKEND" "$BOOKEND"
-run_manual_test_command "code/dist/test_ssh_handle_ext_sending_process.bin &"
-run_manual_test_command "sleep $SLEEPY_TIME"
-run_manual_test_command "kill -SIGUSR2 `pidof test_ssh_handle_ext_sending_process.bin`"
+printf "Send the following command to speed this proccess up:\nkill -SIGUSR2 \`pidof test_ssh_handle_ext_sending_process.bin\`\n"
+run_manual_test_command "code/dist/test_ssh_handle_ext_sending_process.bin"
+# kill -SIGUSR2 `pidof test_ssh_handle_ext_sending_process.bin`
