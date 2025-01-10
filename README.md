@@ -47,6 +47,7 @@ Example:
 ```
 ./devops/scripts/13-2_export.sh > ./devops/files/13-2_output.txt 2>&1
 ./devops/scripts/13-4_export.sh > ./devops/files/13-4_output.txt 2>&1
+./devops/scripts/13-6_export.sh > ./devops/files/13-6_output.txt 2>&1
 ```
 
 ### Check unit test framework

@@ -24,8 +24,8 @@ endef
 
 ### COMPILER VARIABLES ###
 CC = gcc
-CFLAGS = -Wall -Werror -Wfatal-errors
 AFLAGS = -fsanitize=address -g
+CFLAGS = -Wall -Werror -Wfatal-errors
 
 ### OS-DYNAMIC VARIABLES ###
 # $(CHECK) - Checkmark
@@ -54,9 +54,22 @@ BASE_SRC_NAMES := $(basename $(RAW_SRC_FILES))
 # Convert base filenames to object code filenames
 RAW_OBJ_FILES := $(addsuffix $(OBJ_FILE_EXT),$(BASE_SRC_NAMES))
 
+# DEVOPS CODE
+# The devops code requires the following object code to link
+# The devops code library utilizes tried and true dir ops and
+#	file ops functionality.  Meanwhile, file ops requires
+#	the memory library.  Also, dir ops requires file metadata.
+DEVOPS_CODE_LINK_DEPS = $(DIST_DIR)devops_code$(OBJ_FILE_EXT) \
+                        $(DIST_DIR)skid_dir_operations$(OBJ_FILE_EXT) \
+                        $(DIST_DIR)skid_file_operations$(OBJ_FILE_EXT) \
+                        $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) \
+                        $(DIST_DIR)skid_memory$(OBJ_FILE_EXT)
+
 # CHECK UNIT TEST VARIABLES
 # Prefix for *all* Check unit test files
 CHECK_PREFIX = check_
+# Prefix for all skid_dir_operations library unit tests
+CHECK_SDO_PREFIX = $(CHECK_PREFIX)sdo_
 # Prefix for all skid_file_link library unit tests
 CHECK_SFL_PREFIX = $(CHECK_PREFIX)sfl_
 # Prefix for all skid_file_metadata_read library unit tests
@@ -79,12 +92,20 @@ CHECK_CC_ARGS = -lcheck -lm -lsubunit -lrt -lpthread
 MAN_TEST_PREFIX = test_
 # Prefix for all devops_code library manual tests
 MAN_TEST_DEVOPS_PREFIX = $(MAN_TEST_PREFIX)devops_code_
+# Prefix for all skid_dir_operations library manual tests
+MAN_TEST_SDO_PREFIX = $(MAN_TEST_PREFIX)sdo_
 # Prefix for all skid_file_link library manual tests
 MAN_TEST_SFL_PREFIX = $(MAN_TEST_PREFIX)sfl_
 # Prefix for all skid_file_metadata_read library manual tests
 MAN_TEST_SFMR_PREFIX = $(MAN_TEST_PREFIX)sfmr_
 # Prefix for all skid_file_metadata_read library manual tests
 MAN_TEST_SFMW_PREFIX = $(MAN_TEST_PREFIX)sfmw_
+# Prefix for all skid_network library manual tests
+MAN_TEST_SN_PREFIX = $(MAN_TEST_PREFIX)sn_
+# Prefix for all skid_signals library manual tests
+MAN_TEST_SS_PREFIX = $(MAN_TEST_PREFIX)ss_
+# Prefix for all skid_signal_handlers library manual tests
+MAN_TEST_SSH_PREFIX = $(MAN_TEST_PREFIX)ssh_
 # All test_*.c filenames found in TEST_DIR
 MAN_TEST_SRC_FILES := $(shell cd $(TEST_DIR); ls $(MAN_TEST_PREFIX)*$(SRC_FILE_EXT))
 # All MAN_TEST_SRC_FILES with the file extension stripped
@@ -166,20 +187,26 @@ _validate_glibc:
 	@ldd --version > $(NULL)
 	@echo "        $(CHECK) $(shell ldd --version | head -n 1)"
 
+# CHECK: Linking skid_dir_operations library unit test binaries
+$(DIST_DIR)$(CHECK_SDO_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SDO_PREFIX)%$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Linking Check unit test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
+
 # CHECK: Linking skid_file_link library unit test binaries
-$(DIST_DIR)$(CHECK_SFL_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFL_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_link$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
+$(DIST_DIR)$(CHECK_SFL_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFL_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_link$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS)
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Linking Check unit test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
 
 # CHECK: Linking skid_file_metadata_read library unit test binaries
-$(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
+$(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS)
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Linking Check unit test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
 
 # CHECK: Linking skid_file_metadata_write library unit test binaries
-$(DIST_DIR)$(CHECK_SFMW_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMW_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_write$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
+$(DIST_DIR)$(CHECK_SFMW_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMW_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_write$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS)
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Linking Check unit test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
@@ -191,7 +218,12 @@ $(DIST_DIR)$(CHECK_PREFIX)%$(OBJ_FILE_EXT): $(TEST_DIR)$(CHECK_PREFIX)%$(SRC_FIL
 	@$(CC) $(CFLAGS) -c $^ -o $@ -I $(INCLUDE_DIR)
 
 # MANUAL TEST: Linking devops_code library manual test binaries
-$(DIST_DIR)$(MAN_TEST_DEVOPS_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_DEVOPS_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)devops_code$(OBJ_FILE_EXT)
+$(DIST_DIR)$(MAN_TEST_DEVOPS_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_DEVOPS_PREFIX)%$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS)
+	@echo "    Linking manual test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# MANUAL TEST: Linking skid_dir_operations library manual test binaries
+$(DIST_DIR)$(MAN_TEST_SDO_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SDO_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_dir_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
@@ -207,6 +239,21 @@ $(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFMR_P
 
 # MANUAL TEST: Linking skid_file_metadata_write library manual test binaries
 $(DIST_DIR)$(MAN_TEST_SFMW_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFMW_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_write$(OBJ_FILE_EXT)
+	@echo "    Linking manual test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# MANUAL TEST: Linking skid_network library manual test binaries
+$(DIST_DIR)$(MAN_TEST_SN_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SN_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_network$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT)  $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
+	@echo "    Linking manual test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# MANUAL TEST: Linking skid_signals library manual test binaries
+$(DIST_DIR)$(MAN_TEST_SS_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SS_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_signals$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
+	@echo "    Linking manual test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# MANUAL TEST: Linking skid_signal_handlers library manual test binaries
+$(DIST_DIR)$(MAN_TEST_SSH_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SSH_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_signals$(OBJ_FILE_EXT) $(DIST_DIR)skid_signal_handlers$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)  $(DEVOPS_CODE_LINK_DEPS)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 

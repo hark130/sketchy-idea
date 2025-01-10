@@ -1,6 +1,6 @@
 /*
  *	Manually test skid_file_metadata_write.h's get_shell_compatible_gid() functions.
- *	The commands below will set set the ownership to your current UID and GID.
+ *	The commands below will set the ownership to your current UID and GID.
  *	Adjust the values as necessary.
  *
  *	Copy/paste the following...

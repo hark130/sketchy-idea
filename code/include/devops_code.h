@@ -7,10 +7,14 @@
 
 #include <stdbool.h>    // bool, false, true
 #include <stddef.h>     // size_t
+#include <sys/types.h>	// blkcnt_t
+#include <time.h>		// time_t
 #include <unistd.h>     // useconds_t
 
 // Baseline dir level to standardize file-based test input paths
 #define SKID_REPO_NAME (const char *)"sketchy-idea"  // The name of this repo
+#define SKID_MAX_FILES 100  						 // Max files create_path_tree() will create
+#define SKID_MAX_DEPTH 5	  						 // Max depth create_path_tree() will create
 
 /*
  *  Description:
@@ -30,6 +34,72 @@ void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum);
 
 /*
  *  Description:
+ *      Queue a signal, with integer data, to a PID by calling sigqueue() (see: sigqueue(3)).
+ *
+ *  Args:
+ *      pid: The PID to queue the signal for.
+ *		signum: The signal number to queue.
+ *		sival_int: The integer value to include with the signal.
+ *
+ *	Returns:
+ *		0 on success, errno on error.
+ */
+int call_sigqueue(pid_t pid, int signum, int sival_int);
+
+/*
+ *	Description:
+ *		Allocate a character array in heap memory and copy source in.
+ *		Caller is respsonsible for freeing the return value with free_devops_mem().
+ *
+ *	Args:
+ *		source: The string to copy.
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Heap-allocated character array containing a copy of source on success.
+ *		NULL on error (check errnum).
+ */
+char *copy_string(const char *source, int *errnum);
+
+/*
+ *	Description:
+ *		Recursively create top_dir with a file/dir hierarchy underneath it.
+ *		Each directory will have num_files number of files inside.  There will be
+ *		tree_depth number of sub-directories found within top_dir.  Each level
+ *		will have tree_width number of directories within it.  Directory names and
+ *		filenames will be basic (e.g., dir# and file# respectively).  Files will be
+ *		created with their filename, using top_dir as the root, in an attempt to
+ *		resonably create unique files.  This function will not create more than
+ *		SKID_MAX_FILES number of files.
+ *
+ *	Notes:
+ *		It is the caller's responsibility to free the memory returned by this function.
+ *		Each string pointer must be individually freed.  The array pointer must also be freed.
+ *		Use free_devops_mem() to free individual string pointers (AKA pick-and-choose) or
+ *		use free_path_tree() to free the entire collection.
+ *
+ *	Args:
+ *		top_dir: Top level directory, relative or absolute, to create.  Must not exist.
+ *		num_files: Number of files to create at each directory level.  Values of zero
+ *			will result in an empty directory hierarchy.
+ *		tree_width: Number of directories to create at each level.  Values of zero will
+ *			result in top_dir being devoid of directories.
+ *		tree_depth: Number of sub-directory levels to create within top_dir.  Values of zero
+ *			will result in top_dir being devoid of directories.  This value controls the
+ *			recursive execution of this function.  This function will not support tree_depth
+ *			values that exceed SKID_MAX_DEPTH.
+ *		errnum: [Out] Storage location for error values.  0 on success.  Errno value, or -1 for
+ *			unspecified errors, on failure.  EMFILE is used if the requested number of files
+ *			is larger than SKID_MAX_FILES.
+ *
+ *	Returns:
+ *		A NULL-terminated array of string pointers on success.  NULL on failure (see: errnum).
+ */
+char **create_path_tree(const char *top_dir, unsigned int num_files, unsigned int tree_width,
+	                    unsigned int tree_depth, int *errnum);
+
+/*
+ *  Description:
  *      Free a devops-allocated array from heap memory and set the original pointer to NULL.
  *
  *  Args:
@@ -39,6 +109,17 @@ void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum);
  *      0 on success, errno on error.
  */
 int free_devops_mem(void **old_array);
+
+/*	Description:
+ *		Free the return value provided by create_path_tree() and set the original pointer to NULL.
+ *
+ *	Args:
+ *		old_path_tree: Pointer to the return value returned by create_path_tree().
+ *
+ *	Returns:
+ *		0 on success, errno on error.
+ */
+int free_path_tree(char ***old_path_tree);
 
 /*
  *  Description:
@@ -93,7 +174,6 @@ blkcnt_t get_shell_block_count(const char *pathname, int *errnum);
  *      NULL on error.  Check errnum for actual errno value.
  */
 gid_t *get_shell_compatible_gid(int *errnum);
-
 
 /*
  *  Description:
@@ -261,6 +341,20 @@ uid_t get_shell_my_uid(int *errnum);
 char *get_shell_my_username(int *errnum);
 
 /*
+ *	Description:
+ *		Get the current nanoseconds by executing the following command in a shell:
+ *      	date '+%N'
+ *		This is intended to help create unique directory names to unit test the dir_ops library.
+ *
+ *	Args:
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Raw time on success, 0 on error.  Check errnum for actual errno value.
+ */
+long get_shell_nsec_now(int *errnum);
+
+/*
  *  Description:
  *      Get the ID of pathname's owner by executing the following command in a shell:
  *          stat -c %u <pathname>
@@ -294,6 +388,35 @@ uid_t get_shell_owner(const char *pathname, int *errnum);
  *      On success, errnum will be zeroized.
  */
 off_t get_shell_size(const char *pathname, int *errnum);
+
+/*
+ *	Description:
+ *		Get the current time, in seconds from epoch, by executing the following command in a shell:
+ *			date '+%s'
+ *		This is intended to help create unique directory names to unit test the dir_ops library.
+ *
+ *	Args:
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Raw time on success, 0 on error.  Check errnum for actual errno value.
+ */
+time_t get_shell_time_now(int *errnum);
+
+/*
+ *	Description:
+ *		Get the current user's umask by executing the following command in a shell:
+ *			umask
+ *		This is intended to help programmatically determine expected results of directory
+ *		permissions created by create_dir().
+ *
+ *	Args:
+ *		errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		The umask value on success, 0 on error.  Check errnum for actual errno value.
+ */
+mode_t get_shell_umask(int *errnum);
 
 /*
  *  Description:
@@ -345,9 +468,9 @@ uid_t get_shell_user_uid(const char *username, int *errnum);
 long get_sys_block_size(int *errnum);
 
 /*
- *  Description:
- *      Answers the question, "Does pathname exist?".  Any invalid input is treated as a "no".
- *      The following errno values are also treated as a "no":
+ *	Description:
+ *		Answers the question, "Does pathname exist?".  Any invalid input is treated as a "no".
+ *		The following errno values are also treated as a "no":
  *			ENOENT is obvious... file flat out doesn't exist.
  *			ENAMETOOLONG means pathname is too long to it *can't* exist.
  *			ENOTDIR means part of the path prefix of pathname is not a dir so it *can't* exist.
@@ -355,13 +478,33 @@ long get_sys_block_size(int *errnum);
  *		of the directories in the path prefix of pathname.  Still, this function treats EACCES
  *		as a "yes" because this is devops code (but prints a DEBUG warning).
  *
- *  Args:
- *      pathname: Absolute or relative pathname to check.
+ *	Args:
+ *		pathname: Absolute or relative pathname to check.
  *
- *  Returns:
- *      True if pathname exists.  False otherwise.
+ *	Returns:
+ *		True if pathname exists.  False otherwise.
  */
 bool is_path_there(const char *pathname);
+
+/*
+ *	Description:
+ *		Allocate heap-memory and concatenate dirname/pathname, adding a delimiter if necessary.
+ *		The caller is responsible for using free_devops_mem() to free the memory address returned
+ *		by this function.
+ *
+ *	Args:
+ *		dirname: The absolute or relative directory name which contains pathname.
+ *		pathname: Optional; Absolute or relative pathname to join to dirname.  This function
+ *			will add a delimiter between dirname/pathname if pathname is defined.  Ignored if NULL
+ *			or empty.
+ *		must_exist: If true, dirname must exist.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		Heap-allocated memory address containing dirname/pathname, on success.
+ *		Returns NULL on error.  Check errnum for errno value.
+ */
+char *join_dir_to_path(const char *dirname, const char *pathname, bool must_exist, int *errnum);
 
 /*
  *  Description:
@@ -431,6 +574,21 @@ char *read_a_file(const char *filename, int *errnum);
 int remove_a_file(const char *filename, bool ignore_missing);
 
 /*
+ *	Description:
+ *		Remove and empty directory by executing the following command in a shell:
+ *			rmdir <dirname>
+ *		This is intended as a double-do to facilitate testing of skid_dir_operations's
+ *		create_dir() by cleaning up temp directories created at "test time".
+ *
+ *	Args:
+ *		dirname: The name, relative or absolute, of an empty directory to remove.
+ *
+ *	Returns:
+ *		0 on success.  On error, errno value or -1 for an unspecified error.
+ */
+int remove_shell_dir(const char *dirname);
+
+/*
  *  Description:
  *      Translate rel_filename into an absolute filename resolved to the repo_name, as extracted
  *		from the current working directory.  Caller is responsible for calling devops_free().
@@ -450,7 +608,7 @@ int remove_a_file(const char *filename, bool ignore_missing);
  *		NULL on error (check errnum).
  */
 char *resolve_to_repo(const char *repo_name, const char *rel_filename, bool must_exist,
-                      int *errnum);
+					  int *errnum);
 
 /*
  *  Description:
@@ -485,7 +643,7 @@ int run_command(const char *command, char *output, size_t output_len);
  *      0 on success, errno on error.
  */
 int run_command_append(const char *base_cmd, const char *cmd_suffix, char *output,
-                       size_t output_len);
+					   size_t output_len);
 
 /*
  *  Description:
