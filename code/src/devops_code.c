@@ -6,6 +6,7 @@
 
 #include <errno.h>          			// errno
 #include <limits.h>         			// PATH_MAX
+#include <signal.h>						// sigqueue()
 #include <stdio.h>          			// remove()
 #include <stdint.h>						// SIZE_MAX
 #include <stdlib.h>         			// calloc(), free()
@@ -444,6 +445,36 @@ void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum)
 		*errnum = result;
 	}
 	return new_buf;
+}
+
+
+int call_sigqueue(pid_t pid, int signum, int sival_int)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;                     // Results of execution
+	union sigval data = { .sival_int = 0 };  // Data to send via sigqueue()
+
+	// PREPARE
+	data.sival_int = sival_int;
+
+	// QUEUE IT
+	if (sigqueue(pid, signum, data))
+	{
+		result = errno;
+		PRINT_ERROR(The call to sigqueue() failed);
+		if (ENOERR == result)
+		{
+			result = EINTR;  // Use this merely to indicate an error occurred
+		}
+		else
+		{
+			PRINT_ERRNO(result);
+		}
+		FPRINTF_ERR("Attempted to sigqueue(%d, %d, %d)\n", pid, signum, sival_int);
+	}
+
+	// DONE
+	return result;
 }
 
 

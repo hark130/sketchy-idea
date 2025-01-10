@@ -33,6 +33,20 @@
 void *alloc_devops_mem(size_t num_elem, size_t size_elem, int *errnum);
 
 /*
+ *  Description:
+ *      Queue a signal, with integer data, to a PID by calling sigqueue() (see: sigqueue(3)).
+ *
+ *  Args:
+ *      pid: The PID to queue the signal for.
+ *		signum: The signal number to queue.
+ *		sival_int: The integer value to include with the signal.
+ *
+ *	Returns:
+ *		0 on success, errno on error.
+ */
+int call_sigqueue(pid_t pid, int signum, int sival_int);
+
+/*
  *	Description:
  *		Allocate a character array in heap memory and copy source in.
  *		Caller is respsonsible for freeing the return value with free_devops_mem().
