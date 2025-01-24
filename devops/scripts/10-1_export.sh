@@ -22,7 +22,6 @@ run_manual_test_command()
 
     # DO IT
     # Invoke Usage
-    bash -c "$BASE_CMD"
     echo
     # Echo
     printf "The full command is '%s'\n" "$@"
