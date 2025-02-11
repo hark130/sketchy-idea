@@ -16,6 +16,7 @@
 #include <errno.h>					// EINVAL
 #include <stdio.h>					// fprintf()
 #include <stdlib.h>					// exit()
+#include <string.h>					// memset()
 #include <sys/socket.h>				// AF_INET
 #include <unistd.h>					// fork()
 #include "skid_debug.h"				// FPRINTF_ERR(), PRINT_ERRNO(), PRINT_ERROR()
