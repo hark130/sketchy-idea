@@ -123,6 +123,20 @@ int free_path_tree(char ***old_path_tree);
 
 /*
  *  Description:
+ *      Determine the parent directory of path.
+ *		Caller is respsonsible for freeing the return value with free_devops_mem().
+ *
+ *  Args:
+ *      path: A non-empty path that may or may not exist.
+ *
+ *  Returns:
+ *		Heap-allocated character array containing path's parent directory on success.
+ *		NULL on error.
+ */
+char *get_parent_dir(const char *path);
+
+/*
+ *  Description:
  *      Get the pathname's raw access time by executing the following command in a shell:
  *          stat -c %X <pathname>
  *      This is intended as a double-do to validate the results of skid_file_metadata_read's

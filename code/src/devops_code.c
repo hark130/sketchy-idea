@@ -5,6 +5,7 @@
 #define SKID_DEBUG			// Enable DEBUG logging
 
 #include <errno.h>          			// errno
+#include <libgen.h>						// dirname()
 #include <limits.h>         			// PATH_MAX
 #include <signal.h>						// sigqueue()
 #include <stdio.h>          			// remove()
@@ -625,6 +626,53 @@ int free_path_tree(char ***old_path_tree)
 
 	// DONE
 	return result;
+}
+
+
+char *get_parent_dir(const char *path)
+{
+	// LOCAL VARIABLES
+	int result = ENOERR;                           // Errno value
+	char *path_copy = copy_string(path, &result);  // Copy of path (because dirname() may change it)
+	char *tmp_ptr = NULL;                          // Do not free dirname()'s return pointer
+	char *path_parent = NULL;                      // Heap allocated array containing path's parent
+
+	// INPUT VALIDATION
+	// Input is validated by copy_string()
+
+	// GET IT
+	// Call dirname()
+	if (!result)
+	{
+		// Get the path
+		tmp_ptr = dirname(path_copy);
+		if (NULL == tmp_ptr || 0x0 == *tmp_ptr)
+		{
+			result = EINVAL;  // The call to dirname() failed
+		}
+	}
+	// Copy the parent dir
+	if (!result)
+	{
+		path_parent = copy_string(tmp_ptr, &result);  // Copy the path
+	}
+
+	// CLEANUP
+	// path_copy
+	if (NULL != path_copy)
+	{
+		free_devops_mem((void **)&path_copy);  // Best effort
+	}
+	// tmp_ptr
+	tmp_ptr = NULL;  // dirname(3) says "Do not pass these pointers to free(3)"
+	// path_parent
+	if (NULL != path_parent && ENOERR != result)
+	{
+		free_devops_mem((void **)&path_parent);  // Best effort
+	}
+
+	// DONE
+	return path_parent;
 }
 
 
