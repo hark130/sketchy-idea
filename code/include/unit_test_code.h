@@ -2,8 +2,8 @@
  *	This library contains non-releasable, common-use Check unit test code.
  */
 
-#ifndef __SKID_CHECK_CODE__
-#define __SKID_CHECK_CODE__
+#ifndef __SKID_UNIT_TEST_CODE__
+#define __SKID_UNIT_TEST_CODE__
 
 // Local includes
 #include "devops_code.h"                // SKID_REPO_NAME
@@ -14,12 +14,12 @@
 /***************************************** TEST FIXTURES ******************************************/
 /**************************************************************************************************/
 
-char *test_dir_path;  // Heap array containing the absolute directory name resolved to the repo
-char *test_file_path;  // Heap array containing the absolute filename resolved to the repo
-char *test_pipe_path;  // Heap array containing the absolute pipe filename resolved to the repo
-char *test_socket_path;  // Heap array containing the absolute socket filename resolved to the repo
-char *test_sym_link;  // Heap array with the absolute symbolic link filename resolved to the repo
-char *test_dst_link;  // Heap array with the test cases's default destination symbolic link
+extern char *test_dir_path;     // Heap array with the absolute directory name resolved to the repo
+extern char *test_file_path;    // Heap array with the absolute filename resolved to the repo
+extern char *test_pipe_path;    // Heap array with the absolute pipe filename resolved to the repo
+extern char *test_socket_path;  // Heap array with the absolute socket filename resolved to the repo
+extern char *test_sym_link;     // Heap array with the repo's absolute symbolic link file
+extern char *test_dst_link;     // Heap array with the default absolute destination symbolic link
 
 /*
  *  Resolve paththame to SKID_REPO_NAME in a standardized way.  Use free_devops_mem() to free
@@ -38,4 +38,4 @@ void setup(void);
  */
 void teardown(void);
 
-#endif  /* __SKID_CHECK_CODE__ */
+#endif  /* __SKID_UNIT_TEST_CODE__ */
