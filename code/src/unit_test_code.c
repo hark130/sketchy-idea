@@ -72,6 +72,14 @@ void setup(void)
 	test_file_path = resolve_test_input(reg_file);
 	// Symbolic Link
 	test_sym_link = resolve_test_input(sym_link);
+	if (test_sym_link)
+	{
+		remove_a_file(test_sym_link, true);  // Remove leftovers and ignore errors
+		errnum = make_a_symlink(test_file_path, test_sym_link);
+		ck_assert_msg(0 == errnum, "make_a_symlink(%s, %s) failed with [%d] %s\n", test_file_path,
+					  test_sym_link, errnum, strerror(errnum));
+		errnum = CANARY_INT;  // Reset temp variable
+	}
 	// Destination Symbolic Link
 	test_dst_link = resolve_test_input(dst_link);
 
