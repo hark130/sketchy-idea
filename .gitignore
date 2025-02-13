@@ -54,3 +54,7 @@ dkms.conf
 # Repo directories
 dist/
 code/test/test_output/
+
+# Repo files
+code/test/test_input/sym_link.txt
+
