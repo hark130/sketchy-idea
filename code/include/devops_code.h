@@ -549,6 +549,22 @@ int make_a_socket(const char *filename);
 
 /*
  *  Description:
+ *      Make a symbolic link by executing the following command in a shell:
+ *          ln -s <target_path> <link_path>
+ *      This is intended as a double-do for skid_file_link's create_sym_link().
+ *
+ *  Args:
+ *      target_path: The path the symbolic link resolves to.  This path should either be absolute
+ *          or relative to the symbolic link.
+ *      link_path: The filename, absolute or relative, of the actual symbolic link.
+ *
+ *  Returns:
+ *      0 on success, errno on error.
+ */
+int make_a_symlink(const char *target_path, const char *link_path);
+
+/*
+ *  Description:
  *      Call usleep() to sleep for a number of microseconds.
  *
  *  Args:
