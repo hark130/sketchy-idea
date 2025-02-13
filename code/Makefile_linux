@@ -115,6 +115,18 @@ MAN_TEST_OBJ_FILES := $(addsuffix $(OBJ_FILE_EXT),$(MAN_TEST_BASE_NAMES))
 # Convert base manual test filenames to object code filenames
 MAN_TEST_BIN_FILES := $(addsuffix $(BIN_FILE_EXT),$(MAN_TEST_BASE_NAMES))
 
+# UNIT TEST VARIABLES
+# Prefix for *all* Check test framework files
+UNIT_TEST_PREFIX = unit_test_
+# All unit_test*.c filenames found in SRC_DIR
+UNIT_TEST_SRC_FILES := $(shell cd $(SRC_DIR); ls $(UNIT_TEST_PREFIX)*$(SRC_FILE_EXT))
+# All UNIT_TEST_SRC_FILES with the file extension stripped
+UNIT_TEST_BASE_NAMES := $(basename $(UNIT_TEST_SRC_FILES))
+# Convert base unit test filenames to object code filenames
+UNIT_TEST_OBJ_FILES := $(addsuffix $(OBJ_FILE_EXT),$(UNIT_TEST_BASE_NAMES))
+# Unit test framework link dependencies
+UNIT_TEST_LINK_DEPS = $(foreach UNIT_TEST_OBJ_FILE, $(UNIT_TEST_OBJ_FILES), $(DIST_DIR)$(UNIT_TEST_OBJ_FILE))
+
 # BINARIES
 # A space-separated list of all the test binaries
 CHECK_BIN_LIST = $(shell ls $(DIST_DIR)$(CHECK_PREFIX)*$(BIN_FILE_EXT))
@@ -160,7 +172,6 @@ _compilation: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FIL
 
 _test:
 	@#echo "$@ needs $^"  # DEBUGGING
-	@#echo $(CHECK_BIN_LIST)  # DEBUGGING
 	$(foreach CHECK_BIN_FILE, $(CHECK_BIN_LIST), $(call execute-command,./$(CHECK_BIN_FILE)))
 
 # Link all of the manual test files
@@ -200,7 +211,7 @@ $(DIST_DIR)$(CHECK_SFL_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFL_PREFIX)%$
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
 
 # CHECK: Linking skid_file_metadata_read library unit test binaries
-$(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS)
+$(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS) $(UNIT_TEST_LINK_DEPS)
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Linking Check unit test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
@@ -265,7 +276,7 @@ $(DIST_DIR)$(MAN_TEST_PREFIX)%$(OBJ_FILE_EXT): $(TEST_DIR)$(MAN_TEST_PREFIX)%$(S
 # DEFAULT: Linking binaries
 $(DIST_DIR)%$(BIN_FILE_EXT): $(DIST_DIR)%$(OBJ_FILE_EXT)
 	@#echo "$@ needs $^"  # DEBUGGING
-	@echo "    Linking: $@"
+	@echo "    Linking binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^
 
 # DEFAULT: Compiling object code
