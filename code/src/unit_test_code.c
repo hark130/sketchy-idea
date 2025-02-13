@@ -11,6 +11,14 @@
 #include "unit_test_code.h"				// function declarations, globals
 
 
+char *test_dir_path;     // Heap array with the absolute directory name resolved to the repo
+char *test_file_path;    // Heap array with the absolute filename resolved to the repo
+char *test_pipe_path;    // Heap array with the absolute pipe filename resolved to the repo
+char *test_socket_path;  // Heap array with the absolute socket filename resolved to the repo
+char *test_sym_link;     // Heap array with the repo's absolute symbolic link file
+char *test_dst_link;     // Heap array with the default absolute destination symbolic link
+
+
 char *resolve_test_input(const char *pathname)
 {
 	// LOCAL VARIABLES
