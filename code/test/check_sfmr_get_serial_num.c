@@ -17,7 +17,7 @@ code/dist/check_sfmr_get_serial_num.bin && CK_FORK=no valgrind --leak-check=full
 // Local includes
 #include "devops_code.h"              // resolve_to_repo(), SKID_REPO_NAME
 #include "skid_file_metadata_read.h"  // get_serial_num()
-#include "unit_test_code.h"           // globals, resolve_test_input(), setup(), teardown()
+#include "unit_test_code.h"           // globals, setup(), teardown()
 
 
 // Use this to help highlight an errnum that wasn't updated
@@ -293,9 +293,8 @@ void run_test_case(const char *pathname, int exp_return, int exp_errnum)
     int act_return = get_serial_num(pathname, &act_errnum);  // Actual return value from the call
 
     // CHECK IT
-    ck_assert_msg(act_return == exp_return, "get_serial_num(%s) returned %ld instead of %ld",
+    ck_assert_msg(act_return == exp_return, "get_serial_num(%s) returned %d instead of %d",
                   pathname, act_return, exp_return);
-    ck_assert_int_eq(exp_errnum, act_errnum);  // The out param should be zeroized on success
     ck_assert_msg(act_errnum == exp_errnum, "get_serial_num(%s) resulted in errnum [%d] '%s' "
                   "instead of [%d] '%s", pathname, act_errnum, strerror(act_errnum),
                   exp_errnum, strerror(exp_errnum));
