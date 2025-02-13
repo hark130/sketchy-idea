@@ -1,1 +1,1 @@
-regular_file.txt
+/home/vagrant/Repos/sketchy-idea/code/test/test_input/regular_file.txt
