@@ -17,6 +17,7 @@ code/dist/check_sfmr_get_access_time.bin && CK_FORK=no valgrind --leak-check=ful
 // Local includes
 #include "devops_code.h"              // resolve_to_repo(), SKID_REPO_NAME
 #include "skid_file_metadata_read.h"  // get_access_time()
+#include "unit_test_code.h"           // globals, resolve_test_input(), setup(), teardown()
 
 
 // Use this to help highlight an errnum that wasn't updated
@@ -28,30 +29,10 @@ code/dist/check_sfmr_get_access_time.bin && CK_FORK=no valgrind --leak-check=ful
 /**************************************************************************************************/
 
 
-char *test_pipe_path;  // Heap array containing the absolute pipe filename resolved to the repo
-char *test_socket_path;  // Heap array containing the absolute socket filename resolved to the repo
-
 /*
  *	Get the expected return value for pathname.
  */
 time_t get_expected_return(const char *pathname);
-
-/*
- *	Resolve paththame to SKID_REPO_NAME in a standardized way.  Use free_devops_mem() to free
- *	the return value.
- */
-char *resolve_test_input(const char *pathname);
-
-/*
- *	Resolve the named pipe and raw socket default filenames to the repo and store the heap
- *	memory pointer in the globals.
- */
-void setup(void);
-
-/*
- *	Delete the named pipe and raw socket files.  Then, free the heap memory arrays.
- */
-void teardown(void);
 
 
 time_t get_expected_return(const char *pathname)
@@ -66,75 +47,6 @@ time_t get_expected_return(const char *pathname)
 
 	// DONE
 	return exp_result;
-}
-
-
-char *resolve_test_input(const char *pathname)
-{
-	// LOCAL VARIABLES
-	int errnum = CANARY_INT;                 // Errno values
-	const char *repo_name = SKID_REPO_NAME;  // Name of the repo
-	char *resolved_name = NULL;              // pathname resolved to repo_name
-
-	// RESOLVE IT
-	resolved_name = resolve_to_repo(repo_name, pathname, false, &errnum);
-	ck_assert_msg(0 == errnum, "resolve_to_repo(%s, %s) failed with [%d] %s", repo_name,
-				  pathname, errnum, strerror(errnum));
-	ck_assert_msg(NULL != resolved_name, "resolve_to_repo(%s, %s) failed to resolve the path",
-				  repo_name, pathname);
-
-	// DONE
-	if (0 != errnum && resolved_name)
-	{
-		free_devops_mem((void **)&resolved_name);  // Best effort
-	}
-	return resolved_name;
-}
-
-
-void setup(void)
-{
-	// LOCAL VARIABLES
-	int errnum = CANARY_INT;                                      // Errno values
-	char named_pipe[] = { "./code/test/test_input/named_pipe" };  // Default test input: pipe
-	char raw_socket[] = { "./code/test/test_input/raw_socket" };  // Default test input: socket
-
-	// SET IT UP
-	// Named Pipe
-	test_pipe_path = resolve_test_input(named_pipe);
-	if (test_pipe_path)
-	{
-		remove_a_file(test_pipe_path, true);  // Remove leftovers and ignore errors
-		errnum = make_a_pipe(test_pipe_path);
-		ck_assert_msg(0 == errnum, "make_a_pipe(%s) failed with [%d] %s", test_pipe_path,
-					  errnum, strerror(errnum));
-		errnum = CANARY_INT;  // Reset temp variable
-	}
-	errnum = CANARY_INT;  // Reset temp variable
-	// Raw Socket
-	test_socket_path = resolve_test_input(raw_socket);
-	if (test_socket_path)
-	{
-		remove_a_file(test_socket_path, true);  // Remove leftovers and ignore errors
-		errnum = make_a_socket(test_socket_path);
-		ck_assert_msg(0 == errnum, "make_a_socket(%s) failed with [%d] %s", test_socket_path,
-					  errnum, strerror(errnum));
-		errnum = CANARY_INT;  // Reset temp variable
-	}
-
-	// DONE
-	return;
-}
-
-
-void teardown(void)
-{
-	// Pipe
-	remove_a_file(test_pipe_path, true);  // Best effort
-	free_devops_mem((void **)&test_pipe_path);  // Ignore any errors
-	// Socket
-	remove_a_file(test_socket_path, true);  // Best effort
-	free_devops_mem((void **)&test_socket_path);  // Ignore any errors
 }
 
 
