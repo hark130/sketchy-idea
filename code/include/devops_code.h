@@ -123,6 +123,20 @@ int free_path_tree(char ***old_path_tree);
 
 /*
  *  Description:
+ *      Determine the parent directory of path.
+ *		Caller is respsonsible for freeing the return value with free_devops_mem().
+ *
+ *  Args:
+ *      path: A non-empty path that may or may not exist.
+ *
+ *  Returns:
+ *		Heap-allocated character array containing path's parent directory on success.
+ *		NULL on error.
+ */
+char *get_parent_dir(const char *path);
+
+/*
+ *  Description:
  *      Get the pathname's raw access time by executing the following command in a shell:
  *          stat -c %X <pathname>
  *      This is intended as a double-do to validate the results of skid_file_metadata_read's
@@ -139,13 +153,13 @@ time_t get_shell_atime(const char *pathname, int *errnum);
 
 /*
  *  Description:
- *      Get the actual file permissions for pathname by executing the following command in a shell:
+ *      Get the actual file block count for pathname by executing the following command in a shell:
  *          stat -c %b <pathname>
  *      This is intended as a double-do to validate the results of skid_file_metadata_read's
  *      get_block_count() without having to hard-code brittle expected return values.
  *
  *  Args:
- *      pathname: The pathname, relative or absolute, to fetch permissions for.
+ *      pathname: The pathname, relative or absolute, to fetch the block count for.
  *      errnum: [Out] Storage location for errno values encountered.  Set to zero on success.
  *
  *  Returns:
@@ -199,11 +213,11 @@ time_t get_shell_ctime(const char *pathname, int *errnum);
  *      get_file_device_id() without having to hard-code brittle expected return values.
  *
  *  Args:
- *      pathname: The pathname, relative or absolute, to fetch permissions for.
+ *      pathname: The pathname, relative or absolute, to fetch the device ID for.
  *      errnum: [Out] Storage location for errno values encountered.
  *
  *  Returns:
- *      File permissions on success, 0 on error.  Check errnum for actual errno value.
+ *      File device ID on success, 0 on error.  Check errnum for actual errno value.
  */
 dev_t get_shell_device_id(const char *pathname, int *errnum);
 
@@ -532,6 +546,22 @@ int make_a_pipe(const char *pathname);
  *      0 on success, errno on error.
  */
 int make_a_socket(const char *filename);
+
+/*
+ *  Description:
+ *      Make a symbolic link by executing the following command in a shell:
+ *          ln -s <target_path> <link_path>
+ *      This is intended as a double-do for skid_file_link's create_sym_link().
+ *
+ *  Args:
+ *      target_path: The path the symbolic link resolves to.  This path should either be absolute
+ *          or relative to the symbolic link.
+ *      link_path: The filename, absolute or relative, of the actual symbolic link.
+ *
+ *  Returns:
+ *      0 on success, errno on error.
+ */
+int make_a_symlink(const char *target_path, const char *link_path);
 
 /*
  *  Description:
