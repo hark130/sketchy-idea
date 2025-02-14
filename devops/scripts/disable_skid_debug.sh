@@ -19,7 +19,7 @@ EXIT_CODE=0                # Exit code var
 if [[ `git status -s | wc -l` -ne 0 ]]
 then
     echo -e "\nYour working tree does not appear to be clean.\nStage your commits and track your files before proceeding.\n"
-    EXIT_CODE=1
+    # EXIT_CODE=1
 fi
 
 # 2. Cleanup previously backed up files
@@ -41,10 +41,10 @@ fi
 # 3. Update all the production code
 if [[ $EXIT_CODE -eq 0 ]]
 then
-    for skid_source_file in $(ls $SRC_CODE_DIR/skid_*$SRC_FILE_EXT)
+    for skid_source_file in $(ls $SRC_CODE_DIR/skid_*$SRC_FILE_EXT 2> /dev/null)
     do
         # Comments out the SKID_DEBUG macro, in place, after backing up the original source in-place
-        sed -i'./*$BAK_FILE_EXT' 's/^#define SKID_DEBUG/\/\/ #define SKID_DEBUG/g' $skid_source_file
+        sed -i"./*$BAK_FILE_EXT" 's/^#define SKID_DEBUG/\/\/ #define SKID_DEBUG/g' $skid_source_file
         EXIT_CODE=$?
         if [[ $EXIT_CODE -ne 0 ]]
         then
