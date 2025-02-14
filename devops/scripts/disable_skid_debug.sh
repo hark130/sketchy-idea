@@ -9,7 +9,8 @@
 #   Non-zero value on error
 
 
-EXIT_CODE=0   # Exit code var
+SRC_CODE_DIR="./code/src"  # Source code directory
+EXIT_CODE=0                # Exit code var
 
 # 1. Verify the working tree is clean
 if [[ `git status -s | wc -l` -ne 0 ]]
@@ -21,7 +22,7 @@ fi
 # 2. Update all the production code
 if [[ $EXIT_CODE -eq 0 ]]
 then
-    for skid_source_file in $(ls code/src/skid_*.c)
+    for skid_source_file in $(ls $SRC_CODE_DIR/skid_*.c)
     do
         # Comments out the SKID_DEBUG macro, in place, after backing up the original source in-place
         sed -i'./*.bak' 's/^#define SKID_DEBUG/\/\/ #define SKID_DEBUG/g' $skid_source_file
