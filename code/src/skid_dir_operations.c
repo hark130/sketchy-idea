@@ -2,7 +2,7 @@
  *	This library defines functionality to create, remove, and parse Linux directories.
  */
 
-#define SKID_DEBUG						// Enable DEBUG logging
+// #define SKID_DEBUG						// Enable DEBUG logging
 
 #include "skid_debug.h"				  	// PRINT_ERRNO()
 #include "skid_dir_operations.h"		// _DEFAULT_SOURCE, delete_dir()
@@ -12,6 +12,7 @@
 #include <dirent.h>						// closedir(), opendir(), readdir(), struct dirent
 #include <errno.h>						// errno
 #include <stdint.h>						// SIZE_MAX
+#include <string.h>						// strncpy()
 #include <unistd.h>						// link(), rmdir(), symlink()
 #ifndef SKID_ARRAY_SIZE
 // #define SKID_ARRAY_SIZE 1024			// Starting num of indices in read_dir_contents()'s array

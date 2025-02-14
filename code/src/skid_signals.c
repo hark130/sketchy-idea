@@ -9,7 +9,7 @@
 #define _XOPEN_SOURCE_EXTENDED			// Expose the TRAP_* signal code macros
 #endif  /* _XOPEN_SOURCE_EXTENDED */
 
-#define SKID_DEBUG						// Enable DEBUG logging
+// #define SKID_DEBUG						// Enable DEBUG logging
 
 #include "skid_debug.h"				  	// PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_macros.h"				// NOERR
@@ -17,6 +17,7 @@
 #include "skid_signals.h"				// Signal MACROs, SignalHandler
 #include "skid_validation.h"			// validate_skid_err()
 #include <errno.h>						// EINVAL
+#include <string.h>						// memset()
 #include <sys/types.h>					// pid_t
 #include <sys/wait.h>					// waitpid()
 

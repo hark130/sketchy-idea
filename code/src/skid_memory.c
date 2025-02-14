@@ -2,10 +2,11 @@
  *	This library defines functionality to allocate and free memory on behalf of SKID.
  */
 
-#define SKID_DEBUG						// Enable DEBUG logging
+// #define SKID_DEBUG						// Enable DEBUG logging
 
 #include <errno.h>						// errno
 #include <stdlib.h>						// calloc()
+#include <string.h>						// strlen()
 #include "skid_debug.h"				  	// PRINT_ERRNO()
 #include "skid_memory.h"				// free_skid_string()
 #ifndef ENOERR

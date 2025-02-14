@@ -50,7 +50,7 @@ date && \
 # 2. Runs the build system (which also executes the Check-based unit tests)
 make && echo && \
 # 3. Executes the unit tests with Valgrind
-for check_bin in $(ls code/dist/check_*.bin); do CK_FORK=no valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 $check_bin; [[ $? -ne 0 ]] && break || continue; done && echo && \
+./devops/scripts/run_valgrind.sh; [[ $? -ne 0 ]] && exit; echo && \
 # 4. Counts the number of unit tests (by running them again)
 for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
 # 5. Misc.
@@ -66,9 +66,9 @@ run_manual_test_command "code/dist/test_ssh_handle_ext_read_queue_int.bin 10"
 printf "%s Extended Signal Handler: Translating signal codes %s\n" "$BOOKEND" "$BOOKEND"
 printf "Send the following command to speed this proccess up:\nkill -SIGUSR1 \`pidof test_ssh_handle_ext_signal_code.bin\`\n"
 run_manual_test_command "code/dist/test_ssh_handle_ext_signal_code.bin"
-# kill -SIGUSR1 `pidof test_ssh_handle_ext_signal_code.bin`
+# kill -s 10 `pidof test_ssh_handle_ext_signal_code.bin`
 # 3. Identifying the sending process
 printf "%s Extended Signal Handler: Identifying the sending process %s\n" "$BOOKEND" "$BOOKEND"
 printf "Send the following command to speed this proccess up:\nkill -SIGUSR2 \`pidof test_ssh_handle_ext_sending_process.bin\`\n"
 run_manual_test_command "code/dist/test_ssh_handle_ext_sending_process.bin"
-# kill -SIGUSR2 `pidof test_ssh_handle_ext_sending_process.bin`
+# kill -s 12 `pidof test_ssh_handle_ext_sending_process.bin`

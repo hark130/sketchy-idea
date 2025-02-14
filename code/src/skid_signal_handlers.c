@@ -2,13 +2,14 @@
  *	This library defines functionality to help automate signal handling.
  */
 
-#define SKID_DEBUG						// Enable DEBUG logging
+// #define SKID_DEBUG						// Enable DEBUG logging
 
 #include "skid_debug.h"				  	// PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_macros.h"				// SignalHandler
 #include "skid_signals.h"				// SignalHandler
 #include "skid_signal_handlers.h"		// Externed atomic variables
 #include <errno.h>						// EINVAL
+#include <stddef.h>						// NULL
 #include <sys/types.h>					// pid_t
 #include <sys/wait.h>					// waitpid()
 

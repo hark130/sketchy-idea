@@ -1,6 +1,8 @@
 #ifndef __SKID_MEMORY__
 #define __SKID_MEMORY__
 
+#include <stddef.h>		// size_t
+
 /*
  *	Description:
  *		Allocate a zeroized array in heap memory.
