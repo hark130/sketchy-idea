@@ -29,25 +29,20 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sfl_create_hard_link.bin; unse
 #include "skid_debug.h"    				// FPRINTF_ERR()
 #include "skid_file_link.h"				// create_hard_link()
 #include "skid_file_metadata_read.h"	// get_hard_link_num()
+#include "unit_test_code.h"             // globals, setup(), teardown()
 
 #define CANARY_INT (int)0xBADC0DE  // Actually, a reverse canary value
 
+
 /**************************************************************************************************/
-/***************************************** TEST FIXTURES ******************************************/
+/************************************ HELPER CODE DECLARATION *************************************/
 /**************************************************************************************************/
 
-char *test_dir_path;  // Heap array containing the absolute directory name resolved to the repo
-char *test_file_path;  // Heap array containing the absolute filename resolved to the repo
-char *test_pipe_path;  // Heap array containing the absolute pipe filename resolved to the repo
-char *test_socket_path;  // Heap array containing the absolute socket filename resolved to the repo
-char *test_sym_link;  // Heap array with the absolute symbolic link filename resolved to the repo
-char *test_dst_link;  // Heap array with the test cases's default destination symbolic link
 
 /*
- *	Resolve paththame to SKID_REPO_NAME in a standardized way.  Use free_devops_mem() to free
- *	the return value.
+ *  Create the Check test suite.
  */
-char *resolve_test_input(const char *pathname);
+Suite *create_test_suite(void);
 
 /*
  *	Make the function call, check the expected return value, and validate the results.  If
@@ -56,173 +51,6 @@ char *resolve_test_input(const char *pathname);
  */
 void run_test_case(const char *src_input, const char *dst_input, int exp_return,
 	               bool check_hard_links);
-
-/*
- *	Resolve the named pipe and raw socket default filenames to the repo and store the heap
- *	memory pointer in the globals.
- */
-void setup(void);
-
-/*
- *	Delete the named pipe and raw socket files.  Then, free the heap memory arrays.
- */
-void teardown(void);
-
-
-char *resolve_test_input(const char *pathname)
-{
-	// LOCAL VARIABLES
-	int errnum = CANARY_INT;                 // Errno values
-	const char *repo_name = SKID_REPO_NAME;  // Name of the repo
-	char *resolved_name = NULL;              // pathname resolved to repo_name
-
-	// RESOLVE IT
-	resolved_name = resolve_to_repo(repo_name, pathname, false, &errnum);
-	ck_assert_msg(0 == errnum, "resolve_to_repo(%s, %s) failed with [%d] %s\n", repo_name,
-				  pathname, errnum, strerror(errnum));
-	ck_assert_msg(NULL != resolved_name, "resolve_to_repo(%s, %s) failed to resolve the path\n",
-				  repo_name, pathname);
-
-	// DONE
-	if (0 != errnum && resolved_name)
-	{
-		free_devops_mem((void **)&resolved_name);  // Best effort
-	}
-	return resolved_name;
-}
-
-
-void run_test_case(const char *src_input, const char *dst_input, int exp_return,
-	               bool check_hard_links)
-{
-	// LOCAL VARIABLES
-	int actual_ret = 0;             // Return value of the tested function
-	int errnum = 0;                 // Catch errno values here
-	nlink_t old_hard_link_num = 0;  // Number of hard links to src_input prior to call
-	nlink_t new_hard_link_num = 0;  // Number of hard links to src_input after the call
-
-	// SETUP
-	// No need to count hard links unless the test was expected to succeed
-	if (0 == exp_return && true == check_hard_links)
-	{
-		old_hard_link_num = get_hard_link_num(src_input, &errnum);
-		ck_assert_msg(0 == errnum, "The 1st get_hard_link_num(%s) failed with [%d] '%s'\n",
-			          src_input, errnum, strerror(errnum));
-	}
-
-	// RUN IT
-	// Call the function
-	actual_ret = create_hard_link(src_input, dst_input);
-	// Compare actual results to expected results
-	ck_assert_msg(exp_return == actual_ret, "create_hard_link(%s, %s) returned [%d] '%s' "
-				  "instead of [%d] '%s'\n", src_input, dst_input, actual_ret,
-				  strerror(actual_ret), exp_return, strerror(exp_return));
-	// No need to compare hard link counts unless the test was expected to succeed
-	if (0 == exp_return && true == check_hard_links)
-	{
-		// Get new hard link count
-		new_hard_link_num = get_hard_link_num(src_input, &errnum);
-		ck_assert_msg(0 == errnum, "The 2nd get_hard_link_num(%s) failed with [%d] '%s'\n",
-			          src_input, errnum, strerror(errnum));
-		// Compare the hard link count
-		ck_assert_msg(old_hard_link_num + 1 == new_hard_link_num, "Encountered an unexpected hard "
-			          "link count for %s.  Expected %ju hard links but received %ju instead.\n",
-			          src_input, (uintmax_t)(old_hard_link_num + 1), (uintmax_t)new_hard_link_num);
-	}
-	// No need to check dst_input unless the test was expected to succeed
-	if (0 == exp_return)
-	{
-		// If the source was a symbolic link then this hard link will identify as one too
-		if (true == is_sym_link(src_input, &errnum))
-		{
-			// Check new hard link
-			ck_assert_msg(true == is_sym_link(dst_input, &errnum),
-				          "'%s' did not register as a symbolic link and it should have because "
-				          "'%s', it's source is\n", dst_input, src_input);
-			ck_assert_msg(0 == errnum, "is_sym_link(%s) failed with [%d] '%s'\n",
-				          dst_input, errnum, strerror(errnum));
-		}
-		else
-		{
-			ck_assert_msg(0 == errnum, "is_sym_link(%s) failed with [%d] '%s'\n",
-				          src_input, errnum, strerror(errnum));
-			// Check new hard link
-			ck_assert_msg(false == is_sym_link(dst_input, &errnum),
-				          "'%s' registered as a symbolic link and it should not have\n", dst_input);
-			ck_assert_msg(0 == errnum, "is_sym_link(%s) failed with [%d] '%s'\n",
-				          dst_input, errnum, strerror(errnum));
-		}
-	}
-
-	// DONE
-	return;
-}
-
-
-void setup(void)
-{
-	// LOCAL VARIABLES
-	int errnum = CANARY_INT;                                          // Errno values
-	char directory[] = { "./code/test/test_input/" };                 // Default test input: dir
-	char named_pipe[] = { "./code/test/test_input/named_pipe" };      // Default test input: pipe
-	char raw_socket[] = { "./code/test/test_input/raw_socket" };      // Default test input: socket
-	char reg_file[] = { "./code/test/test_input/regular_file.txt" };  // Default test input: file
-	char sym_link[] = { "./code/test/test_input/sym_link.txt" };      // Default test input: symlink
-	char dst_link[] = { "./code/test/test_output/dst_link.txt" };     // Default test destination
-
-	// SET IT UP
-	// Directory
-	test_dir_path = resolve_test_input(directory);
-	// Named Pipe
-	test_pipe_path = resolve_test_input(named_pipe);
-	if (test_pipe_path)
-	{
-		remove_a_file(test_pipe_path, true);  // Remove leftovers and ignore errors
-		errnum = make_a_pipe(test_pipe_path);
-		ck_assert_msg(0 == errnum, "make_a_pipe(%s) failed with [%d] %s\n", test_pipe_path,
-					  errnum, strerror(errnum));
-		errnum = CANARY_INT;  // Reset temp variable
-	}
-	// Raw Socket
-	test_socket_path = resolve_test_input(raw_socket);
-	if (test_socket_path)
-	{
-		remove_a_file(test_socket_path, true);  // Remove leftovers and ignore errors
-		errnum = make_a_socket(test_socket_path);
-		ck_assert_msg(0 == errnum, "make_a_socket(%s) failed with [%d] %s\n", test_socket_path,
-					  errnum, strerror(errnum));
-		errnum = CANARY_INT;  // Reset temp variable
-	}
-	// Regular File
-	test_file_path = resolve_test_input(reg_file);
-	// Symbolic Link
-	test_sym_link = resolve_test_input(sym_link);
-	// Destination Symbolic Link
-	test_dst_link = resolve_test_input(dst_link);
-
-	// DONE
-	return;
-}
-
-
-void teardown(void)
-{
-	// Directory
-	free_devops_mem((void **)&test_dir_path);  // Ignore any errors
-	// File
-	free_devops_mem((void **)&test_file_path);  // Ignore any errors
-	// Pipe
-	remove_a_file(test_pipe_path, true);  // Best effort
-	free_devops_mem((void **)&test_pipe_path);  // Ignore any errors
-	// Socket
-	remove_a_file(test_socket_path, true);  // Best effort
-	free_devops_mem((void **)&test_socket_path);  // Ignore any errors
-	// Symbolic Link
-	free_devops_mem((void **)&test_sym_link);  // Ignore any errors
-	// Destination Symbolic Link
-	remove_a_file(test_dst_link, true);  // Best effort
-	free_devops_mem((void **)&test_dst_link);  // Ignore any errors
-}
 
 
 /**************************************************************************************************/
@@ -467,13 +295,19 @@ START_TEST(test_s03_destination_sym_link_exists)
 END_TEST
 
 
-Suite *create_hard_link_suite(void)
+
+/**************************************************************************************************/
+/************************************* HELPER CODE DEFINITION *************************************/
+/**************************************************************************************************/
+
+
+Suite *create_test_suite(void)
 {
 	// LOCAL VARIABLES
 	Suite *suite = suite_create("SFL_Create_Hard_Link");  // Test suite
-	TCase *tc_normal = tcase_create("Normal");           // Normal test cases
-	TCase *tc_error = tcase_create("Error");             // Error test cases
-	TCase *tc_special = tcase_create("Special");         // Special test cases
+	TCase *tc_normal = tcase_create("Normal");            // Normal test cases
+	TCase *tc_error = tcase_create("Error");              // Error test cases
+	TCase *tc_special = tcase_create("Special");          // Special test cases
 
 	// SETUP TEST CASES
 	tcase_add_checked_fixture(tc_normal, setup, teardown);
@@ -502,6 +336,73 @@ Suite *create_hard_link_suite(void)
 }
 
 
+void run_test_case(const char *src_input, const char *dst_input, int exp_return,
+	               bool check_hard_links)
+{
+	// LOCAL VARIABLES
+	int actual_ret = 0;             // Return value of the tested function
+	int errnum = 0;                 // Catch errno values here
+	nlink_t old_hard_link_num = 0;  // Number of hard links to src_input prior to call
+	nlink_t new_hard_link_num = 0;  // Number of hard links to src_input after the call
+
+	// SETUP
+	// No need to count hard links unless the test was expected to succeed
+	if (0 == exp_return && true == check_hard_links)
+	{
+		old_hard_link_num = get_hard_link_num(src_input, &errnum);
+		ck_assert_msg(0 == errnum, "The 1st get_hard_link_num(%s) failed with [%d] '%s'\n",
+			          src_input, errnum, strerror(errnum));
+	}
+
+	// RUN IT
+	// Call the function
+	actual_ret = create_hard_link(src_input, dst_input);
+	// Compare actual results to expected results
+	ck_assert_msg(exp_return == actual_ret, "create_hard_link(%s, %s) returned [%d] '%s' "
+				  "instead of [%d] '%s'\n", src_input, dst_input, actual_ret,
+				  strerror(actual_ret), exp_return, strerror(exp_return));
+	// No need to compare hard link counts unless the test was expected to succeed
+	if (0 == exp_return && true == check_hard_links)
+	{
+		// Get new hard link count
+		new_hard_link_num = get_hard_link_num(src_input, &errnum);
+		ck_assert_msg(0 == errnum, "The 2nd get_hard_link_num(%s) failed with [%d] '%s'\n",
+			          src_input, errnum, strerror(errnum));
+		// Compare the hard link count
+		ck_assert_msg(old_hard_link_num + 1 == new_hard_link_num, "Encountered an unexpected hard "
+			          "link count for %s.  Expected %ju hard links but received %ju instead.\n",
+			          src_input, (uintmax_t)(old_hard_link_num + 1), (uintmax_t)new_hard_link_num);
+	}
+	// No need to check dst_input unless the test was expected to succeed
+	if (0 == exp_return)
+	{
+		// If the source was a symbolic link then this hard link will identify as one too
+		if (true == is_sym_link(src_input, &errnum))
+		{
+			// Check new hard link
+			ck_assert_msg(true == is_sym_link(dst_input, &errnum),
+				          "'%s' did not register as a symbolic link and it should have because "
+				          "'%s', it's source is\n", dst_input, src_input);
+			ck_assert_msg(0 == errnum, "is_sym_link(%s) failed with [%d] '%s'\n",
+				          dst_input, errnum, strerror(errnum));
+		}
+		else
+		{
+			ck_assert_msg(0 == errnum, "is_sym_link(%s) failed with [%d] '%s'\n",
+				          src_input, errnum, strerror(errnum));
+			// Check new hard link
+			ck_assert_msg(false == is_sym_link(dst_input, &errnum),
+				          "'%s' registered as a symbolic link and it should not have\n", dst_input);
+			ck_assert_msg(0 == errnum, "is_sym_link(%s) failed with [%d] '%s'\n",
+				          dst_input, errnum, strerror(errnum));
+		}
+	}
+
+	// DONE
+	return;
+}
+
+
 int main(void)
 {
 	// LOCAL VARIABLES
@@ -515,7 +416,7 @@ int main(void)
 	SRunner *suite_runner = NULL;
 
 	// SETUP
-	suite = create_hard_link_suite();
+	suite = create_test_suite();
 	suite_runner = srunner_create(suite);
 	srunner_set_log(suite_runner, log_abs_path);
 
