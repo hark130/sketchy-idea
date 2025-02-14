@@ -10,6 +10,7 @@
 
 
 SRC_CODE_DIR="./code/src"  # Source code directory
+SRC_FILE_EXT=".c"          # Source code file extension
 EXIT_CODE=0                # Exit code var
 
 # 1. Verify the working tree is clean
@@ -22,7 +23,7 @@ fi
 # 2. Update all the production code
 if [[ $EXIT_CODE -eq 0 ]]
 then
-    for skid_source_file in $(ls $SRC_CODE_DIR/skid_*.c)
+    for skid_source_file in $(ls $SRC_CODE_DIR/skid_*$SRC_FILE_EXT)
     do
         # Comments out the SKID_DEBUG macro, in place, after backing up the original source in-place
         sed -i'./*.bak' 's/^#define SKID_DEBUG/\/\/ #define SKID_DEBUG/g' $skid_source_file
@@ -33,7 +34,10 @@ then
             break
         fi
     done
-    # TO DO: DON'T DO NOW... INCLUDE COPY/PASTE UNDO AND DO_IT() COMMANDS
+    echo -e "\nTo undo these changes..."
+    echo -e "\tgit restore $SRC_CODE_DIR/*$SRC_FILE_EXT"
+    echo -e "\nTo commit these changes..."
+    echo -e "\tgit add $SRC_CODE_DIR/*$SRC_FILE_EXT && git commit"
 fi
 
 # DONE
