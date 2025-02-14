@@ -5,26 +5,35 @@
 #
 # EXIT CODE
 #   0 on success
+#   1 if the working tree is not clean (see: git status -s)
 #   Non-zero value on error
 
 
-TEMP_RET=0                                                     # Temporary exit code var
+EXIT_CODE=0   # Exit code var
 
-# TO DO: DON'T DO NOW... check for untracked files
+# 1. Verify the working tree is clean
+if [[ `git status -s | wc -l` -ne 0 ]]
+then
+    echo -e "\nYour working tree does not appear to be clean.\nStage your commits and track your files before proceeding.\n"
+    EXIT_CODE=1
+fi
 
-# Update all the production code
-for skid_source_file in $(ls code/src/skid_*.c)
-do
-    # Comments out the SKID_DEBUG macro, in place, after backing up the original source in-place
-    sed -i'./*.bak' 's/^#define SKID_DEBUG/\/\/ #define SKID_DEBUG/g' $skid_source_file
-    TEMP_RET=$?
-    if [[ $TEMP_RET -ne 0 ]]
-    then
-        echo -e "\nThe sed command has failed on $skid_source_file!\n"
-        break
-    fi
-done
+# 2. Update all the production code
+if [[ $EXIT_CODE -eq 0 ]]
+then
+    for skid_source_file in $(ls code/src/skid_*.c)
+    do
+        # Comments out the SKID_DEBUG macro, in place, after backing up the original source in-place
+        sed -i'./*.bak' 's/^#define SKID_DEBUG/\/\/ #define SKID_DEBUG/g' $skid_source_file
+        EXIT_CODE=$?
+        if [[ $EXIT_CODE -ne 0 ]]
+        then
+            echo -e "\nThe sed command has failed on $skid_source_file!\n"
+            break
+        fi
+    done
+    # TO DO: DON'T DO NOW... INCLUDE COPY/PASTE UNDO AND DO_IT() COMMANDS
+fi
 
 # DONE
-# TO DO: DON'T DO NOW... INCLUDE COPY/PASTE UNDO AND DO_IT() COMMANDS
-exit $TEMP_RET
+exit $EXIT_CODE
