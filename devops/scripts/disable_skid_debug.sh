@@ -64,14 +64,14 @@ then
     echo -e "\nTo undo these changes..."
     echo -e "\tgit restore $SRC_CODE_DIR/*$SRC_FILE_EXT"
     echo -e "\nTo commit these changes..."
-    echo -e "\tgit add $SRC_CODE_DIR/*$SRC_FILE_EXT && git commit"
-    echo -e "\nThe original files have been backed up..."
-    echo -e "\tls $SRC_CODE_DIR/*$BAK_FILE_EXT"
+    echo -e "\tgit add $SRC_CODE_DIR/*$SRC_FILE_EXT && git commit\n"
 fi
 
 # DONE
 if [[ $EXIT_CODE -eq 0 ]]
 then
+    echo -e "\nThe original files have been backed up..."
+    echo -e "\tls $SRC_CODE_DIR/*$BAK_FILE_EXT"
     echo -e "\nDone disabling SKID_DEBUG macro.\n"
 fi
 exit $EXIT_CODE
