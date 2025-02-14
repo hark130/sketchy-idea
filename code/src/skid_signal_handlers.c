@@ -2,7 +2,7 @@
  *	This library defines functionality to help automate signal handling.
  */
 
-#define SKID_DEBUG						// Enable DEBUG logging
+// #define SKID_DEBUG						// Enable DEBUG logging
 
 #include "skid_debug.h"				  	// PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_macros.h"				// SignalHandler

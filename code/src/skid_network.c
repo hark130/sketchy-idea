@@ -2,7 +2,7 @@
  *	This library defines functionality to help manager server/clients.
  */
 
-#define SKID_DEBUG						// Enable DEBUG logging
+// #define SKID_DEBUG						// Enable DEBUG logging
 
 #include "skid_file_descriptors.h"		// close_fd()
 #include "skid_debug.h"					// PRINT_ERRNO(), PRINT_ERROR()

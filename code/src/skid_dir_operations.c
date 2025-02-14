@@ -2,7 +2,7 @@
  *	This library defines functionality to create, remove, and parse Linux directories.
  */
 
-#define SKID_DEBUG						// Enable DEBUG logging
+// #define SKID_DEBUG						// Enable DEBUG logging
 
 #include "skid_debug.h"				  	// PRINT_ERRNO()
 #include "skid_dir_operations.h"		// _DEFAULT_SOURCE, delete_dir()

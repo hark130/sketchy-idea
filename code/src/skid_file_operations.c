@@ -2,7 +2,7 @@
  *	This library defines functionality to create, delete, and empty Linux files.
  */
 
-#define SKID_DEBUG					// Enable DEBUG logging
+// #define SKID_DEBUG					// Enable DEBUG logging
 
 #include <errno.h>						// errno
 #include <stdio.h>						// fclose(), fopen(), fread(), fwrite()
