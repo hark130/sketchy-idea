@@ -11,6 +11,7 @@
 
 SRC_CODE_DIR="./code/src"  # Source code directory
 SRC_FILE_EXT=".c"          # Source code file extension
+UPDATE_COUNT=0             # Number of files updated
 EXIT_CODE=0                # Exit code var
 
 # 1. Verify the working tree is clean
@@ -32,12 +33,14 @@ then
         then
             echo -e "\nThe sed command has failed on $skid_source_file!\n"
             break
+        else
+            UPDATE_COUNT+=1
         fi
     done
 fi
 
 # 3. Check for changes
-if [[ `git status -s | wc -l` -ne 0 ]]
+if [[ `git status -s | wc -l` -ne 0 && $UPDATE_COUNT -gt 0 ]]
 then
     echo -e "\nThe following files were modified:"
     git status -s
