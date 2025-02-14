@@ -12,6 +12,7 @@
 #include "skid_validation.h"			// validate_skid_err(), validate_skid_sockfd()
 #include <arpa/inet.h>					// inet_ntop()
 #include <errno.h>						// EINVAL
+#include <string.h>						// strlen()
 #include <unistd.h>						// close()
 
 #ifdef SKID_DEBUG

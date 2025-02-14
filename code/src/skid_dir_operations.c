@@ -12,6 +12,7 @@
 #include <dirent.h>						// closedir(), opendir(), readdir(), struct dirent
 #include <errno.h>						// errno
 #include <stdint.h>						// SIZE_MAX
+#include <string.h>						// strncpy()
 #include <unistd.h>						// link(), rmdir(), symlink()
 #ifndef SKID_ARRAY_SIZE
 // #define SKID_ARRAY_SIZE 1024			// Starting num of indices in read_dir_contents()'s array

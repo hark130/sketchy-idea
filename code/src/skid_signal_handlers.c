@@ -9,6 +9,7 @@
 #include "skid_signals.h"				// SignalHandler
 #include "skid_signal_handlers.h"		// Externed atomic variables
 #include <errno.h>						// EINVAL
+#include <stddef.h>						// NULL
 #include <sys/types.h>					// pid_t
 #include <sys/wait.h>					// waitpid()
 

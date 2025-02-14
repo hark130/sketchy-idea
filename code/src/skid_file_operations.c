@@ -6,6 +6,7 @@
 
 #include <errno.h>						// errno
 #include <stdio.h>						// fclose(), fopen(), fread(), fwrite()
+#include <string.h>						// strlen()
 #include <unistd.h>						// unlink()
 #include "skid_debug.h"					// PRINT_ERROR()
 #include "skid_file_metadata_read.h"	// get_size()
@@ -27,8 +28,11 @@
  *
  *	Args:
  *		stream: A pointer to a file pointer.
+ *
+ *	Returns:
+ *		0 on success, errno on failure.
  */
-void close_stream(FILE **stream);
+int close_stream(FILE **stream);
 
 /*
  *  Description:
@@ -265,10 +269,10 @@ char *read_file(const char *filename, int *errnum)
 /**************************************************************************************************/
 
 
-void close_stream(FILE **stream)
+int close_stream(FILE **stream)
 {
 	// LOCAL VARIABLES
-	int errnum = ENOERR;      // Store errno values here
+	int errnum = ENOERR;  // Store errno values here
 
 	// INPUT VALIDATION
 	if (stream && *stream)
@@ -283,7 +287,7 @@ void close_stream(FILE **stream)
 	}
 
 	// DONE
-	return;
+	return errnum;
 }
 
 
@@ -305,7 +309,9 @@ int read_stream(FILE *stream, char *contents, size_t buff_size)
 {
 	// LOCAL VARIABLES
 	int result = ENOERR;    // The results of validation
+#ifdef SKID_DEBUG
 	size_t bytes_read = 0;  // Return value from fread()
+#endif  /* SKID_DEBUG */
 
 	// INPUT VALIDATION
 	if (!stream || !contents || buff_size <= 0)
@@ -316,7 +322,11 @@ int read_stream(FILE *stream, char *contents, size_t buff_size)
 	// READ IT
 	if (ENOERR == result)
 	{
+#ifdef SKID_DEBUG
 		bytes_read = fread(contents, buff_size, 1, stream);
+#else
+		fread(contents, buff_size, 1, stream);
+#endif  /* SKID_DEBUG */
 		if (feof(stream))
 		{
 			// Great news.  Continue...

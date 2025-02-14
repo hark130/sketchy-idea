@@ -6,6 +6,7 @@
 #endif  /* _DEFAULT_SOURCE */
 
 #include <stdbool.h>    // bool, false, true
+#include <stddef.h>		// size_t
 #include <sys/stat.h>	// mode_t
 
 /*

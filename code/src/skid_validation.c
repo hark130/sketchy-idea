@@ -7,6 +7,7 @@
 #include "skid_debug.h"				  	// PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_validation.h"			// ENOERR
 #include <errno.h>						// EINVAL
+#include <stddef.h>						// NULL
 
 
 /**************************************************************************************************/

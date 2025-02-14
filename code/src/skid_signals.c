@@ -17,6 +17,7 @@
 #include "skid_signals.h"				// Signal MACROs, SignalHandler
 #include "skid_validation.h"			// validate_skid_err()
 #include <errno.h>						// EINVAL
+#include <string.h>						// memset()
 #include <sys/types.h>					// pid_t
 #include <sys/wait.h>					// waitpid()
 
