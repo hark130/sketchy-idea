@@ -34,6 +34,13 @@ then
             break
         fi
     done
+fi
+
+# 3. Check for changes
+if [[ `git status -s | wc -l` -ne 0 ]]
+then
+    echo -e "\nThe following files were modified:"
+    git status -s
     echo -e "\nTo undo these changes..."
     echo -e "\tgit restore $SRC_CODE_DIR/*$SRC_FILE_EXT"
     echo -e "\nTo commit these changes..."
