@@ -72,6 +72,6 @@ fi
 # DONE
 if [[ $EXIT_CODE -eq 0 ]]
 then
-    echo -e "Done disabling SKID_DEBUG macro."
+    echo -e "\nDone disabling SKID_DEBUG macro.\n"
 fi
 exit $EXIT_CODE
