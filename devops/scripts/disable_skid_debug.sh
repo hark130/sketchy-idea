@@ -19,7 +19,7 @@ EXIT_CODE=0                # Exit code var
 if [[ `git status -s | wc -l` -ne 0 ]]
 then
     echo -e "\nYour working tree does not appear to be clean.\nStage your commits and track your files before proceeding.\n"
-    # EXIT_CODE=1
+    EXIT_CODE=1
 fi
 
 # 2. Cleanup previously backed up files
