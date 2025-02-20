@@ -1,5 +1,5 @@
 /*
- *	This library contains non-releasable, common-use Check unit test code.
+ *    This library contains non-releasable, common-use Check unit test code.
  */
 
 #ifndef __SKID_UNIT_TEST_CODE__

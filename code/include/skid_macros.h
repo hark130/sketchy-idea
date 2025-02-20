@@ -1,5 +1,5 @@
 /*
- *	Defines common use macros for use with SKETCHY IDEA (SKID).
+ *    Defines common use macros for use with SKETCHY IDEA (SKID).
  */
 
 #ifndef __SKID_MACROS__
