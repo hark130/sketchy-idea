@@ -1,9 +1,9 @@
 #ifndef __SKID_FILE_DESCRIPTORS__
 #define __SKID_FILE_DESCRIPTORS__
 
-#include <stdbool.h>        // bool, false, true
-#include <stddef.h>            // size_t
-#include "skid_macros.h"    // SKID_BAD_FD
+#include <stdbool.h>            // bool, false, true
+#include <stddef.h>             // size_t
+#include "skid_macros.h"        // SKID_BAD_FD
 
 /*
  *    Description:
