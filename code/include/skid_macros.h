@@ -6,11 +6,42 @@
 #define __SKID_MACROS__
 
 /* GENERAL MACROS */
+#ifndef ENOERR
+    #define ENOERR ((int)0)  // Success value for errno
+#endif  /* ENOERR */
 #define SKID_BAD_FD (signed int)-1  // Use this to standardize "invalid" file descriptors
 #define SKID_MAX_SZ (~(size_t)0)    // Library's value for the maximum size_t value
-#ifndef ENOERR
-#define ENOERR ((int)0)  // Success value for errno
-#endif  /* ENOERR */
+
+#ifdef __GNUC__
+    #if defined(__x86_64__) || defined(__ppc64__)
+        #define ENV64BIT
+    #else
+        #define ENV32BIT
+    #endif
+#endif  /* __GNUC__ */
+
+/* FILE MACROS */
+#if define(PATH_MAX)
+    #define SKID_PATH_MAX PATH_MAX
+#elif defined(FILENAME_MAX)
+    #if defined(ENV64BIT)
+        #if FILENAME_MAX <= 4096
+            #define SKID_PATH_MAX FILENAME_MAX
+        #else
+            #define SKID_PATH_MAX 4096
+    #else
+        #if FILENAME_MAX <= 1024
+            #define SKID_PATH_MAX FILENAME_MAX
+        #else
+            #define SKID_PATH_MAX 1024
+    #endif  /* FILENAME_MAX */
+#else
+    #if defined(ENV64BIT)
+        #define SKID_PATH_MAX 4096
+    #else
+        #define SKID_PATH_MAX 1024
+    #endif
+#endif
 
 /* FILE METADATA MACROS */
 // You may use these macros with SKID mode_t arguments.
