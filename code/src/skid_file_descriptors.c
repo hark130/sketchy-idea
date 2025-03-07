@@ -145,6 +145,40 @@ int close_fd(int *fdp, bool quiet)
 }
 
 
+int open_fd(const char *filename, int flags, mode_t mode, int *errnum)
+{
+    // LOCAL VARIABLES
+    fd = SKID_BAD_FD;  // File descriptor
+    results = ENOERR;  // Errno value
+
+    // INPUT VALIDATION
+    if (NULL == filename || NULL == errnum)
+    {
+        results = EINVAL;  // NULL pointer
+    }
+
+    // OPEN IT
+    if (ENOERR == results)
+    {
+        fd = open(stdout_fn, flags, mode);
+        if (-1 == fd)
+        {
+            results = errno;
+            PRINT_ERROR(The call to open() failed);
+            PRINT_ERRNO(results);
+            fd = SKID_BAD_FD;
+        }
+    }
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = results;
+    }
+    return fd;
+}
+
+
 char *read_fd(int fd, int *errnum)
 {
     // LOCAL VARIABLES

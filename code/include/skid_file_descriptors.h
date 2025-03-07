@@ -19,6 +19,20 @@
 int close_fd(int *fdp, bool quiet);
 
 /*
+ *  Description:
+ *      Open a file descriptor using open().
+ *
+ *  Args:
+ *      filename: A filename, relative or absolute, to open.
+ *      flags: The flags to pass to open() (see: open(2)).
+ *      mode: The mode to pass to open() (see: open(2)).
+ *
+ *  Returns:
+ *      On success, zero is returned.  On error, errno is returned.
+ */
+int open_fd(const char *filename, int flags, mode_t mode, int *errnum);
+
+/*
  *    Description:
  *        Read the contents of the file descriptor into a heap-allocated buffer.  It is the caller's
  *        responsibility to free the buffer with free_skid_mem().
