@@ -2,12 +2,13 @@
  *    This library defines functionality to manage Linux file descriptors.
  */
 
-#include <errno.h>                        // EINVAL
-#include <stddef.h>                        // size_t
-#include <string.h>                        // strlen()
-#include <unistd.h>                        // close()
-#include "skid_debug.h"                    // PRINT_ERROR()
-#include "skid_file_descriptors.h"        // close_fd()
+#include <errno.h>                      // EINVAL
+#include <fcntl.h>                      // open()
+#include <stddef.h>                     // size_t
+#include <string.h>                     // strlen()
+#include <unistd.h>                     // close()
+#include "skid_debug.h"                 // PRINT_ERROR()
+#include "skid_file_descriptors.h"      // close_fd()
 #include "skid_macros.h"                // SKID_BAD_FD
 #include "skid_memory.h"                // alloc_skid_mem(), free_skid_mem()
 #include "skid_validation.h"            // validate_skid_fd(), validate_skid_string()
@@ -148,8 +149,8 @@ int close_fd(int *fdp, bool quiet)
 int open_fd(const char *filename, int flags, mode_t mode, int *errnum)
 {
     // LOCAL VARIABLES
-    fd = SKID_BAD_FD;  // File descriptor
-    results = ENOERR;  // Errno value
+    int fd = SKID_BAD_FD;  // File descriptor
+    int results = ENOERR;  // Errno value
 
     // INPUT VALIDATION
     if (NULL == filename || NULL == errnum)
@@ -160,7 +161,7 @@ int open_fd(const char *filename, int flags, mode_t mode, int *errnum)
     // OPEN IT
     if (ENOERR == results)
     {
-        fd = open(stdout_fn, flags, mode);
+        fd = open(filename, flags, mode);
         if (-1 == fd)
         {
             results = errno;
