@@ -21,7 +21,7 @@
 #endif  /* __GNUC__ */
 
 /* FILE MACROS */
-#if define(PATH_MAX)
+#if defined(PATH_MAX)
     #define SKID_PATH_MAX PATH_MAX
 #elif defined(FILENAME_MAX)
     #if defined(ENV64BIT)
@@ -29,11 +29,13 @@
             #define SKID_PATH_MAX FILENAME_MAX
         #else
             #define SKID_PATH_MAX 4096
+        #endif
     #else
         #if FILENAME_MAX <= 1024
             #define SKID_PATH_MAX FILENAME_MAX
         #else
             #define SKID_PATH_MAX 1024
+        #endif
     #endif  /* FILENAME_MAX */
 #else
     #if defined(ENV64BIT)
