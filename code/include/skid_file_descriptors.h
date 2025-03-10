@@ -3,6 +3,7 @@
 
 #include <stdbool.h>            // bool, false, true
 #include <stddef.h>             // size_t
+#include <sys/types.h>          // mode_t
 #include "skid_macros.h"        // SKID_BAD_FD
 
 /*
@@ -26,23 +27,25 @@ int close_fd(int *fdp, bool quiet);
  *      filename: A filename, relative or absolute, to open.
  *      flags: The flags to pass to open() (see: open(2)).
  *      mode: The mode to pass to open() (see: open(2)).
+ *      errnum: [Out] Storage location for errno values encountered.
  *
  *  Returns:
- *      On success, zero is returned.  On error, errno is returned.
+ *      On success, the opened file descriptor is returned.  On error, SKID_BAD_FD is returned
+ *      (check errnum for details).
  */
 int open_fd(const char *filename, int flags, mode_t mode, int *errnum);
 
 /*
- *    Description:
- *        Read the contents of the file descriptor into a heap-allocated buffer.  It is the caller's
- *        responsibility to free the buffer with free_skid_mem().
+ *  Description:
+ *      Read the contents of the file descriptor into a heap-allocated buffer.  It is the caller's
+ *      responsibility to free the buffer with free_skid_mem().
  *
- *    Args:
- *        fd: File descriptor to read from.
- *        errnum: [Out] Storage location for errno values encountered.
+ *  Args:
+ *      fd: File descriptor to read from.
+ *      errnum: [Out] Storage location for errno values encountered.
  *
- *    Returns:
- *        Pointer to the heap-allocated buffer, on success.  NULL on error (check errnum for details).
+ *  Returns:
+ *      Pointer to the heap-allocated buffer, on success.  NULL on error (check errnum for details).
  */
 char *read_fd(int fd, int *errnum);
 
