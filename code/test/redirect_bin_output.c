@@ -4,7 +4,14 @@
 
 #include "skid_file_descriptors.h"  // close_fd(), open_fd()
 #include "skid_macros.h"            // ENOERR, SKID_BAD_FD
+#include "skid_memory.h"            // free_skid_mem()
 #include "skid_time.h"              // build_timestamp()
+#include "skid_validation.h"        // validate_skid_err()
+#include <errno.h>                  // EINVAL
+#include <fcntl.h>                  // open() flag macros
+#include <stdlib.h>                 // exit()
+#include <stdio.h>                  // fprintf()
+
 
 /*
  *  Build a unique timestamped filename which follows this format:
@@ -48,18 +55,23 @@ int main(int argc, char *argv[])
     }
 
     // REDIRECT IT
-    // 1. Build Filenames
+    // 1. Get Timestamp
+    if (ENOERR == exit_code)
+    {
+        timestamp = build_timestamp(&exit_code);
+    }
+    // 2. Build Filenames
     // Stdout
     if (ENOERR == exit_code)
     {
-        stdout_fn = build_filename(argv[1], "output", &exit_code);
+        stdout_fn = build_filename(timestamp, argv[1], "output", &exit_code);
     }
     // Stderr
     if (ENOERR == exit_code)
     {
-        stderr_fn = build_filename(argv[1], "errors", &exit_code);
+        stderr_fn = build_filename(timestamp, argv[1], "errors", &exit_code);
     }
-    // 2. Open Filenames
+    // 3. Open Filenames
     // Stdout
     if (ENOERR == exit_code)
     {
@@ -70,18 +82,23 @@ int main(int argc, char *argv[])
     {
         stderr_fd = open_fd(stderr_fn, flags, mode, &exit_code);
     }
-    // 3. Fork
+    // 4. Fork
 
     // CLEANUP
+    // Timestamp
+    if (NULL != timestamp)
+    {
+        free_skid_mem((void **)&timestamp);
+    }
     // Stdout filename
     if (NULL != stdout_fn)
     {
-        free_skid_mem(&stdout_fn);
+        free_skid_mem((void **)&stdout_fn);
     }
     // Stderr filename
     if (NULL != stderr_fn)
     {
-        free_skid_mem(&stderr_fn);
+        free_skid_mem((void **)&stderr_fn);
     }
     // Stdout file descriptor
     if (SKID_BAD_FD != stdout_fd)
