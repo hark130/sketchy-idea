@@ -4,7 +4,7 @@
 
 #define SKID_DEBUG                  // Enable DEBUGGING
 #include "skid_debug.h"             // PRINT_ERRNO, PRINT_ERROR
-#include "skid_file_descriptors.h"  // close_fd(), open_fd()
+#include "skid_file_descriptors.h"  // call_dup2(), close_fd(), open_fd()
 #include "skid_macros.h"            // ENOERR, SKID_BAD_FD
 #include "skid_memory.h"            // alloc_skid_mem(), free_skid_mem()
 #include "skid_time.h"              // build_timestamp()
@@ -15,6 +15,8 @@
 #include <stdlib.h>                 // exit()
 #include <stdio.h>                  // fprintf(), sprintf()
 #include <string.h>                 // strlen()
+#include <sys/types.h>              // pid_t
+#include <unistd.h>                 // fork()
 
 
 #define FILE_EXT ".txt"             // File extension to use for the output files
@@ -67,6 +69,7 @@ int main(int argc, char *argv[])
     mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;  // Mode for open()
     char *timestamp = NULL;                                         // YYYYMMDD-HHMMSS
     char *bin_name = NULL;                                          // Sanitized copy of argv[1]
+    pid_t pid = 0;                                                  // Return value from fork()
 
     // INPUT VALIDATION
     if (argc < 2)
@@ -120,6 +123,46 @@ int main(int argc, char *argv[])
         stderr_fd = open_fd(stderr_fn, flags, mode, &exit_code);
     }
     // 5. Fork
+    if (ENOERR == exit_code)
+    {
+        pid = fork();
+        // Error
+        if (pid < 0)
+        {
+            exit_code = errno;
+            PRINT_ERROR(The call to fork() failed);
+            PRINT_ERRNO(exit_code);
+        }
+        // Child
+        else if (0 == pid)
+        {
+            // Stdout
+            if (SKID_STDOUT_FD != call_dup2(stdout_fd, SKID_STDOUT_FD, &exit_code))
+            {
+                PRINT_ERROR(The call to call_dup2() stdout failed);
+                PRINT_ERRNO(exit_code);
+            }
+            else if (SKID_STDERR_FD != call_dup2(stderr_fd, SKID_STDERR_FD, &exit_code))
+            {
+                PRINT_ERROR(The call to call_dup2() stderr failed);
+                PRINT_ERRNO(exit_code);
+            }
+            else
+            {
+                if (-1 == execvp(argv[1], argv + 1))
+                {
+                    exit_code = errno;
+                    PRINT_ERROR(The call to execvp() failed);
+                    PRINT_ERRNO(exit_code);
+                }
+            }
+        }
+        // Parent
+        else
+        {
+            // Wait for the child to die
+        }
+    }
 
     // CLEANUP
     // Timestamp
