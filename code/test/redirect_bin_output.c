@@ -1,5 +1,10 @@
 /*
  *  This source file utilizes SKETCHY IDEA (SKID) to implement redirect_bin_output.bin.
+ *  Uses the following exit codes:
+ *      0      Success
+ *      22     Bad input (EINVAL)
+ *      132    The child process received a signal (ERFKILL)
+ *      errno  Errno values are used for all other failures including the child process' exit code
  */
 
 #define SKID_DEBUG                  // Enable DEBUGGING
@@ -16,6 +21,7 @@
 #include <stdio.h>                  // fprintf(), sprintf()
 #include <string.h>                 // strlen()
 #include <sys/types.h>              // pid_t
+#include <sys/wait.h>               // waitpid()
 #include <unistd.h>                 // fork()
 
 
@@ -70,6 +76,8 @@ int main(int argc, char *argv[])
     char *timestamp = NULL;                                         // YYYYMMDD-HHMMSS
     char *bin_name = NULL;                                          // Sanitized copy of argv[1]
     pid_t pid = 0;                                                  // Return value from fork()
+    pid_t retval = 0;                                               // Return value from waitpid()
+    int wstatus = 0;                                                // Status of the child PID
 
     // INPUT VALIDATION
     if (argc < 2)
@@ -160,7 +168,51 @@ int main(int argc, char *argv[])
         // Parent
         else
         {
-            // Wait for the child to die
+            // Wait for the child to finish
+            while (ENOERR == exit_code)
+            {
+                sleep(1);  // A tasteful sleep
+                retval = waitpid(pid, &wstatus, WNOHANG);
+                if (-1 == retval)
+                {
+                    exit_code = errno;
+                    if (ENOERR == exit_code)
+                    {
+                        exit_code = EINVAL;  // Best guess
+                    }
+                    PRINT_ERROR(The call to waitpid() failed);
+                    PRINT_ERRNO(exit_code);
+                }
+                else if (0 == retval)
+                {
+                    FPRINTF_ERR("%s Still waiting on the child's status to change\n",
+                                DEBUG_INFO_STR);  // DEBUGGING
+                }
+                else if (pid == retval)
+                {
+                    if (WIFEXITED(wstatus))
+                    {
+                        exit_code = WEXITSTATUS(wstatus);
+                        FPRINTF_ERR("%s The child exited with %d\n",
+                                    DEBUG_INFO_STR, exit_code);  // DEBUGGING
+                        break;  // The child exited!
+                    }
+                    else if (WIFSIGNALED(wstatus))
+                    {
+                        exit_code = ERFKILL;
+                        FPRINTF_ERR("%s The child was kill by signal [%d] %s\n",
+                                    DEBUG_INFO_STR, WTERMSIG(wstatus),
+                                    strsignal(WTERMSIG(wstatus)));  // DEBUGGING
+                    }
+                    else if (WIFSTOPPED(wstatus))
+                    {
+                        exit_code = ERFKILL;
+                        FPRINTF_ERR("%s The child was kill by signal [%d] %s\n",
+                                    DEBUG_INFO_STR, WSTOPSIG(wstatus),
+                                    strsignal(WSTOPSIG(wstatus)));  // DEBUGGING
+                    }
+                }
+            };
         }
     }
 
