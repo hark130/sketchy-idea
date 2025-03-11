@@ -9,7 +9,6 @@
 #ifndef ENOERR
     #define ENOERR ((int)0)  // Success value for errno
 #endif  /* ENOERR */
-#define SKID_BAD_FD (signed int)-1  // Use this to standardize "invalid" file descriptors
 #define SKID_MAX_SZ (~(size_t)0)    // Library's value for the maximum size_t value
 
 #ifdef __GNUC__
@@ -44,6 +43,27 @@
         #define SKID_PATH_MAX 1024
     #endif
 #endif
+
+/* FILE DESCRIPTOR MACROS */
+#define SKID_BAD_FD (signed int)-1  // Use this to standardize "invalid" file descriptors
+// SKID_STDIN_FD - File number of stdin.
+#ifdef STDIN_FILENO
+#define SKID_STDIN_FD STDIN_FILENO
+#else
+#define SKID_STDIN_FD 0
+#endif  /* SKID_STDIN_FD */
+// SKID_STDOUT_FD - File number of stdout.
+#ifdef STDOUT_FILENO
+#define SKID_STDOUT_FD STDOUT_FILENO
+#else
+#define SKID_STDOUT_FD 1
+#endif  /* SKID_STDOUT_FD */
+// SKID_STDERR_FD - File number of stderr.
+#ifdef STDERR_FILENO
+#define SKID_STDERR_FD STDERR_FILENO
+#else
+#define SKID_STDERR_FD 2
+#endif  /* SKID_STDERR_FD */
 
 /* FILE METADATA MACROS */
 // You may use these macros with SKID mode_t arguments.
