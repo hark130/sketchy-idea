@@ -2,20 +2,27 @@
  *  This source file utilizes SKETCHY IDEA (SKID) to implement redirect_bin_output.bin.
  */
 
+#define SKID_DEBUG                  // Enable DEBUGGING
+#include "skid_debug.h"             // PRINT_ERRNO, PRINT_ERROR
 #include "skid_file_descriptors.h"  // close_fd(), open_fd()
 #include "skid_macros.h"            // ENOERR, SKID_BAD_FD
-#include "skid_memory.h"            // free_skid_mem()
+#include "skid_memory.h"            // alloc_skid_mem(), free_skid_mem()
 #include "skid_time.h"              // build_timestamp()
 #include "skid_validation.h"        // validate_skid_err()
 #include <errno.h>                  // EINVAL
 #include <fcntl.h>                  // open() flag macros
+#include <libgen.h>                 // basename()
 #include <stdlib.h>                 // exit()
-#include <stdio.h>                  // fprintf()
+#include <stdio.h>                  // fprintf(), sprintf()
+#include <string.h>                 // strlen()
+
+
+#define FILE_EXT ".txt"             // File extension to use for the output files
 
 
 /*
  *  Build a unique timestamped filename which follows this format:
- *      <TIMESTAMP>-XXXXXX-<PROPER NAME>-<TYPE>.txt
+ *      <TIMESTAMP>-<PROPER NAME>-<TYPE>.txt
  *
  *  Args:
  *      timestamp: Non-empty datetime stamp (e.g., YYYYMMDD-HHMMSS).
@@ -35,6 +42,19 @@ char *build_filename(const char *timestamp, const char *proper_name, const char 
 void print_usage(const char *prog_name);
 
 
+/*
+ *  Description:
+ *      Replace characters that aren't filename-friendly with underscores.
+ *
+ *  Args:
+ *      filename: A filename to modify.
+ *
+ *  Returns:
+ *      0 on success, errno on error.
+ */
+int sanitize_filename(char *filename);
+
+
 int main(int argc, char *argv[])
 {
     // LOCAL VARIABLES
@@ -46,6 +66,7 @@ int main(int argc, char *argv[])
     int flags = O_WRONLY | O_CREAT | O_CLOEXEC;                     // Flags for open()
     mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;  // Mode for open()
     char *timestamp = NULL;                                         // YYYYMMDD-HHMMSS
+    char *bin_name = NULL;                                          // Sanitized copy of argv[1]
 
     // INPUT VALIDATION
     if (argc < 2)
@@ -55,23 +76,39 @@ int main(int argc, char *argv[])
     }
 
     // REDIRECT IT
-    // 1. Get Timestamp
+    // 1. Sanitize the binary name
+    // Copy it
+    if (ENOERR == exit_code)
+    {
+        bin_name = copy_skid_string(basename(argv[1]), &exit_code);
+    }
+    // Sanitize it
+    if (ENOERR == exit_code)
+    {
+        exit_code = sanitize_filename(bin_name);
+        if (ENOERR != exit_code)
+        {
+            PRINT_ERROR(The call to sanitize_filename() failed);
+            PRINT_ERRNO(exit_code);
+        }
+    }
+    // 2. Get Timestamp
     if (ENOERR == exit_code)
     {
         timestamp = build_timestamp(&exit_code);
     }
-    // 2. Build Filenames
+    // 3. Build Filenames
     // Stdout
     if (ENOERR == exit_code)
     {
-        stdout_fn = build_filename(timestamp, argv[1], "output", &exit_code);
+        stdout_fn = build_filename(timestamp, bin_name, "output", &exit_code);
     }
     // Stderr
     if (ENOERR == exit_code)
     {
-        stderr_fn = build_filename(timestamp, argv[1], "errors", &exit_code);
+        stderr_fn = build_filename(timestamp, bin_name, "errors", &exit_code);
     }
-    // 3. Open Filenames
+    // 4. Open Filenames
     // Stdout
     if (ENOERR == exit_code)
     {
@@ -82,13 +119,18 @@ int main(int argc, char *argv[])
     {
         stderr_fd = open_fd(stderr_fn, flags, mode, &exit_code);
     }
-    // 4. Fork
+    // 5. Fork
 
     // CLEANUP
     // Timestamp
     if (NULL != timestamp)
     {
         free_skid_mem((void **)&timestamp);
+    }
+    // bin_name
+    if (NULL != bin_name)
+    {
+        free_skid_mem((void **)&bin_name);
     }
     // Stdout filename
     if (NULL != stdout_fn)
@@ -119,25 +161,33 @@ int main(int argc, char *argv[])
 char *build_filename(const char *timestamp, const char *proper_name, const char *type, int *errnum)
 {
     // LOCAL VARIABLES
-    int results = ENOERR;   // Results of execution
-    char *built_fn = NULL;  // Built filename
+    int results = ENOERR;            // Results of execution
+    size_t built_fn_len = 0;         // The calculated length of the built filename
+    char *built_fn = NULL;           // Built filename
 
     // INPUT VALIDATION
     if (NULL == timestamp || NULL == proper_name || NULL == type || NULL == errnum)
     {
         results = EINVAL;  // NULL pointer
     }
+    else if (0x0 == *timestamp)
+    {
+        results = EINVAL;  // Empty string
+    }
 
     // BUILD IT
-    // Get temp filename
-    if (ENOERR != results)
+    // Allocate a buffer
+    if (ENOERR == results)
     {
-        
+        // <TIMESTAMP>-<PROPER NAME>-<TYPE>.txt
+        built_fn_len = strlen(timestamp) + 1 + strlen(proper_name) + 1 + strlen(type) \
+                       + strlen(FILE_EXT);
+        built_fn = alloc_skid_mem(built_fn_len + 1, sizeof(char), &results);
     }
     // Finish filename
-    if (ENOERR != results)
+    if (ENOERR == results)
     {
-        
+        sprintf(built_fn, "%s-%s-%s%s", timestamp, proper_name, type, FILE_EXT);
     }
 
     // DONE
@@ -152,4 +202,49 @@ char *build_filename(const char *timestamp, const char *proper_name, const char 
 void print_usage(const char *prog_name)
 {
     fprintf(stderr, "Usage: %s <BINARY> [COMMAND LINE ARGUMENTS...]\n", prog_name);
+}
+
+
+int sanitize_filename(char *filename)
+{
+    // LOCAL VARIABLES
+    int results = ENOERR;                   // Results of execution
+    size_t fn_len = 0;                      // The length of filename
+    char replacement = '_';                 // Replace unacceptable chars with this
+    char bad_chars[] = { '.', '/', '\0' };  // Unacceptable characters
+    char *bad_char = bad_chars;             // Iterating variable
+
+    // INPUT VALIDATION
+    if (NULL == filename)
+    {
+        results = EINVAL;  // NULL pointer
+    }
+    else
+    {
+        fn_len = strlen(filename);
+    }
+
+    // SANITIZE IT
+    if (ENOERR == results)
+    {
+        for (int i = 0; i < fn_len; i++)
+        {
+            bad_char = bad_chars;  // Reset the iterating variable
+            while (NULL != bad_char && 0x0 != *bad_char)
+            {
+                if (*bad_char == (*(filename + i)))
+                {
+                    (*(filename + i)) = replacement;
+                    break;  // Found one so stop looking for more
+                }
+                else
+                {
+                    bad_char++;
+                }
+            }
+        }
+    }
+
+    // DONE
+    return results;
 }
