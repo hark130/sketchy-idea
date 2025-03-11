@@ -146,6 +146,48 @@ int close_fd(int *fdp, bool quiet)
 }
 
 
+int call_dup2(int oldfd, int newfd, int *errnum)
+{
+    // LOCAL VARIABLES
+    int fd = SKID_BAD_FD;  // File descriptor
+    int results = ENOERR;  // Errno value
+
+    // INPUT VALIDATION
+    // oldfd
+    results = validate_skid_fd(oldfd);
+    // newfd
+    if (ENOERR == results)
+    {
+        results = validate_skid_fd(newfd);
+    }
+    // errnum
+    if (ENOERR == results)
+    {
+        results = validate_skid_err(errnum);
+    }
+
+    // CALL IT
+    if (ENOERR == results)
+    {
+        fd = dup2(oldfd, newfd);
+        if (fd < 0)
+        {
+            results = errno;
+            fd = SKID_BAD_FD;
+            PRINT_ERROR(The call to dup2() failed);
+            PRINT_ERRNO(results);
+        }
+    }
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = results;
+    }
+    return fd;
+}
+
+
 int open_fd(const char *filename, int flags, mode_t mode, int *errnum)
 {
     // LOCAL VARIABLES
