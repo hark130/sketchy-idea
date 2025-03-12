@@ -9,6 +9,9 @@
 #ifndef ENOERR
     #define ENOERR ((int)0)  // Success value for errno
 #endif  /* ENOERR */
+#ifndef NULL
+    #define NULL ((void *)0)  // Just in case it's not already defined
+#endif  /* NULL */
 #define SKID_MAX_SZ (~(size_t)0)    // Library's value for the maximum size_t value
 
 #ifdef __GNUC__
