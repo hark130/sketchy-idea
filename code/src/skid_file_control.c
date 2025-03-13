@@ -2,15 +2,25 @@
  *      This library defines functionality to read and control file descriptors.
  */
 
+#ifndef SKID_DEBUG
+#define SKID_DEBUG                      // Enable DEBUG logging
+#endif  /* SKID_DEBUG */
+
 #include <errno.h>                      // errno
 #include <fcntl.h>                      // fcntl(), FD_CLOEXEC
 #include <stdarg.h>                     // va_end(), va_list, va_start()
+#include <stdint.h>                     // uint64_t
 #include "skid_debug.h"                 // PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_file_control.h"          // get_read_lock(), get_write_lock()
 #include "skid_file_descriptors.h"      // read_fd(), write_fd()
 #include "skid_macros.h"                // ENOERR, NULL
 #include "skid_validation.h"            // validate_skid_fd(), validate_skid_err()
 
+/*
+ *  Description:
+ *      Used to communicate the data type of fcntl()'s optional third argument.
+ */
+typedef enum { Void = 0, Integer = 1, FlockPtr = 2, FOwnerEx = 3, Uint64tPtr = 4 } FcntlOptArg_t;
 
 /**************************************************************************************************/
 /********************************* PRIVATE FUNCTION DECLARATIONS **********************************/
@@ -22,6 +32,8 @@
  *
  *  Args:
  *      errnum: [Out] Storage location for errno values encountered.
+ *      opt_arg: Specifies the data type of fcntl()'s optional third argument.
+ *          Use FcntlOptArg_t.Void for no argument.
  *      fd: Open file descriptor to pass to fcntl().
  *      cmd: The fnctl() operation to execute.  See: fcntl(2).
  *      ... Some fcntl() cmds take a third argument.  See: fcntl(2).
@@ -30,7 +42,7 @@
  *      For a successful call, the return value depends on the operation.  See: fcntl(2).
  *      On error, -1 is returned, and errnum is set appropriately.
  */
-int call_fcntl(int *errnum, int fd, int cmd, ... /* arg */ );
+int call_fcntl(int *errnum, FcntlOptArg_t opt_arg, int fd, int cmd, ... /* arg */ );
 
 /*
  *  Description:
@@ -162,6 +174,16 @@ char *read_locked_fd(int fd, int *errnum)
         {
             result = tmp_result;  // Only report the first errno value
         }
+        else
+        {
+            PRINT_ERROR(The call to read_fd() failed);
+            PRINT_ERRNO(result);
+        }
+    }
+    else
+    {
+        PRINT_ERROR(The call to get_read_lock() failed);
+        PRINT_ERRNO(result);
     }
 
     // DONE
@@ -222,7 +244,7 @@ int write_locked_fd(int fd, const char *msg)
 /**************************************************************************************************/
 
 
-int call_fcntl(int *errnum, int fd, int cmd, ... /* arg */ )
+int call_fcntl(int *errnum, FcntlOptArg_t opt_arg, int fd, int cmd, ... /* arg */ )
 {
     // LOCAL VARIABLES
     va_list arg_ptr;
@@ -242,7 +264,31 @@ int call_fcntl(int *errnum, int fd, int cmd, ... /* arg */ )
     // CALL IT
     if (ENOERR == result)
     {
-        retval = fcntl(fd, cmd, arg_ptr);
+        // You can't pass a va_list type to a function that doesn't take a va_list... so here we are
+        switch (opt_arg)
+        {
+            case Void:
+                retval = fcntl(fd, cmd);
+                break;
+            case Integer:
+                retval = fcntl(fd, cmd, va_arg(arg_ptr, int));
+                break;
+            case FlockPtr:
+                retval = fcntl(fd, cmd, va_arg(arg_ptr, struct flock *));
+                break;
+            case FOwnerEx:
+                retval = fcntl(fd, cmd, va_arg(arg_ptr, struct f_owner_ex *));
+                break;
+            case Uint64tPtr:
+                retval = fcntl(fd, cmd, va_arg(arg_ptr, uint64_t *));
+                break;
+            default:
+                PRINT_ERROR(Received an unsupported or unimplemented fnctl() data type);
+                retval = -1;
+                errno = ENOSYS;  // Indicates unsupported/unimplemented enum value
+                break;
+        }
+
         if (-1 == retval)
         {
             result = errno;
@@ -290,7 +336,7 @@ int call_fcntl_flock(int *errnum, int fd, int cmd, short lock_type)
     // CALL IT
     if (ENOERR == result)
     {
-        retval = call_fcntl(&result, fd, cmd, &fl);
+        retval = call_fcntl(&result, FlockPtr, fd, cmd, &fl);
     }
 
     // DONE
@@ -309,7 +355,7 @@ int get_fd_flags(int *errnum, int fd)
     int retval = -1;      // Return value from fcntl()
 
     // GET IT
-    retval = call_fcntl(&result, fd, F_GETFD);
+    retval = call_fcntl(&result, Void, fd, F_GETFD);
 
     // DONE
     if (NULL != errnum)
