@@ -49,7 +49,7 @@ typedef enum { Integer = 1, Pointer = 2 } QueueData_t;
 extern volatile sig_atomic_t skid_sig_hand_interrupted;  // Non-zero values indicate SIGINT handled
 extern volatile sig_atomic_t skid_sig_hand_data_int;     // Data (int)
 extern volatile sig_atomic_t skid_sig_hand_data_ptr;     // Data (void*)
-extern volatile sig_atomic_t skid_sig_hand_ext;           // Non-zero values indicate ext reporting
+extern volatile sig_atomic_t skid_sig_hand_ext;          // Non-zero values indicate ext reporting
 extern volatile sig_atomic_t skid_sig_hand_pid;          // PID of a sending process
 extern volatile sig_atomic_t skid_sig_hand_queue;        // QueueData_t indicates queue data
 extern volatile sig_atomic_t skid_sig_hand_sigcode;      // siginfo_t.si_code value (signal code)
