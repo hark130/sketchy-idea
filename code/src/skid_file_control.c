@@ -56,6 +56,9 @@ bool is_close_on_exec(int fd, int *errnum)
     int retval = -1;             // Return value from fcntl()
     bool close_on_exec = false;  // Is the FD_CLOEXEC bit set?
 
+    // INPUT VALIDATION
+    result = validate_skid_err(errnum);
+
     // IS IT?
     // Get the file descriptor flags
     if (ENOERR == result)
