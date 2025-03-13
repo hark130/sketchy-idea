@@ -232,6 +232,11 @@ int write_locked_fd(int fd, const char *msg)
         {
             result = tmp_result;  // Only report the first errno value
         }
+        else
+        {
+            PRINT_ERROR(The call to write_fd() failed);
+            PRINT_ERRNO(result);
+        }
     }
 
     // DONE
@@ -337,6 +342,11 @@ int call_fcntl_flock(int *errnum, int fd, int cmd, short lock_type)
     if (ENOERR == result)
     {
         retval = call_fcntl(&result, FlockPtr, fd, cmd, &fl);
+        if (ENOERR != result)
+        {
+            PRINT_ERROR(The call to call_fcntl() failed);
+            PRINT_ERRNO(result);
+        }
     }
 
     // DONE
