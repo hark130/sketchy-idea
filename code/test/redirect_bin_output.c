@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
                 else if (0 == retval)
                 {
                     FPRINTF_ERR("%s Still waiting on the child's status to change\n",
-                                DEBUG_INFO_STR);  // DEBUGGING
+                                DEBUG_INFO_STR);
                 }
                 else if (pid == retval)
                 {
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
                     {
                         exit_code = WEXITSTATUS(wstatus);
                         FPRINTF_ERR("%s The child exited with %d\n",
-                                    DEBUG_INFO_STR, exit_code);  // DEBUGGING
+                                    DEBUG_INFO_STR, exit_code);
                         break;  // The child exited!
                     }
                     else if (WIFSIGNALED(wstatus))
