@@ -20,6 +20,7 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sfc_is_close_on_exec.bin; unse
  */
 
 #include <check.h>                      // START_TEST(), END_TEST
+#include <errno.h>                      // EINVAL
 #include <fcntl.h>                      // O_CLOEXEC
 #include <stdlib.h>                     // EXIT_FAILURE, EXIT_SUCCESS
 // Local includes
@@ -49,6 +50,11 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sfc_is_close_on_exec.bin; unse
 Suite *create_test_suite(void);
 
 /*
+ *  Call open_test_fd() and verify success.
+ */
+int get_test_fd(const char *filename, bool cloexec);
+
+/*
  *  Open filename using open_fd().  If cloexec is true, the O_CLOEXEC flag will be used.
  */
 int open_test_fd(const char *filename, bool cloexec, int *errnum);
@@ -73,9 +79,9 @@ void run_test_case_fn(const char *filename, bool cloexec, bool exp_return, int e
 START_TEST(test_n01_file_not_cloexec)
 {
     // LOCAL VARIABLES
-    bool exp_return = false;     // Expected return value for this test case
-    int exp_errnum = ENOERR;     // Expected errnum value for this test case
-    bool use_cloexec = false;    // O_CLOEXEC usage for this test case
+    bool exp_return = false;   // Expected return value for this test case
+    int exp_errnum = ENOERR;   // Expected errnum value for this test case
+    bool use_cloexec = false;  // O_CLOEXEC usage for this test case
     // Absolute path for test input as resolved against the repo name
     char *input_abs_path = test_file_path;
 
@@ -87,7 +93,15 @@ END_TEST
 
 START_TEST(test_n02_file_cloexec)
 {
-    // TO DO: DON'T DO NOW
+    // LOCAL VARIABLES
+    bool exp_return = true;   // Expected return value for this test case
+    int exp_errnum = ENOERR;  // Expected errnum value for this test case
+    bool use_cloexec = true;  // O_CLOEXEC usage for this test case
+    // Absolute path for test input as resolved against the repo name
+    char *input_abs_path = test_file_path;
+
+    // RUN TEST
+    run_test_case_fn(input_abs_path, use_cloexec, exp_return, exp_errnum);
 }
 END_TEST
 
@@ -99,28 +113,71 @@ END_TEST
 
 START_TEST(test_e01_bad_fd_negative)
 {
-    // TO DO: DON'T DO NOW
+    // LOCAL VARIABLES
+    bool exp_return = false;  // Expected return value for this test case
+    int exp_errnum = EBADF;   // Expected errnum value for this test case
+    int input_fd = -90;       // Test input file descriptor
+
+    // RUN TEST
+    run_test_case_fd(input_fd, exp_return, exp_errnum);
 }
 END_TEST
 
 
 START_TEST(test_e02_bad_fd_large)
 {
-    // TO DO: DON'T DO NOW
+    // LOCAL VARIABLES
+    bool exp_return = false;  // Expected return value for this test case
+    int exp_errnum = EBADF;   // Expected errnum value for this test case
+    int input_fd = 90;        // Test input file descriptor
+
+    // RUN TEST
+    run_test_case_fd(input_fd, exp_return, exp_errnum);
 }
 END_TEST
 
 
 START_TEST(test_e03_closed_fd)
 {
-    // TO DO: DON'T DO NOW
+    // LOCAL VARIABLES
+    bool exp_return = false;     // Expected return value for this test case
+    int exp_errnum = EBADF;      // Expected errnum value for this test case
+    int input_fd = SKID_BAD_FD;  // Test input file descriptor
+    bool use_cloexec = true;     // O_CLOEXEC usage for this test case
+    // Absolute path for test input as resolved against the repo name
+    char *input_abs_path = test_file_path;
+
+    // RUN TEST
+    // Open the file
+    input_fd = get_test_fd(input_abs_path, use_cloexec);
+    // Close the file descriptor
+    ck_assert_msg(0 == close(input_fd), "The call to close(%d) failed\n", input_fd);
+    // Run it
+    run_test_case_fd(input_fd, exp_return, exp_errnum);
 }
 END_TEST
 
 
 START_TEST(test_e04_null_errnum)
 {
-    // TO DO: DON'T DO NOW
+    // LOCAL VARIABLES
+    bool exp_return = false;      // Expected return value for this test case
+    bool actual_ret = true;       // Actual return value from the function call
+    int input_fd = SKID_BAD_FD;   // Test input file descriptor
+    bool use_cloexec = true;      // O_CLOEXEC usage for this test case
+    // Absolute path for test input as resolved against the repo name
+    char *input_abs_path = test_file_path;
+
+    // RUN TEST
+    // Open the file
+    input_fd = get_test_fd(input_abs_path, use_cloexec);
+    // Call the function
+    actual_ret = is_close_on_exec(input_fd, NULL);
+    ck_assert_msg(exp_return == actual_ret, "is_close_on_exec(%d, NULL) returned '%s' "
+                  "instead of '%s'\n", input_fd, BOOL_STR_LIT(actual_ret),
+                  BOOL_STR_LIT(exp_return));
+    // Cleanup
+    close_fd(&input_fd, true);  // Best effort to close the file descriptor
 }
 END_TEST
 
@@ -130,9 +187,71 @@ END_TEST
 /**************************************************************************************************/
 
 
-START_TEST(test_s01_weird_files)
+START_TEST(test_s01_dir)
 {
-    // TO DO: DON'T DO NOW
+    // LOCAL VARIABLES
+    bool exp_return = true;   // Expected return value for this test case
+    int exp_errnum = ENOERR;  // Expected errnum value for this test case
+    bool use_cloexec = true;  // O_CLOEXEC usage for this test case
+    // Absolute path for test input as resolved against the repo name
+    char *input_abs_path = test_dir_path;
+
+    // RUN TEST
+    run_test_case_fn(input_abs_path, use_cloexec, exp_return, exp_errnum);
+}
+END_TEST
+
+
+START_TEST(test_s02_symlink)
+{
+    // LOCAL VARIABLES
+    bool exp_return = true;   // Expected return value for this test case
+    int exp_errnum = ENOERR;  // Expected errnum value for this test case
+    bool use_cloexec = true;  // O_CLOEXEC usage for this test case
+    // Absolute path for test input as resolved against the repo name
+    char *input_abs_path = test_sym_link;
+
+    // RUN TEST
+    run_test_case_fn(input_abs_path, use_cloexec, exp_return, exp_errnum);
+}
+END_TEST
+
+
+START_TEST(test_s03_stdin)
+{
+    // LOCAL VARIABLES
+    bool exp_return = false;       // Expected return value for this test case
+    int exp_errnum = ENOERR;       // Expected errnum value for this test case
+    int input_fd = SKID_STDIN_FD;  // Test input file descriptor
+
+    // RUN TEST
+    run_test_case_fd(input_fd, exp_return, exp_errnum);
+}
+END_TEST
+
+
+START_TEST(test_s04_stdout)
+{
+    // LOCAL VARIABLES
+    bool exp_return = false;        // Expected return value for this test case
+    int exp_errnum = ENOERR;        // Expected errnum value for this test case
+    int input_fd = SKID_STDOUT_FD;  // Test input file descriptor
+
+    // RUN TEST
+    run_test_case_fd(input_fd, exp_return, exp_errnum);
+}
+END_TEST
+
+
+START_TEST(test_s05_stderr)
+{
+    // LOCAL VARIABLES
+    bool exp_return = false;        // Expected return value for this test case
+    int exp_errnum = ENOERR;        // Expected errnum value for this test case
+    int input_fd = SKID_STDERR_FD;  // Test input file descriptor
+
+    // RUN TEST
+    run_test_case_fd(input_fd, exp_return, exp_errnum);
 }
 END_TEST
 
@@ -160,13 +279,36 @@ Suite *create_test_suite(void)
     tcase_add_test(tc_error, test_e02_bad_fd_large);
     tcase_add_test(tc_error, test_e03_closed_fd);
     tcase_add_test(tc_error, test_e04_null_errnum);
-    tcase_add_test(tc_special, test_s01_weird_files);
+    tcase_add_test(tc_special, test_s01_dir);
+    tcase_add_test(tc_special, test_s02_symlink);
+    tcase_add_test(tc_special, test_s03_stdin);
+    tcase_add_test(tc_special, test_s04_stdout);
+    tcase_add_test(tc_special, test_s05_stderr);
     suite_add_tcase(suite, tc_normal);
     suite_add_tcase(suite, tc_error);
     suite_add_tcase(suite, tc_special);
 
     // DONE
     return suite;
+}
+
+
+int get_test_fd(const char *filename, bool cloexec)
+{
+    // LOCAL VARIABLES
+    int input_fd = SKID_BAD_FD;  // File descriptor for filename
+    int result = CANARY_INT;     // Results of the call to open_test_fd()
+
+    // OPEN IT
+    input_fd = open_test_fd(filename, cloexec, &result);
+    ck_assert_msg(ENOERR == result, "open_test_fd(%s, %s, %p) failed with errno "
+                  "[%d] '%s'\n", filename, BOOL_STR_LIT(cloexec), &result, result,
+                  strerror(result));
+    ck_assert_msg(ENOERR == validate_skid_fd(input_fd), "open_test_fd(%s, %s, %p) returned "
+                  "an invalid file descriptor of %d\n", filename, BOOL_STR_LIT(cloexec), &result);
+
+    // DONE
+    return input_fd;
 }
 
 
@@ -224,15 +366,9 @@ void run_test_case_fn(const char *filename, bool cloexec, bool exp_return, int e
 {
     // LOCAL VARIABLES
     int input_fd = SKID_BAD_FD;  // File descriptor for filename
-    int result = CANARY_INT;     // Results of the call to open_test_fd()
 
     // OPEN IT
-    input_fd = open_test_fd(filename, cloexec, &result);
-    ck_assert_msg(ENOERR == result, "open_test_fd(%s, %s, %p) failed with errno "
-                  "[%d] '%s'\n", filename, BOOL_STR_LIT(cloexec), &result, result,
-                  strerror(result));
-    ck_assert_msg(ENOERR == validate_skid_fd(input_fd), "open_test_fd(%s, %s, %p) returned "
-                  "an invalid file descriptor of %d\n", filename, BOOL_STR_LIT(cloexec), &result);
+    input_fd = get_test_fd(filename, cloexec);
 
     // RUN IT
     run_test_case_fd(input_fd, exp_return, exp_errnum);
