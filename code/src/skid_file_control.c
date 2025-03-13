@@ -7,6 +7,7 @@
 #include <stdarg.h>                     // va_end(), va_list, va_start()
 #include "skid_debug.h"                 // PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_file_control.h"          // get_read_lock(), get_write_lock()
+#include "skid_file_descriptors.h"      // read_fd(), write_fd()
 #include "skid_macros.h"                // ENOERR, NULL
 #include "skid_validation.h"            // validate_skid_fd(), validate_skid_err()
 
