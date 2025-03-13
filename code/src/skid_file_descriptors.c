@@ -364,7 +364,7 @@ int check_for_pre_alloc(char **output_buf, size_t *output_size)
 int read_fd_dynamic(int fd, char **output_buf, size_t *output_size)
 {
     // LOCAL VARIABLES
-    int result = validate_skid_fd(fd);           // Success of execution
+    int result = validate_skid_fd(fd);          // Success of execution
     char local_buf[SKID_FD_BUFF_SIZE] = { 0 };  // Local buffer
     ssize_t num_read = 0;                       // Number of bytes read
     size_t output_len = 0;                      // The length of *output_buf's string
@@ -527,7 +527,7 @@ int realloc_fd_dynamic(char **output_buf, size_t *output_size)
 int validate_sfd_args(char **output_buf, size_t *output_size)
 {
     // LOCAL VARIABLES
-    int result = EBADF;  // Validation result
+    int result = ENOERR;  // Validation result
 
     // VALIDATE IT
     // output_buf
