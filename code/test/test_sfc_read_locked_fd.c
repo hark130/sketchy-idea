@@ -18,15 +18,12 @@
 #include <errno.h>                   // EINVAL
 #include <stdio.h>                   // printf()
 #include <stdlib.h>                  // exit()
-// #include <string.h>                  // memset()
-// #include <sys/socket.h>              // AF_INET
 #include <unistd.h>                 // sleep()
 #include "skid_debug.h"             // FPRINTF_ERR(), PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_file_control.h"      // read_locked_fd()
 #include "skid_file_descriptors.h"  // close_fd(), open_fd()
 #include "skid_macros.h"            // ENOERR, SKID_BAD_FD
 #include "skid_memory.h"            // free_skid_mem()
-// #include "skid_network.h"
 #include "skid_signals.h"           // set_signal_handler()
 #include "skid_signal_handlers.h"   // handle_interruptions()
 
@@ -63,7 +60,7 @@ int main(int argc, char *argv[])
     if (ENOERR == exit_code)
     {
         exit_code = set_signal_handler(SIGINT, handle_interruptions, 0, NULL);
-        if (ENOERR == exit_code)
+        if (ENOERR != exit_code)
         {
             PRINT_ERROR(The call to set_signal_handler() failed);
             PRINT_ERRNO(exit_code);
@@ -86,7 +83,7 @@ int main(int argc, char *argv[])
             file_content = read_locked_fd(fd, &exit_code);
             if (NULL == file_content || ENOERR != exit_code)
             {
-                FPRINTF_ERR("%s read_locked_fd(%d, %p), file descriptor for %s failed with "
+                FPRINTF_ERR("%s read_locked_fd(%d, %p), file descriptor for %s, failed with "
                             "errno [%d] %s\n", DEBUG_ERROR_STR, fd, &exit_code, filename,
                             exit_code, strerror(exit_code));
             }
