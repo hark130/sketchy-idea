@@ -49,6 +49,30 @@ int get_fd_flags(int *errnum, int fd);
 /**************************************************************************************************/
 
 
+int get_read_lock(int fd)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;  // Errno values
+
+    result = ENOSYS;  /* TO DO: DON'T DO NOW... IMPLEMENT THIS FUNCTION */
+
+    // DONE
+    return result;
+}
+
+
+int get_write_lock(int fd)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;  // Errno values
+
+    result = ENOSYS;  /* TO DO: DON'T DO NOW... IMPLEMENT THIS FUNCTION */
+
+    // DONE
+    return result;
+}
+
+
 bool is_close_on_exec(int fd, int *errnum)
 {
     // LOCAL VARIABLES
@@ -80,6 +104,47 @@ bool is_close_on_exec(int fd, int *errnum)
         *errnum = result;
     }
     return close_on_exec;
+}
+
+
+char *read_locked_fd(int fd, int *errnum)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;   // Errno values
+    char *fd_cont = NULL;  // Content read from fd
+
+    result = ENOSYS;  /* TO DO: DON'T DO NOW... IMPLEMENT THIS FUNCTION */
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = result;
+    }
+    return fd_cont;
+}
+
+
+int release_lock(int fd)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;  // Errno values
+
+    result = ENOSYS;  /* TO DO: DON'T DO NOW... IMPLEMENT THIS FUNCTION */
+
+    // DONE
+    return result;
+}
+
+
+int write_locked_fd(int fd, const char *msg)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;  // Errno values
+
+    result = ENOSYS;  /* TO DO: DON'T DO NOW... IMPLEMENT THIS FUNCTION */
+
+    // DONE
+    return result;
 }
 
 
