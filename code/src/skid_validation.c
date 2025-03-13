@@ -45,6 +45,11 @@ int validate_skid_fd(int fd)
     {
         result = ENOERR;  // Good(?).
     }
+    else
+    {
+        FPRINTF_ERR("%s file descriptor %d failed validation", DEBUG_ERROR_STR, fd);
+        PRINT_ERRNO(result);
+    }
 
     // DONE
     return result;
