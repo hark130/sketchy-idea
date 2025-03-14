@@ -81,13 +81,7 @@ int main(int argc, char *argv[])
         else
         {
             file_content = read_locked_fd(fd, &exit_code);
-            if (NULL == file_content || ENOERR != exit_code)
-            {
-                FPRINTF_ERR("%s read_locked_fd(%d, %p), file descriptor for %s, failed with "
-                            "errno [%d] %s\n", DEBUG_ERROR_STR, fd, &exit_code, filename,
-                            exit_code, strerror(exit_code));
-            }
-            else
+            if (ENOERR == exit_code)
             {
                 printf("\nCONTENTS:\n%s\n", file_content);
                 result = free_skid_mem((void **)&file_content);
@@ -95,6 +89,24 @@ int main(int argc, char *argv[])
                 {
                     exit_code = result;  // Report the first, and only the first, error
                 }
+            }
+            else if (EAGAIN == exit_code)
+            {
+                FPRINTF_ERR("%s Operation is prohibited by locks held by other processes: "
+                            "[%d] %s\n", DEBUG_INFO_STR, exit_code, strerror(exit_code));
+                exit_code = ENOERR;  // Reset so we can try again
+            }
+            else if (EACCES == exit_code)
+            {
+                FPRINTF_ERR("%s Operation may be prohibited by locks held by other processes: "
+                            "[%d] %s\n", DEBUG_WARNG_STR, exit_code, strerror(exit_code));
+                exit_code = ENOERR;  // Reset so we can try again
+            }
+            else
+            {
+                FPRINTF_ERR("%s read_locked_fd(%d, %p), file descriptor for %s, failed with "
+                            "errno [%d] %s\n", DEBUG_ERROR_STR, fd, &exit_code, filename,
+                            exit_code, strerror(exit_code));
             }
             // Close the file descriptor
             if (SKID_BAD_FD != fd)
