@@ -109,7 +109,7 @@ int get_write_lock(int fd)
     int retval = -1;      // Return value from fcntl()
 
     // GET IT
-    retval = call_fcntl_flock(&result, fd, F_SETLK, F_RDLCK);
+    retval = call_fcntl_flock(&result, fd, F_SETLK, F_WRLCK);
     if (-1 == retval)
     {
         FPRINTF_ERR("%s Failed to get a write lock on file descriptor '%d'\n", DEBUG_WARNG_STR, fd);
