@@ -14,6 +14,7 @@
  *
  *  Returns:
  *      ENOERR, on success.  On failure, an errno value.
+ *      EAGAIN or EACCES may be returned for a failed lock.
  */
 int get_read_lock(int fd);
 
@@ -21,13 +22,15 @@ int get_read_lock(int fd);
  *  Description:
  *      Use fcntl() to obtain a write lock on the given file descriptor.  The write lock will
  *      encompass the file descriptor's entire contents.  Directly utilize fcntl(F_SETLK) for
- *      finer control (see: fcntl(2)).
+ *      finer control (see: fcntl(2)).  Also know that open(O_TRUNC) may bypass the write lock so
+ *      consider adding a file seal as well (see: fcntl(2)).
  *
  *  Args:
  *      fd: File descriptor to obtain a lock for.
  *
  *  Returns:
  *      ENOERR, on success.  On failure, an errno value.
+ *      EAGAIN or EACCES may be returned for a failed lock.
  */
 int get_write_lock(int fd);
 
@@ -61,6 +64,7 @@ bool is_close_on_exec(int fd, int *errnum);
  *
  *  Returns:
  *      Pointer to the heap-allocated buffer, on success.  NULL on error (check errnum for details).
+ *      EAGAIN or EACCES may be returned for a failed lock.
  */
 char *read_locked_fd(int fd, int *errnum);
 
@@ -91,6 +95,7 @@ int release_lock(int fd);
  *
  *  Returns:
  *      On success, zero is returned.  On error, errno is returned.
+ *      EAGAIN or EACCES may be returned for a failed lock.
  */
 int write_locked_fd(int fd, const char *msg);
 
