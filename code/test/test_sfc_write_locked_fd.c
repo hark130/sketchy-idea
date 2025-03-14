@@ -1,11 +1,11 @@
 /*
  *  Manually test skid_file_control's file descriptor functionality.
- *  This binary makes use of the write_locked_fd() to repeatedly read a file.
+ *  This binary makes use of the write_locked_fd() to lock, write to file, and release.
  *
  *  Copy/paste the following...
 
 ./code/dist/test_sfc_write_locked_fd.bin <FILENAME>
-# User input is written to the locked filename when the buffer if full or the user presses <ENTER>
+# User input is written to the locked filename when the buffer is full or the user presses <ENTER>
 # Use Ctrl-C to send a SIGINT signal to safely exit
 
  *
@@ -14,7 +14,7 @@
 #ifndef SKID_DEBUG
 #define SKID_DEBUG                  // Enable DEBUG logging
 #endif  /* SKID_DEBUG */
-#define WAIT_SLEEP 10               // Number of seconds to wait for user input
+#define WAIT_SLEEP 10               // Number of seconds to wait before attempting another lock
 
 #include <errno.h>                  // EINVAL
 #include <fcntl.h>                  // O_CREAT, O_WRONLY
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     int exit_code = ENOERR;                                         // Errno values
     char *filename = NULL;                                          // Filename to lock and write
     int fd = SKID_BAD_FD;                                           // Filename's file descriptor
-    int flags = O_CREAT | O_RDWR | O_TRUNC;                         // Flags (see: open(2))
+    int flags = O_CREAT | O_RDWR;                                   // Flags (see: open(2))
     size_t ui_len = 1024;                                           // Number of user_input indices
     char *user_input = NULL;                                        // User input to write to file
     char temp_input = 0x0;                                          // One keystroke
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     // INPUT VALIDATION
     if (argc == 2)
     {
-        filename = argv[1];  // Filename to read
+        filename = argv[1];  // Filename to write to
     }
     else
     {
@@ -107,12 +107,39 @@ int main(int argc, char *argv[])
             }
         }
         // Lock and write
-        exit_code = write_locked_fd(fd, user_input);
-        if (ENOERR != exit_code)
+        while(0 == skid_sig_hand_interrupted)
         {
-            FPRINTF_ERR("%s write_locked_fd(%d, %s), file descriptor for %s, failed with "
-                        "errno [%d] %s\n", DEBUG_ERROR_STR, fd, user_input, filename,
-                        exit_code, strerror(exit_code));
+            exit_code = write_locked_fd(fd, user_input);
+            if (ENOERR == exit_code)
+            {
+                memset(user_input, 0x0, ui_len);  // Clear the buffer for reuse
+                break;  // Done
+            }
+            else if (EAGAIN == exit_code)
+            {
+                FPRINTF_ERR("%s Operation is prohibited by locks held by other processes: "
+                            "[%d] %s\n", DEBUG_INFO_STR, exit_code, strerror(exit_code));
+            }
+            else if (EACCES == exit_code)
+            {
+                FPRINTF_ERR("%s Operation may be prohibited by locks held by other processes: "
+                            "[%d] %s\n", DEBUG_WARNG_STR, exit_code, strerror(exit_code));
+            }
+            else
+            {
+                FPRINTF_ERR("%s write_locked_fd(%d, %s), file descriptor for %s, failed with "
+                            "errno [%d] %s\n", DEBUG_ERROR_STR, fd, user_input, filename,
+                            exit_code, strerror(exit_code));
+                break;  // Unexpected error
+            }
+            // Reset and wait
+            if (ENOERR != exit_code)
+            {
+                printf("Write-lock failed.  Will try again.  Press <CTRL-C> to exit.\n");
+                exit_code = ENOERR;  // Reset
+                sleep(WAIT_SLEEP);  // A tasteful sleep
+                printf("Continue typing...\n");
+            }
         }
     }
 
