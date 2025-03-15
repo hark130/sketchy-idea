@@ -305,7 +305,8 @@ int get_test_fd(const char *filename, bool cloexec)
                   "[%d] '%s'\n", filename, BOOL_STR_LIT(cloexec), &result, result,
                   strerror(result));
     ck_assert_msg(ENOERR == validate_skid_fd(input_fd), "open_test_fd(%s, %s, %p) returned "
-                  "an invalid file descriptor of %d\n", filename, BOOL_STR_LIT(cloexec), &result);
+                  "an invalid file descriptor of %d\n", filename, BOOL_STR_LIT(cloexec), &result,
+                  input_fd);
 
     // DONE
     return input_fd;
