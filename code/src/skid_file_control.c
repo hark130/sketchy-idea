@@ -3,7 +3,7 @@
  */
 
 #ifndef SKID_DEBUG
-#define SKID_DEBUG                      // Enable DEBUG logging
+// #define SKID_DEBUG                      // Enable DEBUG logging
 #endif  /* SKID_DEBUG */
 
 #include <errno.h>                      // errno
