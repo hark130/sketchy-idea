@@ -70,6 +70,8 @@ DEVOPS_CODE_LINK_DEPS = $(DIST_DIR)devops_code$(OBJ_FILE_EXT) \
 CHECK_PREFIX = check_
 # Prefix for all skid_dir_operations library unit tests
 CHECK_SDO_PREFIX = $(CHECK_PREFIX)sdo_
+# Prefix for all skid_file_control library unit tests
+CHECK_SFC_PREFIX = $(CHECK_PREFIX)sfc_
 # Prefix for all skid_file_link library unit tests
 CHECK_SFL_PREFIX = $(CHECK_PREFIX)sfl_
 # Prefix for all skid_file_metadata_read library unit tests
@@ -135,7 +137,7 @@ MAN_TEST_BIN_LIST = $(foreach MAN_TEST_BIN_FILE, $(MAN_TEST_BIN_FILES), $(DIST_D
 ### SPECIAL BUILT-IN TARGET NAMES ###
 
 # Do not treat these target names as file names
-.PHONY: _all _check_link _clean _clean_dist _compile _compilation _test _test_link _validate _validate_check _validate_gcc
+.PHONY: _all _bespoke_builds _check_link _clean _clean_dist _compile _compilation _test _test_link _validate _validate_check _validate_gcc
 
 # Don't auto-remove my object code
 .PRECIOUS: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FILE)) \
@@ -151,6 +153,10 @@ _all:
 	$(CALL_MAKE) compile
 	$(CALL_MAKE) test
 
+# Builds that don't conform to the prefix mnemonic used here (e.g., check_*, test_*)
+_bespoke_builds:
+	$(CALL_MAKE) $(DIST_DIR)redirect_bin_output$(BIN_FILE_EXT)
+
 # Link all of the Check unit test binaries
 _check_link: $(foreach CHECK_BIN_FILE, $(CHECK_BIN_FILES), $(DIST_DIR)$(CHECK_BIN_FILE))
 	@#echo "$@ needs $^"  # DEBUGGING
@@ -165,6 +171,7 @@ _clean_dist:
 _compile:
 	$(CALL_MAKE) _compilation
 	$(CALL_MAKE) _test_link
+	$(CALL_MAKE) _bespoke_builds
 	$(CALL_MAKE) _check_link
 
 _compilation: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FILE))
@@ -204,6 +211,12 @@ $(DIST_DIR)$(CHECK_SDO_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SDO_PREFIX)%$
 	@echo "    Linking Check unit test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
 
+# CHECK: Linking skid_file_control library unit test binaries
+$(DIST_DIR)$(CHECK_SFC_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFC_PREFIX)%$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS) $(UNIT_TEST_LINK_DEPS) $(DIST_DIR)skid_file_control$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Linking Check unit test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
+
 # CHECK: Linking skid_file_link library unit test binaries
 $(DIST_DIR)$(CHECK_SFL_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFL_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_link$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS) $(UNIT_TEST_LINK_DEPS)
 	@#echo "$@ needs $^"  # DEBUGGING
@@ -235,6 +248,11 @@ $(DIST_DIR)$(MAN_TEST_DEVOPS_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_DEVO
 
 # MANUAL TEST: Linking skid_dir_operations library manual test binaries
 $(DIST_DIR)$(MAN_TEST_SDO_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SDO_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_dir_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT)
+	@echo "    Linking manual test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# MANUAL TEST: Linking skid_file_control library manual test binaries
+$(DIST_DIR)$(MAN_TEST_SFC_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFC_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_control$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT) $(DIST_DIR)skid_signals$(OBJ_FILE_EXT) $(DIST_DIR)skid_signal_handlers$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
@@ -290,3 +308,9 @@ $(DIST_DIR)%$(OBJ_FILE_EXT): $(SRC_DIR)%$(SRC_FILE_EXT)
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Verifying $@"
 	@if ! [ -f $@ ] ; then echo "Unable to locate the $@ file" >&2 && exit 2 ; fi
+
+# BESPOKE: redirect_bin_output.bin
+$(DIST_DIR)redirect_bin_output$(BIN_FILE_EXT): $(TEST_DIR)redirect_bin_output$(SRC_FILE_EXT) $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT) $(DIST_DIR)skid_time$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Compiling bespoke binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)

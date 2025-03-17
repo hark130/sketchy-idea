@@ -2,12 +2,13 @@
  *    This library defines functionality to manage Linux file descriptors.
  */
 
-#include <errno.h>                        // EINVAL
-#include <stddef.h>                        // size_t
-#include <string.h>                        // strlen()
-#include <unistd.h>                        // close()
-#include "skid_debug.h"                    // PRINT_ERROR()
-#include "skid_file_descriptors.h"        // close_fd()
+#include <errno.h>                      // EINVAL
+#include <fcntl.h>                      // open()
+#include <stddef.h>                     // size_t
+#include <string.h>                     // strlen()
+#include <unistd.h>                     // close()
+#include "skid_debug.h"                 // PRINT_ERROR()
+#include "skid_file_descriptors.h"      // close_fd()
 #include "skid_macros.h"                // SKID_BAD_FD
 #include "skid_memory.h"                // alloc_skid_mem(), free_skid_mem()
 #include "skid_validation.h"            // validate_skid_fd(), validate_skid_string()
@@ -142,6 +143,82 @@ int close_fd(int *fdp, bool quiet)
 
     // DONE
     return result;
+}
+
+
+int call_dup2(int oldfd, int newfd, int *errnum)
+{
+    // LOCAL VARIABLES
+    int fd = SKID_BAD_FD;  // File descriptor
+    int results = ENOERR;  // Errno value
+
+    // INPUT VALIDATION
+    // oldfd
+    results = validate_skid_fd(oldfd);
+    // newfd
+    if (ENOERR == results)
+    {
+        results = validate_skid_fd(newfd);
+    }
+    // errnum
+    if (ENOERR == results)
+    {
+        results = validate_skid_err(errnum);
+    }
+
+    // CALL IT
+    if (ENOERR == results)
+    {
+        fd = dup2(oldfd, newfd);
+        if (fd < 0)
+        {
+            results = errno;
+            fd = SKID_BAD_FD;
+            PRINT_ERROR(The call to dup2() failed);
+            PRINT_ERRNO(results);
+        }
+    }
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = results;
+    }
+    return fd;
+}
+
+
+int open_fd(const char *filename, int flags, mode_t mode, int *errnum)
+{
+    // LOCAL VARIABLES
+    int fd = SKID_BAD_FD;  // File descriptor
+    int results = ENOERR;  // Errno value
+
+    // INPUT VALIDATION
+    if (NULL == filename || NULL == errnum)
+    {
+        results = EINVAL;  // NULL pointer
+    }
+
+    // OPEN IT
+    if (ENOERR == results)
+    {
+        fd = open(filename, flags, mode);
+        if (-1 == fd)
+        {
+            results = errno;
+            PRINT_ERROR(The call to open() failed);
+            PRINT_ERRNO(results);
+            fd = SKID_BAD_FD;
+        }
+    }
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = results;
+    }
+    return fd;
 }
 
 
@@ -287,7 +364,7 @@ int check_for_pre_alloc(char **output_buf, size_t *output_size)
 int read_fd_dynamic(int fd, char **output_buf, size_t *output_size)
 {
     // LOCAL VARIABLES
-    int result = validate_skid_fd(fd);           // Success of execution
+    int result = validate_skid_fd(fd);          // Success of execution
     char local_buf[SKID_FD_BUFF_SIZE] = { 0 };  // Local buffer
     ssize_t num_read = 0;                       // Number of bytes read
     size_t output_len = 0;                      // The length of *output_buf's string
@@ -450,7 +527,7 @@ int realloc_fd_dynamic(char **output_buf, size_t *output_size)
 int validate_sfd_args(char **output_buf, size_t *output_size)
 {
     // LOCAL VARIABLES
-    int result = EBADF;  // Validation result
+    int result = ENOERR;  // Validation result
 
     // VALIDATE IT
     // output_buf

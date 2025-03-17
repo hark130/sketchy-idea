@@ -1,8 +1,8 @@
 #ifndef __SKID_VALIDATION__
 #define __SKID_VALIDATION__
 
-#include <stdbool.h>        // bool, false, true
-#include "skid_macros.h"    // ENOERR, SKID_BAD_FD
+#include <stdbool.h>            // bool, false, true
+#include "skid_macros.h"        // ENOERR, SKID_BAD_FD
 
 /*
  *  Description:
