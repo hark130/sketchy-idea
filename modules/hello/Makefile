@@ -20,8 +20,8 @@ else
 # include $(PWD)/../Makefile_constants
 SHELL = /bin/bash
 # Ubuntu
-# KERNEL_DIR = /usr/src/linux-headers-$(shell uname -r)
-KERNEL_DIR = /usr/src/linux-headers-5.4.0-187
+KERNEL_DIR = /usr/src/linux-headers-$(shell uname -r)
+#KERNEL_DIR = /usr/src/linux-headers-5.4.0-187
 # Fedora
 # KERNEL_DIR = /usr/src/kernels/$(shell uname -r)
 endif
@@ -34,7 +34,7 @@ SRC_FILE_EXT = .c
 
 ### DIRECTORIES ###
 # Relative path to the directory holding the kernel module directories
-CODE_DIR = ./modules/
+CODE_DIR = modules/
 
 ### MAKEFILE ARGUMENTS ###
 MF_ARGS = --no-print-directory
@@ -48,6 +48,7 @@ EXTRA_CFLAGS = -I/usr/include/$(uname -m)-linux-gnu
 UNAME_M := $(shell uname -m)
 MODULE_NAME = hello
 obj-m += $(MODULE_NAME)$(OBJ_FILE_EXT)
+CWD = $(PWD)/$(CODE_DIR)$(MODULE_NAME)/
 
 .PHONY: all build clean reset teardown test
 
@@ -68,7 +69,8 @@ build:
 # 	cp /boot/config-`uname -r` .config
 # 	$(CALL_MAKE) -C $(KERNEL_DIR) SUBDIRS=$(PWD) modules
 # 	export C_INCLUDE_PATH=/usr/include/$(uname -m)-linux-gnu
-	$(CALL_MAKE) -I/usr/include/$(UNAME_M)-linux-gnu -C $(KERNEL_DIR) M=$(PWD) modules
+#	$(CALL_MAKE) -I/usr/include/$(UNAME_M)-linux-gnu -C $(KERNEL_DIR) M=$(PWD) modules
+	$(CALL_MAKE) -I/usr/include/$(UNAME_M)-linux-gnu -C $(KERNEL_DIR) M=$(CWD) modules
 
 # Remove non-source controlled files
 clean:
