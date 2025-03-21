@@ -2,6 +2,11 @@
 #include <linux/module.h>
 #include <linux/moduleparam.h>  // 1.
 
+/*
+ *  Display parameters.
+ */
+void display(void);
+
 // 2.
 int param_var = 0;
 // Pass a value into this variable through:
