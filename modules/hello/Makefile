@@ -58,41 +58,29 @@ CWD = $(PWD)/$(CODE_DIR)$(MODULE_NAME)/
 ##########################
 # Do everything from scratch
 all:
-	@echo "All"
 	$(CALL_MAKE) reset
 	$(CALL_MAKE) build
 	$(CALL_MAKE) test
 
 # Build the kernel module
 build:
-	@echo "build"
-# 	cp /boot/config-`uname -r` .config
-# 	$(CALL_MAKE) -C $(KERNEL_DIR) SUBDIRS=$(PWD) modules
-# 	export C_INCLUDE_PATH=/usr/include/$(uname -m)-linux-gnu
-#	$(CALL_MAKE) -I/usr/include/$(UNAME_M)-linux-gnu -C $(KERNEL_DIR) M=$(PWD) modules
-	$(CALL_MAKE) -I/usr/include/$(UNAME_M)-linux-gnu -C $(KERNEL_DIR) M=$(CWD) modules
+	$(CALL_MAKE) -I/usr/include/$(UNAME_M)-linux-gnu -C $(KERNEL_DIR) M=$(PWD) modules
 
 # Remove non-source controlled files
 clean:
-	@echo "clean"
 	rm -rf *.o *.ko *.mod.* *.symvers *.order *-
 
 # Reset all files back to the starting state
 reset:
-	@echo "reset"
 	$(CALL_MAKE) teardown
 	$(CALL_MAKE) clean
 
 # Unload the kernel module
 teardown:
-	@echo "teardown"
-	# We put a — in front of the rmmod command to tell make to ignore
-	# an error in case the module isn’t loaded.
 	-sudo rmmod $(MODULE_NAME)
 
 # Test the kernel module
 test:
-	@echo "test"
 	$(CALL_MAKE) teardown
 
 	# Clear the kernel log without echo
