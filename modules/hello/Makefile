@@ -48,7 +48,6 @@ EXTRA_CFLAGS = -I/usr/include/$(uname -m)-linux-gnu
 UNAME_M := $(shell uname -m)
 MODULE_NAME = hello
 obj-m += $(MODULE_NAME)$(OBJ_FILE_EXT)
-CWD = $(PWD)/$(CODE_DIR)$(MODULE_NAME)/
 
 .PHONY: all build clean reset teardown test
 
