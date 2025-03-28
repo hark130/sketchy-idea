@@ -1,5 +1,8 @@
+#define SKID_KDEBUG             // Enable DEBUG logging
+
 #include <linux/init.h>
 #include <linux/module.h>
+#include "skid_kdebug.h"
 
 
 #define DEVICE_NAME "Query LKM"  // Use this macro for logging
@@ -10,13 +13,13 @@
 //  Static because there can be only one?
 static int query_init(void)
 {
-    HARKLE_KINFO(Query LKM init);
+    SKID_KINFO(DEVICE_NAME, "LKM init");
     return 0;
 }
 
 static void query_exit(void)
 {
-    HARKLE_KINFO(Query LKM exit);
+    SKID_KINFO(DEVICE_NAME, "LKM exit");
     return;
 }
 
