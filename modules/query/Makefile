@@ -16,9 +16,11 @@
 ifeq ($(OS),Windows_NT)
 $(error Wrong operating system.  This is $(OS).)
 else
-include $(abspath ../Makefile_constants)
+UNAME_M = $(shell uname -m)
+UNAME_R = $(shell uname -r)
+# include $(abspath ../Makefile_module_constants)  # Broken?
 # Ubuntu
-KERNEL_DIR = /usr/src/linux-headers-$(shell uname -r)
+KERNEL_DIR = /usr/src/linux-headers-$(UNAME_R)
 # Fedora
 # KERNEL_DIR = /usr/src/kernels/$(shell uname -r)
 endif
@@ -46,7 +48,13 @@ all:
 # Build the kernel module
 build:
 	@echo "build"
-	$(CALL_MAKE) -C $(KERNEL_DIR) SUBDIRS=$(PWD) modules
+# 	$(CALL_MAKE) -C $(KERNEL_DIR) SUBDIRS=$(PWD) modules
+# 	$(CALL_MAKE) -I/usr/include/$(UNAME_M)-linux-gnu -C $(KERNEL_DIR) M=$(PWD) modules
+# 	$(CALL_MAKE) -I/usr/include/$(UNAME_M)-linux-gnu -C $(KERNEL_DIR) M=$(shell pwd) modules
+# 	$(CALL_MAKE) C=$(KERNEL_DIR) M=$(shell pwd) modules
+# 	$(MAKE) -C $(KERNEL_DIR) M=$(shell pwd) modules
+# 	$(MAKE) -I/usr/include/$(UNAME_M)-linux-gnu -C $(KERNEL_DIR) M=$(PWD) modules
+	$(MAKE) -I/usr/include/$(UNAME_M)-linux-gnu -C $(KERNEL_DIR) M=$(shell pwd) modules
 
 # Remove non-source controlled files
 clean:
