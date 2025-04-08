@@ -21,6 +21,7 @@ else
 SHELL = /bin/bash
 # Ubuntu
 KERNEL_DIR = /usr/src/linux-headers-$(shell uname -r)
+# KERNEL_DIR = /usr/src/linux-headers-5.15.0-135
 #KERNEL_DIR = /usr/src/linux-headers-5.4.0-187
 # Fedora
 # KERNEL_DIR = /usr/src/kernels/$(shell uname -r)
@@ -63,7 +64,8 @@ all:
 
 # Build the kernel module
 build:
-	$(CALL_MAKE) -I/usr/include/$(UNAME_M)-linux-gnu -C $(KERNEL_DIR) M=$(PWD) modules
+# 	$(CALL_MAKE) -I/usr/include/$(UNAME_M)-linux-gnu -C $(KERNEL_DIR) M=$(PWD) modules
+	$(CALL_MAKE) -C $(KERNEL_DIR) M=$(PWD) modules
 
 # Remove non-source controlled files
 clean:
@@ -89,4 +91,4 @@ test:
 	sudo insmod $(MODULE_NAME).ko
 
 	# Display the kernel log
-	dmesg
+	sudo dmesg
