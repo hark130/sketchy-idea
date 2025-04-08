@@ -89,4 +89,4 @@ test:
 	sudo insmod $(MODULE_NAME).ko
 
 	# Display the kernel log
-	dmesg
+	sudo dmesg
