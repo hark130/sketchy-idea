@@ -16,11 +16,12 @@
 /********************************************* MACROS *********************************************/
 /**************************************************************************************************/
 
-#define CDEV_BUFF_SIZE 511       // Character device buffer size
-#define DEV_FILENAME "query_me"  // /dev/DEV_FILENAME
-#define DEVICE_NAME "Query LKM"  // Use this macro for logging
-#define ENOERR ((int)0)          // Success value for errno
-#define NUM_MIN_NUMS 1           // Number of minor numbers to register/unregister
+#define CDEV_BUFF_SIZE 511        // Character device buffer size
+#define CLASS_NAME "Query Class"  // Query LKM class name
+#define DEV_FILENAME "query_me"   // /dev/DEV_FILENAME
+#define DEVICE_NAME "Query LKM"   // Use this macro for logging
+#define ENOERR ((int)0)           // Success value for errno
+#define NUM_MIN_NUMS 1            // Number of minor numbers to register/unregister
 
 /**************************************************************************************************/
 /******************************************** TYPEDEFS ********************************************/
@@ -49,12 +50,32 @@ void delete_cdev(void);
 
 /*
  *  Description:
- *      Destroys the global dev_class by calling destroy_device() and clears the pointer.
+ *      Destroys the global dev_class by calling class_destroy(), then clears the pointer.
+ */
+void destroy_class(void);
+
+/*
+ *  Description:
+ *      Removes a device that was created with device_create() by calling device_destroy().
  */
 void destroy_device(void);
 
+/*
+ *  Description:
+ *      Releases the 'open' semaphore.
+ *
+ *  Returns:
+ *      0 on success, non-zero on failure.
+ */
 int device_close(struct inode *inode, struct file *filp);
 
+/*
+ *  Description:
+ *      Obtain the 'open' semaphore.
+ *
+ *  Returns:
+ *      0 on success, -errno value on failure.
+ */
 int device_open(struct inode *inode, struct file *filp);
 
 ssize_t device_read(struct file *filp, char *buf_store_data, size_t buf_count, loff_t *cur_offset);
@@ -134,13 +155,21 @@ void delete_cdev(void)
 }
 
 
+void destroy_class(void)
+{
+    if (NULL != dev_class)
+    {
+        class_destroy(dev_class);  // Destroy the struct class structure
+        dev_class = NULL;  // Clear the pointer
+    }
+}
+
+
 void destroy_device(void)
 {
     if (NULL != dev_class)
     {
-        // Removes a device that was created with device_create
-        device_destroy(dev_class, my_query_device.dev_num);
-        dev_class = NULL;  // Clear the pointer
+        device_destroy(dev_class, my_query_device.dev_num);  // Remove the query device
     }
 }
 
@@ -150,6 +179,10 @@ int device_close(struct inode *inode, struct file *filp)
     // LOCAL VARIABLES
     int result = ENOERR;
 
+    // CLOSE IT
+    up(&(my_query_device.open_sem));
+    SKID_KINFO(DEVICE_NAME, "Released the 'open' semaphore");
+
     // DONE
     return result;
 }
@@ -158,7 +191,18 @@ int device_close(struct inode *inode, struct file *filp)
 int device_open(struct inode *inode, struct file *filp)
 {
     // LOCAL VARIABLES
-    int result = ENOERR;
+    int result = down_interruptible(&(my_query_device.open_sem));  // Result of execution
+
+    // DID IT OPEN?
+    if (0 == result)
+    {
+        SKID_KINFO(DEVICE_NAME, "Successfully obtained the 'open' semaphore");
+    }
+    else
+    {
+        SKID_KERROR(DEVICE_NAME, "The call to down_interruptible() failed");
+        SKID_KERRNO(DEVICE_NAME, -result);
+    }
 
     // DONE
     return result;
@@ -168,10 +212,73 @@ int device_open(struct inode *inode, struct file *filp)
 ssize_t device_read(struct file *filp, char *buf_store_data, size_t buf_count, loff_t *cur_offset)
 {
     // LOCAL VARIABLES
-    ssize_t result = 0;
+    ssize_t num_bytes = 0;         // Number of bytes read
+    unsigned long not_copied = 0;  // Return value from copy_to_user (num bytes *not* copied)
+    size_t num_to_read = 0;        // Number of bytes to read: smallest between bufCount and offset
+    int i = 0;                     // Iterating variable
+
+    // VALIDATION
+    if (NULL == filp || NULL == buf_store_data || NULL == cur_offset)
+    {
+        SKID_KERROR(DEVICE_NAME, "Received a NULL pointer");
+        num_bytes = -EINVAL;  // NULL pointer
+    }
+    else if (buf_count < 1)
+    {
+        SKID_KERROR(DEVICE_NAME, "Invalid destination buffer size");
+        num_bytes = -EINVAL;  // NULL pointer
+    }
+    // READ IT
+    else
+    {
+        SKID_KINFO(DEVICE_NAME, "Reading from device");
+        num_to_read = buf_count < my_query_device.buf_len ? buf_count : my_query_device.buf_len;
+
+        if (my_query_device.buf_len > 0)
+        {
+            not_copied = copy_to_user(buf_store_data, my_query_device.log_buf, num_to_read);
+
+            // Success
+            if (0 == not_copied)
+            {
+                // Everything was read
+                if (num_to_read == my_query_device.buf_len)
+                {
+                    SKID_KINFO(DEVICE_NAME, "Total read executed");
+                    num_bytes = num_to_read;
+                    my_query_device.log_buf[0] = 0x0;  // Truncate current contents
+                    my_query_device.buf_len = 0;  // Indicate the buffer is empty
+                }
+                // Partial read
+                else
+                {
+                    SKID_KINFO(DEVICE_NAME, "Partial read executed");
+                    // Save the return value
+                    num_bytes = num_to_read;
+                    // Move everything to the front
+                    while (num_to_read < my_query_device.buf_len)
+                    {
+                        my_query_device.log_buf[i] = my_query_device.log_buf[num_to_read];
+                        i++;
+                        num_to_read++;
+                    }
+                    // Truncate it
+                    my_query_device.log_buf[num_to_read] = 0x0;
+                    // Update the buffer length
+                    my_query_device.buf_len = i;
+                }
+            }
+            // Error condition
+            else
+            {
+                SKID_KERROR(DEVICE_NAME, "copy_to_user() failed to copy all the bytes");
+                num_bytes = num_to_read - not_copied;  // Return the number of bytes read
+            }
+        }
+    }
 
     // DONE
-    return result;
+    return num_bytes;
 }
 
 
@@ -196,6 +303,16 @@ void init_mqd(void)
     my_query_device.dev_num = 0;
     my_query_device.major_num = 0;
     my_query_device.minor_num = 0;
+    /*
+     *  DEBUGGING
+     */
+    my_query_device.log_buf[0] = 'H';
+    my_query_device.log_buf[1] = 'e';
+    my_query_device.log_buf[2] = 'l';
+    my_query_device.log_buf[3] = 'l';
+    my_query_device.log_buf[4] = 'o';
+    my_query_device.log_buf[5] = '?';
+    my_query_device.buf_len = 6;
 }
 
 
@@ -215,7 +332,7 @@ static void __exit query_exit(void)
     delete_cdev();  // init() #4 & #5
     // 3. Destroy the device class
     SKID_KINFO(DEVICE_NAME, "Destroying device class");
-    class_destroy(dev_class);  // init() #3
+    destroy_class();  // init() #3
     // 4. Unregister the character device
     SKID_KINFO(DEVICE_NAME, "Unregistering the character device");
     unregister_chrdev_region(my_query_device.dev_num, count);  // init() #2
@@ -260,9 +377,9 @@ static int __init query_init(void)
     if (ENOERR == result)
     {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
-        dev_class = class_create(DEVICE_NAME);
+        dev_class = class_create(CLASS_NAME);
 #else
-        dev_class = class_create(THIS_MODULE, DEVICE_NAME);
+        dev_class = class_create(THIS_MODULE, CLASS_NAME);
 #endif
         if (IS_ERR(dev_class))
         {
