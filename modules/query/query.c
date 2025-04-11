@@ -16,12 +16,16 @@
 /********************************************* MACROS *********************************************/
 /**************************************************************************************************/
 
-#define CDEV_BUFF_SIZE 511        // Character device buffer size
-#define CLASS_NAME "Query Class"  // Query LKM class name
-#define DEV_FILENAME "query_me"   // /dev/DEV_FILENAME
-#define DEVICE_NAME "Query LKM"   // Use this macro for logging
-#define ENOERR ((int)0)           // Success value for errno
-#define NUM_MIN_NUMS 1            // Number of minor numbers to register/unregister
+#define CDEV_BUFF_SIZE 511          // Character device buffer size
+#define CLASS_NAME "Query Class"    // Query LKM class name
+#define DEV_FILENAME "query_me"     // /dev/DEV_FILENAME
+#define DEVICE_NAME "Query LKM"     // Use this macro for logging
+#define ENOERR ((int)0)             // Success value for errno
+#define HELLO_WORLD "Hello World!"  // Hello World!
+#define NUM_MIN_NUMS 1              // Number of minor numbers to register/unregister
+
+// IOCTLs
+#define QUERY_IOCTL_HELLO_WORLD _IO('q', 1)  // Print "Hello World" to /dev/DEV_FILENAME
 
 /**************************************************************************************************/
 /******************************************** TYPEDEFS ********************************************/
@@ -106,6 +110,15 @@ ssize_t device_write(struct file *filp, const char *buf_src_data, size_t buf_cou
 
 /*
  *  Description:
+ *      Handles IOCTLs on behalf of this LKM.
+ *
+ *  Returns:
+ *      0 on success, -errno values on error.
+ */
+static long handle_ioctls(struct file *file, unsigned int cmd, unsigned long arg);
+
+/*
+ *  Description:
  *      Intialize the myQueryDevice global.
  */
 void init_mqd(void);
@@ -146,7 +159,7 @@ static int __init query_init(void);
  *      Clears myQueryDevice.log_buf and writes msg so users may read it.
  *
  *  Returns:
- *      0 on success, ENOMEM if the log_buf is not large enough, errno on failure.
+ *      0 on success, -ENOMEM if the log_buf is not large enough, -errno on failure.
  */
 int write_to_buf(void *msg, size_t num_bytes);
 
@@ -157,11 +170,12 @@ int write_to_buf(void *msg, size_t num_bytes);
 // Device file_operations
 struct file_operations fops =
 {
-    .owner = THIS_MODULE,     // Prevent unloading of this module when operations are in use
-    .open = device_open,      // Points to the method to call when opening the device
-    .release = device_close,  // Points to the method to call when closing the device
-    .write = device_write,    // Points to the method to call when writing to the device
-    .read = device_read       // Points to the method to call when reading from the device
+    .owner = THIS_MODULE,            // Prevent unloading of this module when operations are in use
+    .open = device_open,             // Points to the method to call when opening the device
+    .release = device_close,         // Points to the method to call when closing the device
+    .write = device_write,           // Points to the method to call when writing to the device
+    .read = device_read,             // Points to the method to call when reading from the device
+    .unlocked_ioctl = handle_ioctls  // Handles IOCTLs
 };
 
 myQueryDevice my_query_device;          // My Query Device
@@ -331,6 +345,29 @@ ssize_t device_write(struct file *filp, const char *buf_src_data, size_t buf_cou
 }
 
 
+static long handle_ioctls(struct file *file, unsigned int cmd, unsigned long arg)
+{
+    // LOCAL VARIABLES
+    long result = ENOERR;  // Results of execution
+
+    // HANDLE IT
+    printk(KERN_INFO "%s: Received IOCTL %u\n", DEBUG_INFO_STR, cmd);  // DEBUGGING
+    printk(KERN_INFO "%s: Expecting IOCTL %u\n", DEBUG_INFO_STR, QUERY_IOCTL_HELLO_WORLD);  // DEBUGGING
+    switch (cmd)
+    {
+        case QUERY_IOCTL_HELLO_WORLD:
+            result = write_to_buf(HELLO_WORLD, strlen(HELLO_WORLD) * sizeof(char));
+            break;
+        default:
+            SKID_KERROR(DEVICE_NAME, "Unsupported IOCTL");
+            result = -ENOTTY;
+    }
+
+    // DONE
+    return result;
+}
+
+
 void init_mqd(void)
 {
     memset(my_query_device.log_buf, 0x0, (CDEV_BUFF_SIZE + 1) * sizeof(char));
@@ -483,11 +520,11 @@ int write_to_buf(void *msg, size_t num_bytes)
     // INPUT VALIDATION
     if (NULL == msg)
     {
-        result = EINVAL;
+        result = -EINVAL;
     }
     else if (num_bytes > CDEV_BUFF_SIZE)
     {
-        result = ENOMEM;  // Not enough space
+        result = -ENOMEM;  // Not enough space
     }
 
     // WRITE IT
