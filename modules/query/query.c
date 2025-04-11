@@ -180,7 +180,7 @@ int device_close(struct inode *inode, struct file *filp)
     int result = ENOERR;
 
     // CLOSE IT
-    up(&(my_query_device.open_sem));
+    up(&(my_query_device.open_sem));  // Release the open semaphore
     SKID_KINFO(DEVICE_NAME, "Released the 'open' semaphore");
 
     // DONE
@@ -286,7 +286,7 @@ ssize_t device_write(struct file *filp, const char *buf_src_data, size_t buf_cou
                      loff_t *cur_offset)
 {
     // LOCAL VARIABLES
-    ssize_t result = 0;
+    ssize_t result = -EPERM;  // Writes are not permitted
 
     // DONE
     return result;
