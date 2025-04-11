@@ -44,6 +44,12 @@ typedef struct _myQueryDevice
 
 /*
  *  Description:
+ *      Clear my_query_device.log_buf and reset the buf_len.
+ */
+void clear_buf(void);
+
+/*
+ *  Description:
  *      Remove the global cdev from the system by calling cdev_del() and clears the pointer.
  */
 void delete_cdev(void);
@@ -78,8 +84,23 @@ int device_close(struct inode *inode, struct file *filp);
  */
 int device_open(struct inode *inode, struct file *filp);
 
+/*
+ *  Description:
+ *      Attempts to read whichever is lower between buf_count and the data-to-read into
+ *      buf_store_data.
+ *
+ *  Returns:
+ *      Number of bytes read on success, negative errno on failure.
+ */
 ssize_t device_read(struct file *filp, char *buf_store_data, size_t buf_count, loff_t *cur_offset);
 
+/*
+ *  Description:
+ *      Does not allow writes to this read-only character device.
+ *
+ *  Returns:
+ *      -EPERM.
+ */
 ssize_t device_write(struct file *filp, const char *buf_src_data, size_t buf_count,
                      loff_t *cur_offset);
 
@@ -120,6 +141,15 @@ static void __exit query_exit(void);
  */
 static int __init query_init(void);
 
+/*
+ *  Description:
+ *      Clears myQueryDevice.log_buf and writes msg so users may read it.
+ *
+ *  Returns:
+ *      0 on success, ENOMEM if the log_buf is not large enough, errno on failure.
+ */
+int write_to_buf(void *msg, size_t num_bytes);
+
 /**************************************************************************************************/
 /******************************************** GLOBALS *********************************************/
 /**************************************************************************************************/
@@ -143,6 +173,13 @@ struct cdev *query_cdev = NULL;         // Character device driver struct
 /**************************************************************************************************/
 /************************************** FUNCTION DEFINITIONS **************************************/
 /**************************************************************************************************/
+
+
+void clear_buf(void)
+{
+    my_query_device.log_buf[0] = 0x0;  // Truncate current contents
+    my_query_device.buf_len = 0;  // Indicate the buffer is empty
+}
 
 
 void delete_cdev(void)
@@ -229,52 +266,53 @@ ssize_t device_read(struct file *filp, char *buf_store_data, size_t buf_count, l
         num_bytes = -EINVAL;  // NULL pointer
     }
     // READ IT
-    else
+    else if (my_query_device.buf_len > 0)
     {
         SKID_KINFO(DEVICE_NAME, "Reading from device");
         num_to_read = buf_count < my_query_device.buf_len ? buf_count : my_query_device.buf_len;
 
-        if (my_query_device.buf_len > 0)
-        {
-            not_copied = copy_to_user(buf_store_data, my_query_device.log_buf, num_to_read);
+        not_copied = copy_to_user(buf_store_data, my_query_device.log_buf, num_to_read);
 
-            // Success
-            if (0 == not_copied)
+        // Success
+        if (0 == not_copied)
+        {
+            // Everything was read
+            if (num_to_read == my_query_device.buf_len)
             {
-                // Everything was read
-                if (num_to_read == my_query_device.buf_len)
-                {
-                    SKID_KINFO(DEVICE_NAME, "Total read executed");
-                    num_bytes = num_to_read;
-                    my_query_device.log_buf[0] = 0x0;  // Truncate current contents
-                    my_query_device.buf_len = 0;  // Indicate the buffer is empty
-                }
-                // Partial read
-                else
-                {
-                    SKID_KINFO(DEVICE_NAME, "Partial read executed");
-                    // Save the return value
-                    num_bytes = num_to_read;
-                    // Move everything to the front
-                    while (num_to_read < my_query_device.buf_len)
-                    {
-                        my_query_device.log_buf[i] = my_query_device.log_buf[num_to_read];
-                        i++;
-                        num_to_read++;
-                    }
-                    // Truncate it
-                    my_query_device.log_buf[num_to_read] = 0x0;
-                    // Update the buffer length
-                    my_query_device.buf_len = i;
-                }
+                SKID_KINFO(DEVICE_NAME, "Total read executed");
+                num_bytes = num_to_read;
+                clear_buf();  // Clear the log_buf
             }
-            // Error condition
+            // Partial read
             else
             {
-                SKID_KERROR(DEVICE_NAME, "copy_to_user() failed to copy all the bytes");
-                num_bytes = num_to_read - not_copied;  // Return the number of bytes read
+                SKID_KINFO(DEVICE_NAME, "Partial read executed");
+                // Save the return value
+                num_bytes = num_to_read;
+                // Move everything to the front
+                while (num_to_read < my_query_device.buf_len)
+                {
+                    my_query_device.log_buf[i] = my_query_device.log_buf[num_to_read];
+                    i++;
+                    num_to_read++;
+                }
+                // Truncate it
+                my_query_device.log_buf[num_to_read] = 0x0;
+                // Update the buffer length
+                my_query_device.buf_len = i;
             }
         }
+        // Error condition
+        else
+        {
+            SKID_KERROR(DEVICE_NAME, "copy_to_user() failed to copy all the bytes");
+            num_bytes = num_to_read - not_copied;  // Return the number of bytes read
+        }
+    }
+    else
+    {
+        SKID_KINFO(DEVICE_NAME, "Nothing to read");
+        num_bytes = 0;  // Nothing was read
     }
 
     // DONE
@@ -306,13 +344,7 @@ void init_mqd(void)
     /*
      *  DEBUGGING
      */
-    my_query_device.log_buf[0] = 'H';
-    my_query_device.log_buf[1] = 'e';
-    my_query_device.log_buf[2] = 'l';
-    my_query_device.log_buf[3] = 'l';
-    my_query_device.log_buf[4] = 'o';
-    my_query_device.log_buf[5] = '?';
-    my_query_device.buf_len = 6;
+    write_to_buf("Hello there?", strlen("Hello there?") * sizeof(char));
 }
 
 
@@ -437,6 +469,56 @@ static int __init query_init(void)
             delete_cdev();
         }
     }
+
+    // DONE
+    return result;
+}
+
+
+int write_to_buf(void *msg, size_t num_bytes)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;  // Result of execution
+
+    // INPUT VALIDATION
+    if (NULL == msg)
+    {
+        result = EINVAL;
+    }
+    else if (num_bytes > CDEV_BUFF_SIZE)
+    {
+        result = ENOMEM;  // Not enough space
+    }
+
+    // WRITE IT
+    // Get the 'busy' semaphore
+    if (ENOERR == result)
+    {
+        result = down_interruptible(&(my_query_device.busy_sem));
+        // Did we get it?
+        if (0 == result)
+        {
+            SKID_KINFO(DEVICE_NAME, "Successfully obtained the 'busy' semaphore");
+        }
+        else
+        {
+            result = -result;
+            SKID_KERROR(DEVICE_NAME, "The call to down_interruptible() failed");
+            SKID_KERRNO(DEVICE_NAME, result);
+        }
+    }
+    // Write to the log_buf
+    if (ENOERR == result)
+    {
+        // Clear the log_buf first
+        clear_buf();
+        // Copy the data in
+        memcpy(my_query_device.log_buf, msg, num_bytes);
+        // Set the new buf_len
+        my_query_device.buf_len = num_bytes;
+    }
+    up(&(my_query_device.busy_sem));  // Release the 'busy' semaphore
+    SKID_KINFO(DEVICE_NAME, "Released the 'busy' semaphore");
 
     // DONE
     return result;
