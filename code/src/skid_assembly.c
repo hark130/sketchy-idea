@@ -46,6 +46,7 @@ uint64_t read_cpu_tsc()
     unsigned int hi_order_bits = 0;  // High-order 32 bits of the MSR from the EDX register
 
     // SYSTEM VALIDATION
+#ifdef __GNUC__
 #if defined(__x86_64__)  // Intel x86-64
     FPRINTF_ERR("%s %s supports Intel x86-64\n", DEBUG_INFO_STR, __FUNCTION_NAME__);
 
@@ -56,6 +57,9 @@ uint64_t read_cpu_tsc()
 #else
 #error "This function does not support the current architecture."
 #endif  /* Built-in Architecture Macros */
+#else
+#error "This function does not non-GNU compatible compilers."
+#endif  /* __GNUC__ */
 
     // DONE
     return tsc_val;
