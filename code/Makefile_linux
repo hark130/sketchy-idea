@@ -94,6 +94,8 @@ CHECK_CC_ARGS = -lcheck -lm -lsubunit -lrt -lpthread
 MAN_TEST_PREFIX = test_
 # Prefix for all devops_code library manual tests
 MAN_TEST_DEVOPS_PREFIX = $(MAN_TEST_PREFIX)devops_code_
+# Prefix for all skid_assembly library manual tests
+MAN_TEST_SA_PREFIX = $(MAN_TEST_PREFIX)sa_
 # Prefix for all skid_dir_operations library manual tests
 MAN_TEST_SDO_PREFIX = $(MAN_TEST_PREFIX)sdo_
 # Prefix for all skid_file_link library manual tests
@@ -243,6 +245,11 @@ $(DIST_DIR)$(CHECK_PREFIX)%$(OBJ_FILE_EXT): $(TEST_DIR)$(CHECK_PREFIX)%$(SRC_FIL
 
 # MANUAL TEST: Linking devops_code library manual test binaries
 $(DIST_DIR)$(MAN_TEST_DEVOPS_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_DEVOPS_PREFIX)%$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS)
+	@echo "    Linking manual test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# MANUAL TEST: Linking skid_assembly library manual test binaries
+$(DIST_DIR)$(MAN_TEST_SA_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SA_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_assembly$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
