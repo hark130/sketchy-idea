@@ -58,6 +58,6 @@ uint64_t read_cpu_tsc()
 #endif  /* Built-in Architecture Macros */
 
     // DONE
-    return timestamp;
+    return tsc_val;
 }
 
