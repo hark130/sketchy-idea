@@ -41,9 +41,9 @@
 uint64_t read_cpu_tsc()
 {
     // LOCAL VARIABLES
-    uint64_t tsc_val = 0;            // CPU's timestamp counter value
-    unsigned int lo_order_bits = 0;  // Low-order 32 bits of the MSR from the EAX register
-    unsigned int hi_order_bits = 0;  // High-order 32 bits of the MSR from the EDX register
+    uint64_t tsc_val = 0;        // CPU's timestamp counter value
+    uint32_t lo_order_bits = 0;  // Low-order 32 bits of the MSR from the EAX register
+    uint32_t hi_order_bits = 0;  // High-order 32 bits of the MSR from the EDX register
 
     // SYSTEM VALIDATION
 #ifdef __GNUC__
