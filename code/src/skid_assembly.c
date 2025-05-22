@@ -68,7 +68,15 @@ static inline uint64_t read_cpu_tsc_x86_fam(void)
     uint32_t hi_order_bits = 0;  // High-order 32 bits of the MSR from the EDX register
 
     // READ IT
-    __asm__ __volatile__ ("rdtsc" : "=a"(lo_order_bits), "=d"(hi_order_bits));
+    /*
+     *  Why call lfence first?
+     *  The Pentium Pro and Pentium II processors support out-of-order execution instructions may
+     *  be executed in another order as you programmed them. This can be a source of errors if
+     *  not taken care of.  To prevent this the programmer must serialize the the instruction
+     *  queue. This can be done by inserting a serializing instruction like CPUID instruction
+     *  before the RDTSC instruction.
+     */
+    __asm__ __volatile__ ("lfence\n\trdtsc\n\t" : "=a"(lo_order_bits), "=d"(hi_order_bits));
     tsc_val = ((uint64_t)hi_order_bits << 32) | lo_order_bits;  // Smush the bits together
 #endif  /* __i386__ || __x86_64__ */
 
