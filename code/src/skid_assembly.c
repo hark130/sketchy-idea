@@ -18,7 +18,7 @@ gcc -E -U __x86_64__ -U __i386__ -U __aarch64__ -U __riscv -U __powerpc__ -U __p
  *
  */
 
-#define SKID_DEBUG  // Turn on DEBUGGING
+// #define SKID_DEBUG  // Turn on DEBUGGING
 
 #include "skid_assembly.h"  // uint64_t
 #include "skid_debug.h"     // DEBUG logging
