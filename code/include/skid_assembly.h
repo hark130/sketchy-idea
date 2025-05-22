@@ -7,9 +7,16 @@
  *  Description:
  *      Read the processor's timestamp counter, or equivalent, based on architecture.  Utilizes
  *      inline assembly.  Unsupported architectures will result in a pre-processor phase error.
- *      Supported architectures:
- *          - Intel x86
- *          - Intel x86-64
+ *
+ *      | ------------ | --------- | ------ |
+ *      | Architecture | Supported | Tested |
+ *      | ------------ | --------- | ------ |
+ *      | AArch64      | ✓         |        |
+ *      | Intel x86    | ✓         |        |
+ *      | Intel x86-64 | ✓         | ✓      |
+ *      | RISC-V       | ✓         |        |
+ *      | PowerPC      | ✓         |        |
+ *      | PowerPC64    | ✓         |        |
  *
  *  Returns:
  *      Current processor timestamp on success.
