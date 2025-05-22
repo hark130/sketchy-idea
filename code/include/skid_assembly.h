@@ -14,9 +14,9 @@
  *      | AArch64      | ✓         |        |
  *      | Intel x86    | ✓         |        |
  *      | Intel x86-64 | ✓         | ✓      |
- *      | RISC-V       | ✓         |        |
  *      | PowerPC      | ✓         |        |
  *      | PowerPC64    | ✓         |        |
+ *      | RISC-V       | ✓         |        |
  *
  *  Returns:
  *      Current processor timestamp on success.
