@@ -1,3 +1,22 @@
+/*
+ *  TESTING NOTES:
+ *      - To verify the conditional compiliation against the current architecture:
+ *      Copy/paste the following...
+
+gcc -E -I code/include/ -o skid_assembly.i code/src/skid_assembly.c  # less skid_assembly.i
+
+ *
+ *      - Preprocess the file for a specific architecture:
+ *          1. undef the supported macros
+ *          2. define the architecture macro to test for
+ *          3. preprocess the source.
+ *      Copy/paste the following...
+
+gcc -E -U __x86_64__ -U __i386__ -U __aarch64__ -U __riscv -U __powerpc__ -U __powerpc64__ \
+-D __i386__ -I code/include/ -o skid_assembly.i code/src/skid_assembly.c  # less skid_assembly.i
+
+ *
+ */
 
 #define SKID_DEBUG  // Turn on DEBUGGING
 
@@ -105,7 +124,7 @@ uint64_t read_cpu_tsc()
 #if defined(__x86_64__)  // Intel x86-64
     FPRINTF_ERR("%s %s supports Intel x86-64\n", DEBUG_INFO_STR, __FUNCTION_NAME__);
     tsc_val = read_cpu_tsc_x86_fam();
-#elif define(__i386__)  // Intel x86
+#elif defined(__i386__)  // Intel x86
     FPRINTF_ERR("%s %s supports Intel x86\n", DEBUG_INFO_STR, __FUNCTION_NAME__);
     tsc_val = read_cpu_tsc_x86_fam();
 #elif defined(__aarch64__)  // AArch64 (ARM64)
