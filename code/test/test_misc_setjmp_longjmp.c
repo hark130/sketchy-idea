@@ -5,7 +5,7 @@
  *
 
 gcc -I ./code/include/ -o ./code/dist/test_misc_setjmp_longjmp_clean.bin ./code/test/test_misc_setjmp_longjmp.c && ./code/dist/test_misc_setjmp_longjmp_clean.bin; echo $?
-gcc -I ./code/include/ -o ./code/dist/test_misc_setjmp_longjmp_obfus.bin ./code/test/test_misc_setjmp_longjmp.c -DUSE_OBFUSCATED_FLOW && ./code/dist/test_misc_setjmp_longjmp_obfus.bin; echo $?
+gcc -I ./code/include/ -o ./code/dist/test_misc_setjmp_longjmp_obfuscated.bin ./code/test/test_misc_setjmp_longjmp.c -DUSE_OBFUSCATED_FLOW && ./code/dist/test_misc_setjmp_longjmp_obfuscated.bin; echo $?
 
  *
  *  OBFUSCAATED CONTROL FLOW (OCF)
@@ -28,7 +28,27 @@ gcc -I ./code/include/ -o ./code/dist/test_misc_setjmp_longjmp_obfus.bin ./code/
  *
 
 objdump -d ./code/dist/test_misc_setjmp_longjmp_clean.bin
-objdump -d ./code/dist/test_misc_setjmp_longjmp_obfus.bin
+objdump -d ./code/dist/test_misc_setjmp_longjmp_obfuscated.bin
+
+ *
+ *  MANUAL SETUP
+ *  Steps I had to accomplish to automate(?) the export of the CFD
+ *
+
+cd ~/Repos/                                     # Or wherever your repos are stored
+git clone https://github.com/radareorg/radare2  # Clone the repo
+sudo radare2/sys/install.sh                     # Compile radare2 from source
+cd sketchy-idea                                 # Back to this repo
+sudo apt install graphviz gpicview              # Install support utilities
+
+ *
+ *  CREATE CFDs
+ *
+
+r2 -q -A -c 'agfd main > ./devops/files/test_misc_setjmp_longjmp_clean.dot' ./code/dist/test_misc_setjmp_longjmp.bin
+dot -Tpng ./devops/files/test_misc_setjmp_longjmp_clean.dot -o ./devops/files/2-4_test_misc_setjmp_longjmp_clean.png
+r2 -q -A -c 'agfd main > ./devops/files/test_misc_setjmp_longjmp_obfuscated.dot' ./code/dist/test_misc_setjmp_longjmp_obfuscated.bin
+dot -Tpng ./devops/files/test_misc_setjmp_longjmp_obfuscated.dot -o ./devops/files/2-4_test_misc_setjmp_longjmp_obfuscated.png
 
  *
  */
@@ -61,10 +81,12 @@ void task_c(void);  // Execution Stage / Final Payload
 int main(void)
 {
     // LOCAL VARIABLES
-    int results = EXIT_SUCCESS;  // Results of execution
+    int results = EXIT_FAILURE;  // Results of execution
 
     // EXECUTE TASKS
 #ifdef USE_OBFUSCATED_FLOW
+    // Obfuscated execution
+    printf("Obfuscated execution:\n");
     if (0 == setjmp(envs[TASK_A]))  // OCF-01, OCF-03
     {
         // Initial entry point
@@ -97,9 +119,11 @@ int main(void)
     }
 #else
     // Normal execution
+    printf("Normal execution:\n");
     task_a();
     task_b();
     task_c();
+    results = EXIT_SUCCESS;
 #endif  /* USE_OBFUSCATED_FLOW */
 
     // DONE
@@ -109,7 +133,7 @@ int main(void)
 
 void task_a(void)
 {
-    printf("Task A executed.\n");
+    printf("\tTask A executed.\n");
 #ifdef USE_OBFUSCATED_FLOW
     current_task = TASK_B;
     longjmp(envs[TASK_B], EXIT_FAILURE);  // OCF-05
@@ -119,7 +143,7 @@ void task_a(void)
 
 void task_b(void)
 {
-    printf("Task B executed.\n");
+    printf("\tTask B executed.\n");
 #ifdef USE_OBFUSCATED_FLOW
     current_task = TASK_C;
     longjmp(envs[TASK_C], EXIT_FAILURE);  // OCF-08
@@ -129,6 +153,6 @@ void task_b(void)
 
 void task_c(void)
 {
-    printf("Task C executed.\n");  // OCF-10
+    printf("\tTask C executed.\n");  // OCF-10
     // End of obfuscated flow.
 }
