@@ -8,11 +8,12 @@
 # 3. Executes the unit tests with Valgrind
 # 4. Counts the number of unit tests (by running them again)
 # 5. Misc. (e.g., executing bespoke manual test code highlighting features/functionality)
-#   A. Calls the manual test code default build
-#   B. Disassembles the manual test code with objdump
-#   C. Compiles the manual test code with the USE_OBFUSCATED_FLOW macro defined
-#   D. Calls the obfuscated manual test code
-#   E. Disassembles the obfuscated manual test code with objdump
+#   A. Compiles the manual test code without being linked against skid_* libraries
+#   B. Calls the manual test code default build
+#   C. Disassembles the manual test code with objdump
+#   D. Compiles the manual test code with the USE_OBFUSCATED_FLOW macro defined
+#   E. Calls the obfuscated manual test code
+#   F. Disassembles the obfuscated manual test code with objdump
 
 #
 # PURPOSE:
@@ -73,7 +74,7 @@ run_manual_test_command_verbose()
 BOOKEND="***"                                                     # Formatting
 TEMP_RET=0                                                        # Temporary exit code var
 EXIT_CODE=0                                                       # Exit value
-CLEAN_CODE="./code/dist/test_misc_setjmp_longjmp.bin"             # "Clean" build
+CLEAN_CODE="./code/dist/test_misc_setjmp_longjmp_clean.bin"       # "Clean" build
 OBFUS_CODE="./code/dist/test_misc_setjmp_longjmp_obfuscated.bin"  # "Obfuscated" build
 
 # 1. Stores the date
@@ -85,7 +86,17 @@ make && echo && \
 # 4. Counts the number of unit tests (by running them again)
 for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
 # 5. Misc.
-# 5.A. Calls the manual test code default build
+# 5.A. Compiles the manual test code without being linked against skid_* libraries
+printf "%s Compiling manual test code (obfuscated) %s\n" "$BOOKEND" "$BOOKEND"
+run_manual_test_command  "gcc -I ./code/include/ -o $CLEAN_CODE ./code/test/test_misc_setjmp_longjmp.c"
+TEMP_RET=$?
+if [ $TEMP_RET -ne 0 ]
+then
+    EXIT_CODE=$TEMP_RET
+    echo "Compilation of the manual test code (clean) exited with: $TEMP_RET"
+fi
+
+# 5.B. Calls the manual test code default build
 printf "%s Executing manual test code (clean) %s\n" "$BOOKEND" "$BOOKEND"
 run_manual_test_command $CLEAN_CODE
 TEMP_RET=$?
@@ -95,7 +106,7 @@ then
     echo "Manual test code (clean) exited with: $TEMP_RET"
 fi
 
-# 5.B. Disassembles the manual test code with objdump
+# 5.C. Disassembles the manual test code with objdump
 printf "%s Disassemble manual test code (clean) %s\n" "$BOOKEND" "$BOOKEND"
 run_manual_test_command "objdump -d $CLEAN_CODE"
 TEMP_RET=$?
@@ -105,7 +116,7 @@ then
     echo "Disassembly of the manual test code (clean) exited with: $TEMP_RET"
 fi
 
-# 5.C. Compiles the manual test code with the USE_OBFUSCATED_FLOW macro defined
+# 5.D. Compiles the manual test code with the USE_OBFUSCATED_FLOW macro defined
 printf "%s Compiling manual test code (obfuscated) %s\n" "$BOOKEND" "$BOOKEND"
 run_manual_test_command  "gcc -I ./code/include/ -o $OBFUS_CODE ./code/test/test_misc_setjmp_longjmp.c -DUSE_OBFUSCATED_FLOW"
 TEMP_RET=$?
@@ -116,7 +127,7 @@ then
 fi
 
 
-# 5.D. Calls the obfuscated manual test code
+# 5.E. Calls the obfuscated manual test code
 printf "%s Executing manual test code (obfuscated) %s\n" "$BOOKEND" "$BOOKEND"
 run_manual_test_command $OBFUS_CODE
 TEMP_RET=$?
@@ -126,7 +137,7 @@ then
     echo "Manual test code (obfuscated) exited with: $TEMP_RET"
 fi
 
-# 5.E. Disassembles the obfuscated manual test code with objdump
+# 5.F. Disassembles the obfuscated manual test code with objdump
 run_manual_test_command "objdump -d $OBFUS_CODE"
 TEMP_RET=$?
 if [ $TEMP_RET -ne 0 ]
