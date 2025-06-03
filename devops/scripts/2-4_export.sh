@@ -87,7 +87,7 @@ make && echo && \
 for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
 # 5. Misc.
 # 5.A. Compiles the manual test code without being linked against skid_* libraries
-printf "%s Compiling manual test code (obfuscated) %s\n" "$BOOKEND" "$BOOKEND"
+printf "%s Compiling manual test code (clean) %s\n" "$BOOKEND" "$BOOKEND"
 run_manual_test_command  "gcc -I ./code/include/ -o $CLEAN_CODE ./code/test/test_misc_setjmp_longjmp.c"
 TEMP_RET=$?
 if [ $TEMP_RET -ne 0 ]
