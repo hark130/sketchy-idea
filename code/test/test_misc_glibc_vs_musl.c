@@ -15,6 +15,7 @@
 #ifndef ENOERR
 #define ENOERR ((int)0)
 #endif  /* ENOERR */
+#define SIEVE_START_PRIME ((unsigned long long int)2)
 
 #include <errno.h>                  // EINVAL, ERANGE
 #include <stdio.h>                  // fprintf()
@@ -22,12 +23,10 @@
 #include <string.h>                 // strlen()
 
 /*
- *  Convert num1 and num2 into numerical values stored in the out parameters: low, high.
- *  The value in low will be less than the value in high.
+ *  Convert num into a numerical value stored in the out parameter "value".
  *  Returns errno values on failure: EINVAL for bad input, ERANGE for failed conversion.
  */
-int convert_args(const char *num1, const char *num2, unsigned long long int *low,
-                 unsigned long long int *high);
+int convert_args(const char *num, unsigned long long int *value);
 
 /*
  *  Convert a string to an unsigned long long int using strtoull().
@@ -40,29 +39,50 @@ unsigned long long int convert_str_to_pos_ull(const char *string, int *errnum);
  */
 void print_usage(const char *prog_name);
 
+/*
+ *  Run the Sieve of Eratosthenes on an inclusive range of values beginning with 2 and ending
+ *  with end.  Results are stored in a heap-allocated, zero-terminated array.  The caller is
+ *  responsible for free()ing the array.
+ *  Returns pointer on success, NULL on failure (see: errnum for details).
+ */
+unsigned long long int* sieve_it(unsigned long long int end, int *errnum);
+
 
 int main(int argc, char *argv[])
 {
     // LOCAL VARIABLES
-    int exit_code = ENOERR;           // Errno values from execution
-    unsigned long long int low = 0;   // Start of the range
-    unsigned long long int high = 0;  // End of the range
+    int exit_code = ENOERR;                  // Errno values from execution
+    unsigned long long int end = 0;          // End of the range
+    unsigned long long int* primes = NULL;   // Zero-terminated array of primes between 2 and end
+    unsigned long long int* tmp_ptr = NULL;  // Temp-pointer into the primes array
 
     // INPUT VALIDATION
-    if (argc != 3)
+    if (argc != 2)
     {
        print_usage(argv[0]);
        exit_code = EINVAL;
     }
     else
     {
-        exit_code = convert_args(argv[1], argv[2], &low, &high);
+        exit_code = convert_args(argv[1], &end);
     }
 
     // SIEVE IT
     if (ENOERR == exit_code)
     {
-        printf("Low: %llu\nHigh: %llu\n", low, high);  // DEBUGGING
+        printf("End: %llu\n", end);  // DEBUGGING
+        primes = sieve_it(end, &exit_code);
+    }
+
+    // PRINT IT
+    if (ENOERR == exit_code)
+    {
+        tmp_ptr = primes;
+        while (NULL != tmp_ptr && 0x0 != *tmp_ptr)
+        {
+            printf("Prime: %llu\n", *tmp_ptr);
+            tmp_ptr++;
+        }
     }
 
     // DONE
@@ -70,53 +90,28 @@ int main(int argc, char *argv[])
 }
 
 
-int convert_args(const char *num1, const char *num2, unsigned long long int *low,
-                 unsigned long long int *high)
+int convert_args(const char *num, unsigned long long int *value)
 {
     // LOCAL VARAIBLES
-    int results = ENOERR;             // Errno values
-    unsigned long long int val1 = 0;  // Value of num1
-    unsigned long long int val2 = 0;  // Value of num2
+    int results = ENOERR;                // Errno values
+    unsigned long long int num_val = 0;  // Value of num
 
     // INPUT VALIDATION
-    // The num1 and num2 args will be validated by convert_str_to_pos_ull()
-    if (NULL == low || NULL == high)
+    if (NULL == num || NULL == value)
     {
         results = EINVAL;
     }
 
     // CONVERT IT
-    // num1
     if (ENOERR == results)
     {
-        val1 = convert_str_to_pos_ull(num1, &results);
-    }
-    // num2
-    if (ENOERR == results)
-    {
-        val2 = convert_str_to_pos_ull(num2, &results);
-    }
-    // Validate order
-    if (ENOERR == results)
-    {
-        if (val1 == val2)
-        {
-            fprintf(stderr, "The two values may not be equal\n");
-            results = EINVAL;
-        }
-        else if (val1 > val2)
-        {
-            val1 = val1 ^ val2;
-            val2 = val1 ^ val2;
-            val1 = val1 ^ val2;
-        }
+        num_val = convert_str_to_pos_ull(num, &results);
     }
 
     // STORE THEM
     if (ENOERR == results)
     {
-        *low = val1;
-        *high = val2;
+        *value = num_val;
     }
 
     // DONE
@@ -170,5 +165,33 @@ unsigned long long int convert_str_to_pos_ull(const char *string, int *errnum)
 
 void print_usage(const char *prog_name)
 {
-    fprintf(stderr, "Usage: %s <RANGE_BEGIN> <RANGE_END>\n", prog_name);
+    fprintf(stderr, "Usage: %s <RANGE_END>\n", prog_name);
+}
+
+
+unsigned long long int* sieve_it(unsigned long long int end, int *errnum)
+{
+    // LOCAL VARIABLES
+    int results = ENOERR;                   // Errno values
+    unsigned long long int* primes = NULL;  // Heap-allocated array to store prime values
+
+    // INPUT VALIDATION
+    if (NULL == errnum)
+    {
+        results = EINVAL;
+    }
+    else if (SIEVE_START_PRIME >= end)
+    {
+        results = EINVAL;
+    }
+
+    // SIEVE IT
+    /* TO DO: DON'T DO NOW... */
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = results;
+    }
+    return primes;
 }
