@@ -78,14 +78,14 @@ GLIBC_PERF_DATA="./code/test/test_output/glibc_perf.data"           # Perf repor
 MUSL_PERF_DATA="./code/test/test_output/musl_perf.data"             # Perf report: musl
 TEST_NUM=10000000                                                   # <RANGE_END>
 
-# # 1. Stores the date
-# date && \
-# # 2. Runs the build system (which also executes the Check-based unit tests)
-# make && echo && \
-# # 3. Executes the unit tests with Valgrind
-# ./devops/scripts/run_valgrind.sh; [[ $? -ne 0 ]] && exit; echo && \
-# # 4. Counts the number of unit tests (by running them again)
-# for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
+# 1. Stores the date
+date && \
+# 2. Runs the build system (which also executes the Check-based unit tests)
+make && echo && \
+# 3. Executes the unit tests with Valgrind
+./devops/scripts/run_valgrind.sh; [[ $? -ne 0 ]] && exit; echo && \
+# 4. Counts the number of unit tests (by running them again)
+for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
 # 5. Misc.
 # 5.A. Prove(?) the compiler used for each binary
 printf "\n%s Each of the following binaries was statically compiled using a different library %s\n" "$BOOKEND" "$BOOKEND"
