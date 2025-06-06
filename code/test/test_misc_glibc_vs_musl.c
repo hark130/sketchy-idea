@@ -18,9 +18,10 @@
 #define SIEVE_START_PRIME ((unsigned long long int)2)
 
 #include <errno.h>                  // EINVAL, ERANGE
+#include <stdbool.h>                // bool, false, true
 #include <stdio.h>                  // fprintf()
-#include <stdlib.h>                 // exit(), strtoull()
-#include <string.h>                 // strlen()
+#include <stdlib.h>                 // exit(), malloc(), strtoull()
+#include <string.h>                 // memset(), strlen()
 
 /*
  *  Convert num into a numerical value stored in the out parameter "value".
@@ -33,6 +34,11 @@ int convert_args(const char *num, unsigned long long int *value);
  *  Returns 0 on failure (check errnum: EINVAL for bad input, ERANGE for failed conversion).
  */
 unsigned long long int convert_str_to_pos_ull(const char *string, int *errnum);
+
+/*
+ *  Prepare an array of nmemb bools and set them all to true.
+ */
+bool* prepare_array(size_t nmemb, int *errnum);
 
 /*
  *  Single point of truth for this manual test code's usage.
@@ -59,7 +65,6 @@ int main(int argc, char *argv[])
     // INPUT VALIDATION
     if (argc != 2)
     {
-       print_usage(argv[0]);
        exit_code = EINVAL;
     }
     else
@@ -70,7 +75,6 @@ int main(int argc, char *argv[])
     // SIEVE IT
     if (ENOERR == exit_code)
     {
-        printf("End: %llu\n", end);  // DEBUGGING
         primes = sieve_it(end, &exit_code);
     }
 
@@ -85,7 +89,17 @@ int main(int argc, char *argv[])
         }
     }
 
+    // CLEANUP
+    if (NULL != primes)
+    {
+        free(primes);
+    }
+
     // DONE
+    if (ENOERR != exit_code)
+    {
+       print_usage(argv[0]);
+    }
     exit(exit_code);
 }
 
@@ -163,6 +177,48 @@ unsigned long long int convert_str_to_pos_ull(const char *string, int *errnum)
 }
 
 
+bool* prepare_array(size_t nmemb, int *errnum)
+{
+    // LOCAL VARIABLES
+    int results = ENOERR;                // Errno values
+    size_t size = sizeof(bool) * nmemb;  // Number of bytes to allocate
+    bool *array = NULL;                  // Pointer to a heap-allocated array of nmemb bools
+
+    // INPUT VALIDATION
+    if (nmemb < 1 || NULL == errnum)
+    {
+        results = EINVAL;
+    }
+
+    // PREPARE IT
+    // Allocate
+    if (ENOERR == results)
+    {
+        errno = ENOERR;
+        array = malloc(size);
+        results = errno;
+        if (NULL == array && ENOERR == results)
+        {
+            results = ENOMEM;  // Force an error for a NULL pointer
+        }
+    }
+    // Memset
+    if (ENOERR == results)
+    {
+        errno = ENOERR;
+        memset(array, true, size);
+        results = errno;
+    }
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = results;
+    }
+    return array;
+}
+
+
 void print_usage(const char *prog_name)
 {
     fprintf(stderr, "Usage: %s <RANGE_END>\n", prog_name);
@@ -172,21 +228,90 @@ void print_usage(const char *prog_name)
 unsigned long long int* sieve_it(unsigned long long int end, int *errnum)
 {
     // LOCAL VARIABLES
-    int results = ENOERR;                   // Errno values
-    unsigned long long int* primes = NULL;  // Heap-allocated array to store prime values
+    int results = ENOERR;                    // Errno values
+    bool *working_arr = NULL;                // Working array
+    unsigned long long int *primes = NULL;   // Heap-allocated array to store prime values
+    unsigned long long int *tmp_ptr = NULL;  // Iterating pointer into primes
+    int num_primes = 0;                      // Number of primes
 
     // INPUT VALIDATION
     if (NULL == errnum)
     {
         results = EINVAL;
     }
-    else if (SIEVE_START_PRIME >= end)
+    else if (SIEVE_START_PRIME > end)
     {
+        fprintf(stderr, "Invalid <RANGE_END> value of %llu\n", end);
         results = EINVAL;
     }
 
     // SIEVE IT
-    /* TO DO: DON'T DO NOW... */
+    // Allocate an array of bools and set all elements to true
+    if (ENOERR == results)
+    {
+        working_arr = prepare_array(end + 1, &results);
+    }
+    // Do it!
+    if (ENOERR == results)
+    {
+        // Sieve of Eratosthenes
+        for (int num = 2; num * num <= end; num++)
+        {
+            printf("NUM is %d...", num);  // DEBUGGING
+            if (true == working_arr[num])
+            {
+                printf("...and it is a prime\n");  // DEBUGGING
+                for (int mult = 2 * num; mult <= end; mult += num)
+                {
+                    printf("Setting %d to false\n", mult);  // DEBUGGING
+                    working_arr[mult] = false;
+                }
+            }
+        }
+        // Count primes
+        for (int num = 2; num <= end; num++)
+        {
+            if (true == working_arr[num])
+            {
+                num_primes++;
+            }
+        }
+        printf("There are %d primes from 2 to %llu\n", num_primes, end);  // DEBUGGING
+    }
+    // Allocate unsigned long long int array
+    if (ENOERR == results)
+    {
+        errno = ENOERR;
+        primes = calloc(num_primes + 1, sizeof(unsigned long long int));
+        results = errno;
+        if (NULL == primes && ENOERR == results)
+        {
+            results = ENOMEM;  // Force an error for a NULL pointer
+        }
+    }
+    // Copy the values in
+    if (ENOERR == results)
+    {
+        tmp_ptr = primes;
+        for (int num = 2; num <= end; num++)
+        {
+            if (true == working_arr[num])
+            {
+                *tmp_ptr = num;  // Store the value
+                tmp_ptr++;  // Advance the pointer
+            }
+        }
+    }
+
+    // CLEANUP
+    if (NULL != working_arr)
+    {
+        free(working_arr);
+    }
+    if (NULL != primes && ENOERR != results)
+    {
+        free(primes);
+    }
 
     // DONE
     if (NULL != errnum)
