@@ -257,13 +257,10 @@ unsigned long long int* sieve_it(unsigned long long int end, int *errnum)
         // Sieve of Eratosthenes
         for (int num = 2; num * num <= end; num++)
         {
-            printf("NUM is %d...", num);  // DEBUGGING
             if (true == working_arr[num])
             {
-                printf("...and it is a prime\n");  // DEBUGGING
                 for (int mult = 2 * num; mult <= end; mult += num)
                 {
-                    printf("Setting %d to false\n", mult);  // DEBUGGING
                     working_arr[mult] = false;
                 }
             }
@@ -276,7 +273,6 @@ unsigned long long int* sieve_it(unsigned long long int end, int *errnum)
                 num_primes++;
             }
         }
-        printf("There are %d primes from 2 to %llu\n", num_primes, end);  // DEBUGGING
     }
     // Allocate unsigned long long int array
     if (ENOERR == results)
