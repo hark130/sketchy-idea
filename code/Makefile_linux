@@ -24,6 +24,7 @@ endef
 
 ### COMPILER VARIABLES ###
 CC = gcc
+MCC = musl-gcc
 AFLAGS = -fsanitize=address -g
 CFLAGS = -Wall -Werror -Wfatal-errors
 
@@ -321,3 +322,20 @@ $(DIST_DIR)redirect_bin_output$(BIN_FILE_EXT): $(TEST_DIR)redirect_bin_output$(S
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Compiling bespoke binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# BESPOKE: test_misc_glibc_vs_musl-*.bin
+$(DIST_DIR)test_misc_glibc_vs_musl$(BIN_FILE_EXT): $(DIST_DIR)test_misc_glibc_vs_musl-static_glibc$(BIN_FILE_EXT) $(DIST_DIR)test_misc_glibc_vs_musl-static_musl$(BIN_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@#echo "    Compiling bespoke binary: $@"
+
+# BESPOKE: test_misc_glibc_vs_musl-static_glibc.bin
+$(DIST_DIR)test_misc_glibc_vs_musl-static_glibc$(BIN_FILE_EXT): $(TEST_DIR)test_misc_glibc_vs_musl$(SRC_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Statically compiling bespoke binary: $@"
+	@$(CC) $(CFLAGS) -g -static -o $@ $^
+
+# BESPOKE: test_misc_glibc_vs_musl-static_musl.bin
+$(DIST_DIR)test_misc_glibc_vs_musl-static_musl$(BIN_FILE_EXT): $(TEST_DIR)test_misc_glibc_vs_musl$(SRC_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Statically compiling bespoke binary: $@"
+	@$(MCC) $(CFLAGS) -g -static -o $@ $^
