@@ -5,7 +5,7 @@
 #include <fcntl.h>                          // S_I* mode macros
 #include <stdbool.h>                        // bool, false, true
 #include <sys/types.h>                      // time_t
-#include "skid_macros.h"                    // SKID_MODE_* macros
+#include "skid_macros.h"                    // ENOERR, SKID_MODE_* macros
 
 /*
  *  Description:
