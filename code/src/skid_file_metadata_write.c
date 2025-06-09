@@ -6,6 +6,7 @@
 // #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <fcntl.h>                          // AT_FDCWD
+#include <stdbool.h>                        // false
 #include "skid_debug.h"                     // PRINT_ERRNO()
 #include "skid_file_metadata_read.h"        // get_file_perms()
 #include "skid_file_metadata_write.h"       // ENOERR, set_mode()
@@ -140,7 +141,7 @@ int validate_sfmw_input(const char *pathname, int *errnum);
  *  Args:
  *      pathname: A non-NULL pointer to a non-empty string.
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 int validate_pathname(const char *pathname);
 
@@ -724,24 +725,7 @@ int validate_sfmw_input(const char *pathname, int *errnum)
 
 int validate_pathname(const char *pathname)
 {
-    // LOCAL VARIABLES
-    int retval = ENOERR;  // The results of validation
-
-    // VALIDATE IT
-    // pathname
-    if (!pathname)
-    {
-        retval = EINVAL;  // Invalid argument
-        PRINT_ERROR(Invalid Argument - Received a null pathname pointer);
-    }
-    else if (!(*pathname))
-    {
-        retval = EINVAL;  // Invalid argument
-        PRINT_ERROR(Invalid Argument - Received an empty pathname);
-    }
-
-    // DONE
-    return retval;
+    return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
 }
 
 
