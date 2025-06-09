@@ -2,13 +2,13 @@
  *    This library defines functionality to modify Linux file metadata.
  */
 
-#define _POSIX_C_SOURCE 200809L              // Expose utimensat()
-// #define SKID_DEBUG                      // Enable DEBUG logging
+#define _POSIX_C_SOURCE 200809L             // Expose utimensat()
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <fcntl.h>                          // AT_FDCWD
-#include "skid_debug.h"                      // PRINT_ERRNO()
-#include "skid_file_metadata_read.h"    // get_file_perms()
-#include "skid_file_metadata_write.h"    // set_mode()
+#include "skid_debug.h"                     // PRINT_ERRNO()
+#include "skid_file_metadata_read.h"        // get_file_perms()
+#include "skid_file_metadata_write.h"       // set_mode()
 #ifndef ENOERR
 #define ENOERR ((int)0)
 #endif  /* ENOERR */
@@ -26,9 +26,9 @@
  *        If pathname is a symbolic link and follow_sym is false, uses lchown() instead.
  *  Args:
  *      pathname: Absolute or relative pathname to update with a chown-family function.
- *        new_owner: The UID of the new owner for pathname.  Pass -1 to ignore this ID.
- *        new_group: The GID of the new group for pathname.  Pass -1 to ignore this ID.
- *        follow_sym: If true, calls chown().  If false, uses lchown() for symlinks.
+ *      new_owner: The UID of the new owner for pathname.  Pass -1 to ignore this ID.
+ *      new_group: The GID of the new group for pathname.  Pass -1 to ignore this ID.
+ *      follow_sym: If true, calls chown().  If false, uses lchown() for symlinks.
  *  Returns:
  *      0 on success.  Errno value on failure.
  */
@@ -39,8 +39,8 @@ int call_a_chown(const char *pathname, uid_t new_owner, gid_t new_group, bool fo
  *      Calls chown(pathname, new_owner, new_group).
  *  Args:
  *      pathname: Absolute or relative pathname to update with chown().
- *        new_owner: The UID of the new owner for pathname.  Pass -1 to ignore this ID.
- *        new_group: The GID of the new group for pathname.  Pass -1 to ignore this ID.
+ *      new_owner: The UID of the new owner for pathname.  Pass -1 to ignore this ID.
+ *      new_group: The GID of the new group for pathname.  Pass -1 to ignore this ID.
  *  Returns:
  *      0 on success.  Errno value on failure.
  */
@@ -51,8 +51,8 @@ int call_chown(const char *pathname, uid_t new_owner, gid_t new_group);
  *      Calls lchown(pathname, new_owner, new_group).
  *  Args:
  *      pathname: Absolute or relative pathname to update with lchown().
- *        new_owner: The UID of the new owner for pathname.  Pass -1 to ignore this ID.
- *        new_group: The GID of the new group for pathname.  Pass -1 to ignore this ID.
+ *      new_owner: The UID of the new owner for pathname.  Pass -1 to ignore this ID.
+ *      new_group: The GID of the new group for pathname.  Pass -1 to ignore this ID.
  *  Returns:
  *      0 on success.  Errno value on failure.
  */
@@ -62,18 +62,18 @@ int call_lchown(const char *pathname, uid_t new_owner, gid_t new_group);
  *  Description:
  *      A wrapper around the call to utimensat().
  *  Args:
- *        pathname: Absolute or relative pathname to modify timestamps for.  If pathname is relative,
- *            pathname will be resolved against the current working directory.
- *        times: The new file timestamps are specified in the array times: times[0] specifies the
- *            new "last access time" (atime); times[1] specifies the new "last modification time"
- *            (mtime).  If the tv_nsec field of one of the timespec structures has the special
- *            value UTIME_NOW, then the corresponding file timestamp is set to the current time.
- *            If the tv_nsec field of one of the timespec structures has the special value
- *            UTIME_OMIT, then the corresponding file timestamp is left unchanged.
- *            If times is NULL, then both timestamps are set to the current time.
- *            In both of these cases, the value of the corresponding tv_sec field is ignored.
- *        follow_sym: Controls how symbolic links are handled: follow symbolic links if true,
- *            do not follow symbolic links if false.
+ *      pathname: Absolute or relative pathname to modify timestamps for.  If pathname is relative,
+ *          pathname will be resolved against the current working directory.
+ *      times: The new file timestamps are specified in the array times: times[0] specifies the
+ *          new "last access time" (atime); times[1] specifies the new "last modification time"
+ *          (mtime).  If the tv_nsec field of one of the timespec structures has the special
+ *          value UTIME_NOW, then the corresponding file timestamp is set to the current time.
+ *          If the tv_nsec field of one of the timespec structures has the special value
+ *          UTIME_OMIT, then the corresponding file timestamp is left unchanged.
+ *          If times is NULL, then both timestamps are set to the current time.
+ *          In both of these cases, the value of the corresponding tv_sec field is ignored.
+ *      follow_sym: Controls how symbolic links are handled: follow symbolic links if true,
+ *          do not follow symbolic links if false.
  *  Returns:
  *      0 on success.  An errno value on failure.
  */
@@ -91,12 +91,12 @@ int call_utnsat(const char *pathname, const struct timespec times[2], bool follo
 bool is_abs_path(const char *pathname, int *errnum);
 
 /*
- *    Description:
- *        Set the timespec struct's tv_sec to seconds and the tv_nsec field to nseconds.
- *    Args:
- *        time: A pointer to a timespec struct.
- *        seconds: The epoch seconds to set time to.
- *        nseconds: The nanoseconds to set time to.
+ *  Description:
+ *      Set the timespec struct's tv_sec to seconds and the tv_nsec field to nseconds.
+ *  Args:
+ *      time: A pointer to a timespec struct.
+ *      seconds: The epoch seconds to set time to.
+ *      nseconds: The nanoseconds to set time to.
  *  Returns:
  *      0 on success.  An errno value on failure.
  */
@@ -106,7 +106,7 @@ int set_timespec(struct timespec *time, time_t seconds, long nseconds);
  *  Description:
  *      Set the timespec struct's tv_nsec field to UTIME_NOW.
  *  Args:
- *        time: A pointer to a timespec struct.
+ *      time: A pointer to a timespec struct.
  *  Returns:
  *      0 on success.  An errno value on failure.
  */
@@ -116,7 +116,7 @@ int set_timespec_now(struct timespec *time);
  *  Description:
  *      Set the timespec struct's tv_nsec field to UTIME_OMIT.
  *  Args:
- *        time: A pointer to a timespec struct.
+ *      time: A pointer to a timespec struct.
  *  Returns:
  *      0 on success.  An errno value on failure.
  */
@@ -125,7 +125,7 @@ int set_timespec_omit(struct timespec *time);
 /*
  *  Description:
  *      Validates the input arguments and updates errnum accordingly.  Will update errnum unless
- *        errnum is the cause of the problem.
+ *      errnum is the cause of the problem.
  *  Args:
  *      pathname: Must be non-NULL and also can't be empty.
  *      errnum: Must be a non-NULL pointer.  Set to 0 on success.
@@ -148,7 +148,7 @@ int validate_pathname(const char *pathname);
  *  Description:
  *      Validates the time arguments on behalf of this library.
  *  Args:
- *        time: A pointer to a timespec struct.
+ *      time: A pointer to a timespec struct.
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
