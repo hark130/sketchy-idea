@@ -1,5 +1,5 @@
 /*
- *    This library defines functionality to help manager server/clients.
+ *  This library defines functionality to help manager server/clients.
  */
 
 // #define SKID_DEBUG                        // Enable DEBUG logging
@@ -33,234 +33,234 @@
 /**************************************************************************************************/
 
 /*
- *    Description:
- *        Check for an existing buffer pointer.  If one does not exist, make the first allocation.
+ *  Description:
+ *      Check for an existing buffer pointer.  If one does not exist, make the first allocation.
  *
- *    Args:
- *        output_buf: [Out] Pointer to the working heap-allocated buffer.  If this pointer holds
- *            a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
- *            output_size will be updated.
- *        output_size: [Out] Pointer to the size of output_buf.
+ *  Args:
+ *      output_buf: [Out] Pointer to the working heap-allocated buffer.  If this pointer holds
+ *          a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
+ *          output_size will be updated.
+ *      output_size: [Out] Pointer to the size of output_buf.
  *
- *    Returns:
- *        0 on success, errno on failure.
+ *  Returns:
+ *      0 on success, errno on failure.
  */
 int check_sn_pre_alloc(char **output_buf, size_t *output_size);
 
 /*
- *    Description:
- *        Determine if the bytes_read can fit into the output buffer based on its size and current
- *        length.
+ *  Description:
+ *      Determine if the bytes_read can fit into the output buffer based on its size and current
+ *      length.
  *
- *    Args:
- *        bytes_read: The number of bytes to append to the output buffer.
- *        output_len: The number of bytes currently in the buffer.
- *        output_size: Total size of the output buffer.
+ *  Args:
+ *      bytes_read: The number of bytes to append to the output buffer.
+ *      output_len: The number of bytes currently in the buffer.
+ *      output_size: Total size of the output buffer.
  *
- *    Returns:
- *        True if there's room.  False if there isn't (time to reallocate), on for invalid args.
+ *  Returns:
+ *      True if there's room.  False if there isn't (time to reallocate), on for invalid args.
  */
 bool check_sn_space(size_t bytes_read, size_t output_len, size_t output_size);
 
 /*
- *    Description:
- *        Retrieve the relevant address pointer based on the struct's sa_family value.
+ *  Description:
+ *      Retrieve the relevant address pointer based on the struct's sa_family value.
  *
- *    Args:
- *        sa: Pointer to the struct to evaluate.
- *        errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *  Args:
+ *      sa: Pointer to the struct to evaluate.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *
- *    Returns:
- *        Pointer to the relevant struct in*_addr member on success.  NULL on error (consult
- *        errnum for details).  EPFNOSUPPORT is used to indicate an unsupported sa->sa_family.
+ *  Returns:
+ *      Pointer to the relevant struct in*_addr member on success.  NULL on error (consult
+ *      errnum for details).  EPFNOSUPPORT is used to indicate an unsupported sa->sa_family.
  */
 void *get_inet_addr(struct sockaddr *sa, int *errnum);
 
 /*
- *    Description:
- *        Use getsockname() to determine the socket family associated with sockfd.
+ *  Description:
+ *      Use getsockname() to determine the socket family associated with sockfd.
  *
- *    Args:
- *        sockfd: Socket file descriptor to fetch information about.
- *        errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *  Args:
+ *      sockfd: Socket file descriptor to fetch information about.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *
- *    Returns:
- *        The struct sockaddr.sa_family value on success, 0 on failure (sets errno value in errnum).
+ *  Returns:
+ *      The struct sockaddr.sa_family value on success, 0 on failure (sets errno value in errnum).
  */
 sa_family_t get_socket_family(int sockfd, int *errnum);
 
 /*
- *    Description:
- *        A "lite" wrapper around getsockopt().  Not for external use as the necessary option_value
- *        size isn't standard.
+ *  Description:
+ *      A "lite" wrapper around getsockopt().  Not for external use as the necessary option_value
+ *      size isn't standard.
  *
- *    Notes:
- *        Most socket-level options utilize an int argument for option_value.
- *        For Boolean options, a zero value indicates that the option is disabled and a non-zero
- *            value indicates that the option is enabled.
- *        If the size of the option value is greater than option_len, the value stored in the
- *            object pointed to by the option_value argument shall be silently truncated.
+ *  Notes:
+ *      Most socket-level options utilize an int argument for option_value.
+ *      For Boolean options, a zero value indicates that the option is disabled and a non-zero
+ *          value indicates that the option is enabled.
+ *      If the size of the option value is greater than option_len, the value stored in the
+ *          object pointed to by the option_value argument shall be silently truncated.
  *
- *    Args:
- *        sockfd: Socket file descriptor to fetch information about.
- *        level: The appropriate level identifier for the protocol controlling the option.
- *            Common examples include: SOL_SOCKET (socket API level), IPPROTO_TCP (TCP),
- *            and IPPROTO_UDP (UDP).  See: The <netinet/in.h> header, getsockopt(2), getprotoent(3),
- *            and protocols(5) for more information.
- *        option_name: The singled option to be retrieved.  The include file <sys/socket.h> contains
- *            definitions for socket level options.  Common examples include: SO_ERROR (socket error
- *            status), SO_SNDBUF (send buffer size), SO_TYPE (socket type).
- *        option_value: [Optional/Out] Option value of sockfd at the specified protocol level.
- *            If no option value is to be supplied or returned, option_value may be NULL.
- *        option_len: [Optional/In] The size of option_value.
+ *  Args:
+ *      sockfd: Socket file descriptor to fetch information about.
+ *      level: The appropriate level identifier for the protocol controlling the option.
+ *          Common examples include: SOL_SOCKET (socket API level), IPPROTO_TCP (TCP),
+ *          and IPPROTO_UDP (UDP).  See: The <netinet/in.h> header, getsockopt(2), getprotoent(3),
+ *          and protocols(5) for more information.
+ *      option_name: The singled option to be retrieved.  The include file <sys/socket.h> contains
+ *          definitions for socket level options.  Common examples include: SO_ERROR (socket error
+ *          status), SO_SNDBUF (send buffer size), SO_TYPE (socket type).
+ *      option_value: [Optional/Out] Option value of sockfd at the specified protocol level.
+ *          If no option value is to be supplied or returned, option_value may be NULL.
+ *      option_len: [Optional/In] The size of option_value.
  *
- *    Returns:
- *        0 on success, errno on failure.
+ *  Returns:
+ *      0 on success, errno on failure.
  */
 int get_socket_option(int sockfd, int level, int option_name,
                       void *restrict option_value, socklen_t *restrict option_len);
 
 /*
- *    Description:
- *        Reallocate a buffer: allocate a new buffer double the *output_size, copy the contents of
- *        *output_buf into the new buffer, free the old buffer, update the Out arguments.
- *        It is the caller's responsibility to free the buffer with free_skid_mem().
+ *  Description:
+ *      Reallocate a buffer: allocate a new buffer double the *output_size, copy the contents of
+ *      *output_buf into the new buffer, free the old buffer, update the Out arguments.
+ *      It is the caller's responsibility to free the buffer with free_skid_mem().
  *
- *    Args:
- *        output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
- *            a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
- *            output_size will be updated.
- *        output_size: [In/Out] Pointer to the size of output_buf.
+ *  Args:
+ *      output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
+ *          a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
+ *          output_size will be updated.
+ *      output_size: [In/Out] Pointer to the size of output_buf.
  *
- *    Returns:
- *        0 on success, errno on failure.  EOVERFLOW is used to indicate the output_size can not
- *        be doubled without overflowing the size_t data type.
+ *  Returns:
+ *      0 on success, errno on failure.  EOVERFLOW is used to indicate the output_size can not
+ *      be doubled without overflowing the size_t data type.
  */
 int realloc_sock_dynamic(char **output_buf, size_t *output_size);
 
 /*
- *    Description:
- *        Determine the size of the data waiting to be read from sockfd.  Calls recvfrom() with
- *        the MSG_PEEK, MSG_TRUNC, and MSG_DONTWAIT flags.
+ *  Description:
+ *      Determine the size of the data waiting to be read from sockfd.  Calls recvfrom() with
+ *      the MSG_PEEK, MSG_TRUNC, and MSG_DONTWAIT flags.
  *
- *    Notes:
- *        This will not work for unix(7) sockets (e.g., AF_UNIX, AF_LOCAL) (see: recv(2)).
- *        Datagram sockets in various domains permit zero-length datagrams.  When such a datagram
- *            is received, the return value is 0.
+ *  Notes:
+ *      This will not work for unix(7) sockets (e.g., AF_UNIX, AF_LOCAL) (see: recv(2)).
+ *      Datagram sockets in various domains permit zero-length datagrams.  When such a datagram
+ *          is received, the return value is 0.
  *
- *    Args:
- *        sockfd: Socket file descriptor to recv from.
- *        errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *  Args:
+ *      sockfd: Socket file descriptor to recv from.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *
- *    Returns:
- *        The real length of the packet or datagram.  Some "error" situations will be treated as
- *        "nothing to read" and 0 will be returned: zero-length datagrams, no data to read, etc.
- *        On an actual error, -1 is returned but the errno value will be stored in errnum.
+ *  Returns:
+ *      The real length of the packet or datagram.  Some "error" situations will be treated as
+ *      "nothing to read" and 0 will be returned: zero-length datagrams, no data to read, etc.
+ *      On an actual error, -1 is returned but the errno value will be stored in errnum.
  */
 ssize_t recv_from_size(int sockfd, int *errnum);
 
 /*
- *    Description:
- *        Read the contents of the file descriptor into a heap-allocated buffer.  If the buffer ever
- *        fills then this function will (effectively) reallocate more space.  It will read until
- *        no other data can be read or an error occurred.  It is the caller's responsibility to
- *        free the buffer with free_skid_mem().
+ *  Description:
+ *      Read the contents of the file descriptor into a heap-allocated buffer.  If the buffer ever
+ *      fills then this function will (effectively) reallocate more space.  It will read until
+ *      no other data can be read or an error occurred.  It is the caller's responsibility to
+ *      free the buffer with free_skid_mem().
  *
- *    Args:
- *        sockfd: Socket file descriptor to recv from.
- *        flags: A bit-wise OR of zero or more flags (see: recvfrom(2)).
- *        src_addr: [Optional/Out] Passed directly to recvfrom() without validation.
- *        addrlen: [Optional/Out] Passed directly to recvfrom() without validation.
- *        output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
- *            a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
- *            output_size will be updated.
- *        output_size: [In/Out] Pointer to the size of output_buf.
+ *  Args:
+ *      sockfd: Socket file descriptor to recv from.
+ *      flags: A bit-wise OR of zero or more flags (see: recvfrom(2)).
+ *      src_addr: [Optional/Out] Passed directly to recvfrom() without validation.
+ *      addrlen: [Optional/Out] Passed directly to recvfrom() without validation.
+ *      output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
+ *          a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
+ *          output_size will be updated.
+ *      output_size: [In/Out] Pointer to the size of output_buf.
  *
- *    Returns:
- *        0 on success, errno on failure.
+ *  Returns:
+ *      0 on success, errno on failure.
  */
 int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
                              char **output_buf, size_t *output_size);
 
 /*
- *    Description:
- *        Read the contents of the file descriptor into a heap-allocated buffer.  If the buffer ever
- *        fills then this function will (effectively) reallocate more space.  It will read until
- *        no other data can be read or an error occurred.  It is the caller's responsibility to
- *        free the buffer with free_skid_mem().
+ *  Description:
+ *      Read the contents of the file descriptor into a heap-allocated buffer.  If the buffer ever
+ *      fills then this function will (effectively) reallocate more space.  It will read until
+ *      no other data can be read or an error occurred.  It is the caller's responsibility to
+ *      free the buffer with free_skid_mem().
  *
- *    Args:
- *        sockfd: Socket file descriptor to recv from.
- *        flags: A bit-wise OR of zero or more flags (see: recv(2), recv_socket()).
- *        output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
- *            a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
- *            output_size will be updated.
- *        output_size: [In/Out] Pointer to the size of output_buf.
+ *  Args:
+ *      sockfd: Socket file descriptor to recv from.
+ *      flags: A bit-wise OR of zero or more flags (see: recv(2), recv_socket()).
+ *      output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
+ *          a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
+ *          output_size will be updated.
+ *      output_size: [In/Out] Pointer to the size of output_buf.
  *
- *    Returns:
- *        0 on success, errno on failure.
+ *  Returns:
+ *      0 on success, errno on failure.
  */
 int recv_socket_dynamic(int sockfd, int flags, char **output_buf, size_t *output_size);
 
 /*
- *    Description:
- *        A "lite" wrapper around the module's call to sendto(), standardizing error response.
- *        This function does not validate input.  It does, however, attempt to recursively
- *        complete partial sends (bytes successfully sent are less than len).
+ *  Description:
+ *  A "lite" wrapper around the module's call to sendto(), standardizing error response.
+ *  This function does not validate input.  It does, however, attempt to recursively
+ *  complete partial sends (bytes successfully sent are less than len).
  *
- *    Args:
- *        sockfd: Specifies the socket file descriptor.
- *        buf: Points to a buffer containing the message to be sent.
- *        len: Specifies the size of the message in bytes.
- *        flags: Specifies the type of message transmission.
- *        dest_addr: Points to a sockaddr structure containing the destination address.
- *            The length and format of the address depend on the address family of the socket.
- *        addrlen: Specifies the length of the sockaddr structure pointed to by the dest_addr arg.
- *        errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *  Args:
+ *    sockfd: Specifies the socket file descriptor.
+ *    buf: Points to a buffer containing the message to be sent.
+ *    len: Specifies the size of the message in bytes.
+ *    flags: Specifies the type of message transmission.
+ *    dest_addr: Points to a sockaddr structure containing the destination address.
+ *        The length and format of the address depend on the address family of the socket.
+ *    addrlen: Specifies the length of the sockaddr structure pointed to by the dest_addr arg.
+ *    errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *
- *    Returns:
- *        Upon successful completion, send_to() shall return the number of bytes sent.
- *        Partial sends, number of bytes sent < len, are treated as successful.
- *        Otherwise, -1 shall be returned and errnum set to indicate the error.
+ *  Returns:
+ *    Upon successful completion, send_to() shall return the number of bytes sent.
+ *    Partial sends, number of bytes sent < len, are treated as successful.
+ *    Otherwise, -1 shall be returned and errnum set to indicate the error.
  */
 ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
                 const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum);
 
 /*
- *    Description:
- *        Chunks buf into get_socket_opt_sndbuf() segments and passes them to send_to().
- *        This function barely validates input: non-NULL buf and valid len.
+ *  Description:
+ *    Chunks buf into get_socket_opt_sndbuf() segments and passes them to send_to().
+ *    This function barely validates input: non-NULL buf and valid len.
  *
- *    Args:
- *        sockfd: Specifies the socket file descriptor.
- *        buf: Points to a buffer containing the message to be sent.
- *        len: Specifies the size of the message in bytes.
- *        flags: Specifies the type of message transmission.
- *        dest_addr: Points to a sockaddr structure containing the destination address.
- *            The length and format of the address depend on the address family of the socket.
- *        addrlen: Specifies the length of the sockaddr structure pointed to by the dest_addr arg.
- *        errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *  Args:
+ *    sockfd: Specifies the socket file descriptor.
+ *    buf: Points to a buffer containing the message to be sent.
+ *    len: Specifies the size of the message in bytes.
+ *    flags: Specifies the type of message transmission.
+ *    dest_addr: Points to a sockaddr structure containing the destination address.
+ *        The length and format of the address depend on the address family of the socket.
+ *    addrlen: Specifies the length of the sockaddr structure pointed to by the dest_addr arg.
+ *    errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *
- *    Returns:
- *        Upon successful completion, send_to() shall return the number of bytes sent.
- *        Partial sends, number of bytes sent < len, are treated as successful.
- *        Otherwise, -1 shall be returned and errnum set to indicate the error.
+ *  Returns:
+ *    Upon successful completion, send_to() shall return the number of bytes sent.
+ *    Partial sends, number of bytes sent < len, are treated as successful.
+ *    Otherwise, -1 shall be returned and errnum set to indicate the error.
  */
 ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
                       const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum);
 
 /*
- *    Description:
- *        Validate common In/Out args on behalf of the library.
+ *  Description:
+ *    Validate common In/Out args on behalf of the library.
  *
- *    Args:
- *        output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
- *            a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
- *            output_size will be updated.
- *        output_size: [In/Out] Pointer to the size of output_buf.
+ *  Args:
+ *    output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
+ *        a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
+ *        output_size will be updated.
+ *    output_size: [In/Out] Pointer to the size of output_buf.
  *
- *    Returns:
- *        0 on success, errno on failed validation.
+ *  Returns:
+ *    0 on success, errno on failed validation.
  */
 int validate_sn_args(char **output_buf, size_t *output_size);
 
