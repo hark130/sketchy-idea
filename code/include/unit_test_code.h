@@ -8,6 +8,8 @@
 // Local includes
 #include "devops_code.h"                // SKID_REPO_NAME
 
+// Use this with printf("%s", BOOL_STR_LIT(bool)); to print human readable results
+#define BOOL_STR_LIT(boolean) (boolean ? "true" : "false")
 #define CANARY_INT (int)0xBADC0DE  // Actually, a reverse canary value
 
 /**************************************************************************************************/

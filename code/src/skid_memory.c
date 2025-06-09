@@ -2,16 +2,16 @@
  *    This library defines functionality to allocate and free memory on behalf of SKID.
  */
 
-// #define SKID_DEBUG                        // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
-#include <errno.h>                        // errno
-#include <stdlib.h>                        // calloc()
-#include <string.h>                        // strlen()
-#include "skid_debug.h"                      // PRINT_ERRNO()
-#include "skid_memory.h"                // free_skid_string()
-#ifndef ENOERR
-#define ENOERR ((int)0)
-#endif  /* ENOERR */
+#include <errno.h>                          // errno
+#include <stdbool.h>                        // false
+#include <stdlib.h>                         // calloc()
+#include <string.h>                         // strlen()
+#include "skid_debug.h"                     // PRINT_ERRNO()
+#include "skid_macros.h"                    // ENOERR
+#include "skid_memory.h"                    // free_skid_string()
+#include "skid_validation.h"                // validate_skid_err(), validate_skid_pathname()
 
 
 /**************************************************************************************************/
@@ -30,18 +30,6 @@
  *        0 for good input, errno for failed validation.
  */
 int validate_sm_standard_args(const char *pathname, int *err);
-
-/*
- *    Description:
- *        Validate errno out paramters on behalf of skid_memory.
- *
- *    Args:
- *        err: A non-NULL integer pointer.
- *
- *    Returns:
- *        0 for good input, errno for failed validation.
- */
-int validate_sm_err(int *err);
 
 /*
  *    Description:
@@ -182,23 +170,7 @@ int validate_sm_standard_args(const char *pathname, int *err)
     // INPUT VALIDATION
     if (ENOERR == result)
     {
-        result = validate_sm_err(err);
-    }
-
-    // DONE
-    return result;
-}
-
-
-int validate_sm_err(int *err)
-{
-    // LOCAL VARIABLES
-    int result = ENOERR;  // Store errno value
-
-    // INPUT VALIDATION
-    if (!err)
-    {
-        result = EINVAL;  // NULL pointer
+        result = validate_skid_err(err);
     }
 
     // DONE
@@ -208,15 +180,5 @@ int validate_sm_err(int *err)
 
 int validate_sm_pathname(const char *pathname)
 {
-    // LOCAL VARIABLES
-    int result = ENOERR;  // Store errno value
-
-    // INPUT VALIDATION
-    if (!pathname || !(*pathname))
-    {
-        result = EINVAL;  // Bad pathname
-    }
-
-    // DONE
-    return result;
+    return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
 }

@@ -1,8 +1,8 @@
 #ifndef __SKID_VALIDATION__
 #define __SKID_VALIDATION__
 
-#include <stdbool.h>            // bool, false, true
-#include "skid_macros.h"        // ENOERR, SKID_BAD_FD
+#include <stdbool.h>                        // bool, false, true
+#include "skid_macros.h"                    // ENOERR, SKID_BAD_FD
 
 /*
  *  Description:
@@ -27,6 +27,19 @@ int validate_skid_err(int *err);
  *      ENOERR on success, errno on failed validation.
  */
 int validate_skid_fd(int fd);
+
+/*
+ *  Description:
+ *      Validates the pathname argument on behalf of SKID.
+ *
+ *  Args:
+ *      pathname: A non-NULL pointer to a non-empty string.
+ *      must_exist: If true, this function will use lstat() to access pathname.
+ *
+ *  Returns:
+ *      An errno value indicating the results of validation.  0 on successful validation.
+ */
+int validate_skid_pathname(const char *pathname, bool must_exist);
 
 /*
  *  Description:

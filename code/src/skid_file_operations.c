@@ -1,20 +1,20 @@
 /*
- *    This library defines functionality to create, delete, and empty Linux files.
+ *  This library defines functionality to create, delete, and empty Linux files.
  */
 
-// #define SKID_DEBUG                    // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
-#include <errno.h>                        // errno
-#include <stdio.h>                        // fclose(), fopen(), fread(), fwrite()
-#include <string.h>                        // strlen()
-#include <unistd.h>                        // unlink()
-#include "skid_debug.h"                    // PRINT_ERROR()
-#include "skid_file_metadata_read.h"    // get_size()
-#include "skid_file_operations.h"        // bool, empty_file(), false, true
-#include "skid_memory.h"                // alloc_skid_mem()
-#ifndef ENOERR
-#define ENOERR ((int)0)
-#endif  /* ENOERR */
+#include <errno.h>                          // errno
+#include <stdbool.h>                        // false
+#include <stdio.h>                          // fclose(), fopen(), fread(), fwrite()
+#include <string.h>                         // strlen()
+#include <unistd.h>                         // unlink()
+#include "skid_debug.h"                     // PRINT_ERROR()
+#include "skid_file_metadata_read.h"        // get_size()
+#include "skid_file_operations.h"           // bool, empty_file(), false, true
+#include "skid_macros.h"                    // ENOERR
+#include "skid_memory.h"                    // alloc_skid_mem()
+#include "skid_validation.h"                // validate_skid_pathname()
 
 
 /**************************************************************************************************/
@@ -22,68 +22,68 @@
 /**************************************************************************************************/
 
 /*
- *    Description:
- *        Closes *stream, if it's not NULL, using fclose() and sets it to NULL.  This is a
- *        "best effort" function but it will call DEBUG print macros if enabled and fclose() fails.
+ *  Description:
+ *      Closes *stream, if it's not NULL, using fclose() and sets it to NULL.  This is a
+ *      "best effort" function but it will call DEBUG print macros if enabled and fclose() fails.
  *
- *    Args:
- *        stream: A pointer to a file pointer.
+ *  Args:
+ *      stream: A pointer to a file pointer.
  *
- *    Returns:
- *        0 on success, errno on failure.
+ *  Returns:
+ *      0 on success, errno on failure.
  */
 int close_stream(FILE **stream);
 
 /*
  *  Description:
- *        Is filename an actual file?  Any invalid input or errno values are treated as a "no".
+ *      Is filename an actual file?  Any invalid input or errno values are treated as a "no".
  *
  *  Args:
- *      filename: Absolute or relative pathname to check.
+ *    filename: Absolute or relative pathname to check.
  *
  *  Returns:
- *      True if filename exists as a file.  False otherwise.
+ *    True if filename exists as a file.  False otherwise.
  */
 bool is_file(const char *filename);
 
 /*
- *    Description:
- *        Reads a maximum of buff_size bytes from stream into contents.  This function does not
- *        close stream.  It also does not clear any errors it encountered: end-of-file indicator,
- *        error indicator.
+ *  Description:
+ *      Reads a maximum of buff_size bytes from stream into contents.  This function does not
+ *      close stream.  It also does not clear any errors it encountered: end-of-file indicator,
+ *      error indicator.
  *
- *    Args:
- *        stream: Open FILE pointer to read from.
- *        contents: [Out] The buffer to read stream into.
- *        buff_size: The maximum number of bytes to read into contents.
+ *  Args:
+ *      stream: Open FILE pointer to read from.
+ *      contents: [Out] The buffer to read stream into.
+ *      buff_size: The maximum number of bytes to read into contents.
  *
- *    Returns:
- *        0, on success.  On failure, an errno value (or -1 for an unspecified error).
+ *  Returns:
+ *      0, on success.  On failure, an errno value (or -1 for an unspecified error).
  */
 int read_stream(FILE *stream, char *contents, size_t buff_size);
 
 /*
  *  Description:
- *      Validates the pathname arguments on behalf of this library.
+ *    Validates the pathname arguments on behalf of this library.
  *
  *  Args:
- *      pathname: A non-NULL pointer to a non-empty string.
+ *    pathname: A non-NULL pointer to a non-empty string.
  *
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *    An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 int validate_sfo_pathname(const char *pathname);
 
 /*
- *    Description:
- *        Writes contents to stream and responds to errors.  This function does not close stream.
+ *  Description:
+ *      Writes contents to stream and responds to errors.  This function does not close stream.
  *
- *    Args:
- *        contents: The contents to write to stream.
- *        stream: Open FILE pointer to write to.
+ *  Args:
+ *      contents: The contents to write to stream.
+ *      stream: Open FILE pointer to write to.
  *
- *    Returns:
- *        0, on success.  On failure, an errno value (or -1 for an unspecified error).
+ *  Returns:
+ *      0, on success.  On failure, an errno value (or -1 for an unspecified error).
  */
 int write_stream(const char *contents, FILE *stream);
 
@@ -350,24 +350,7 @@ int read_stream(FILE *stream, char *contents, size_t buff_size)
 
 int validate_sfo_pathname(const char *pathname)
 {
-    // LOCAL VARIABLES
-    int result = ENOERR;  // The results of validation
-
-    // VALIDATE IT
-    // pathname
-    if (!pathname)
-    {
-        result = EINVAL;  // Invalid argument
-        PRINT_ERROR(Invalid Argument - Received a null pathname pointer);
-    }
-    else if (!(*pathname))
-    {
-        result = EINVAL;  // Invalid argument
-        PRINT_ERROR(Invalid Argument - Received an empty pathname);
-    }
-
-    // DONE
-    return result;
+    return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
 }
 
 

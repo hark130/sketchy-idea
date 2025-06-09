@@ -4,13 +4,13 @@
 
 // #define SKID_DEBUG  // Enable DEBUG logging
 
-#include "skid_debug.h"                  // PRINT_ERRNO()
+#include "skid_debug.h"                     // PRINT_ERRNO()
 #include "skid_file_metadata_read.h"
-#include <string.h>                      // memset()
-#include <time.h>                      // localtime(), strftime()
-#ifndef ENOERR
-#define ENOERR ((int)0)
-#endif  /* ENOERR */
+#include "skid_macros.h"                    // ENOERR
+#include "skid_validation.h"                // validate_skid_err(), validate_skid_pathname()
+#include <string.h>                         // memset()
+#include <time.h>                           // localtime(), strftime()
+
 
 /**************************************************************************************************/
 /********************************* PRIVATE FUNCTION DECLARATIONS **********************************/
@@ -957,10 +957,9 @@ int validate_sfmr_input(const char *pathname, int *errnum)
     // pathname
     retval = validate_sfmr_pathname(pathname);
     // errnum
-    if (!errnum)
+    if (ENOERR == retval)
     {
-        retval = EINVAL;  // Invalid argument
-        PRINT_ERROR(Invalid Argument - Received a null errnum pointer);
+        retval = validate_skid_err(errnum);
     }
 
     // DONE
@@ -974,25 +973,9 @@ int validate_sfmr_input(const char *pathname, int *errnum)
 
 int validate_sfmr_pathname(const char *pathname)
 {
-    // LOCAL VARIABLES
-    int retval = ENOERR;  // The results of validation
-
-    // VALIDATE IT
-    // pathname
-    if (!pathname)
-    {
-        retval = EINVAL;  // Invalid argument
-        PRINT_ERROR(Invalid Argument - Received a null pathname pointer);
-    }
-    else if (!(*pathname))
-    {
-        retval = EINVAL;  // Invalid argument
-        PRINT_ERROR(Invalid Argument - Received an empty pathname);
-    }
-
-    // DONE
-    return retval;
+    return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
 }
+
 
 int validate_timestamp(const char *pathname, time_t *seconds, long *nseconds)
 {

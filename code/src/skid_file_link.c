@@ -2,14 +2,13 @@
  *    This library defines functionality to create links to Linux files.
  */
 
-// #define SKID_DEBUG                    // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
-#include "skid_debug.h"                      // PRINT_ERRNO()
-#include <errno.h>                        // errno
-#include <unistd.h>                        // link(), symlink()
-#ifndef ENOERR
-#define ENOERR ((int)0)
-#endif  /* ENOERR */
+#include <errno.h>                          // errno
+#include <stdbool.h>                        // false
+#include <unistd.h>                         // link(), symlink()
+#include "skid_debug.h"                     // PRINT_ERRNO()
+#include "skid_validation.h"                // validate_skid_pathname()
 
 
 /**************************************************************************************************/
@@ -22,9 +21,10 @@
  *  Args:
  *      pathname: A non-NULL pointer to a non-empty string.
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 int validate_pathname(const char *pathname);
+
 
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
@@ -94,22 +94,5 @@ int create_sym_link(const char *source, const char *sym_link)
 
 int validate_pathname(const char *pathname)
 {
-    // LOCAL VARIABLES
-    int retval = ENOERR;  // The results of validation
-
-    // VALIDATE IT
-    // pathname
-    if (!pathname)
-    {
-        retval = EINVAL;  // Invalid argument
-        PRINT_ERROR(Invalid Argument - Received a null pathname pointer);
-    }
-    else if (!(*pathname))
-    {
-        retval = EINVAL;  // Invalid argument
-        PRINT_ERROR(Invalid Argument - Received an empty pathname);
-    }
-
-    // DONE
-    return retval;
+    return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
 }

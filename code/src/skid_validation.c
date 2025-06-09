@@ -4,10 +4,11 @@
 
 // #define SKID_DEBUG                        // Enable DEBUG logging
 
-#include "skid_debug.h"                      // PRINT_ERRNO(), PRINT_ERROR()
-#include "skid_validation.h"            // ENOERR
-#include <errno.h>                        // EINVAL
-#include <stddef.h>                        // NULL
+#include "skid_debug.h"                     // PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_validation.h"                // ENOERR
+#include <errno.h>                          // EINVAL
+#include <stddef.h>                         // NULL
+#include <sys/stat.h>                       // lstat(), struct stat
 
 
 /**************************************************************************************************/
@@ -48,6 +49,42 @@ int validate_skid_fd(int fd)
     else
     {
         FPRINTF_ERR("%s file descriptor %d failed validation", DEBUG_ERROR_STR, fd);
+        PRINT_ERRNO(result);
+    }
+
+    // DONE
+    return result;
+}
+
+
+
+int validate_skid_pathname(const char *pathname, bool must_exist)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;  // Validation result
+    struct stat sb;       // Out-parameter for the call to lstat()
+
+    // VALIDATE IT
+    // pathname
+    if (!pathname)
+    {
+        result = EINVAL;  // Invalid argument
+        PRINT_ERROR(Invalid Argument - Received a null pathname pointer);
+    }
+    else if (!(*pathname))
+    {
+        result = EINVAL;  // Invalid argument
+        PRINT_ERROR(Invalid Argument - Received an empty pathname);
+    }
+    else if (true == must_exist && -1 == lstat(pathname, &sb))
+    {
+        result = errno;
+        if (ENOERR == result)
+        {
+            result = EINVAL;  // Unspecified error
+            PRINT_ERROR(Unspecified error);
+        }
+        FPRINTF_ERR("%s pathname %s failed validation", DEBUG_ERROR_STR, pathname);
         PRINT_ERRNO(result);
     }
 

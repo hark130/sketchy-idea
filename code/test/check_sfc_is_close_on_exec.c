@@ -32,11 +32,7 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sfc_is_close_on_exec.bin; unse
 #include "skid_file_control.h"          // is_close_on_exec()
 #include "skid_file_descriptors.h"      // close_fd(), open_fd()
 #include "skid_validation.h"            // validate_skid_fd()
-#include "unit_test_code.h"             // globals, setup(), teardown()
-
-// Use this with printf("%s", BOOL_STR_LIT(bool)); to print human readable results
-#define BOOL_STR_LIT(boolean) (boolean ? "true" : "false")
-#define CANARY_INT (int)0xBADC0DE  // Actually, a reverse canary value
+#include "unit_test_code.h"             // BOOL_STR_LIT(), CANARY_INT, globals, setup(), teardown()
 
 
 /**************************************************************************************************/
