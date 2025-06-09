@@ -14,6 +14,7 @@
 #include "skid_file_operations.h"           // bool, empty_file(), false, true
 #include "skid_macros.h"                    // ENOERR
 #include "skid_memory.h"                    // alloc_skid_mem()
+#include "skid_validation.h"                // validate_skid_pathname()
 
 
 /**************************************************************************************************/
@@ -69,7 +70,7 @@ int read_stream(FILE *stream, char *contents, size_t buff_size);
  *    pathname: A non-NULL pointer to a non-empty string.
  *
  *  Returns:
- *    An errno value indicating the results of validation.  0 on successful validation.
+ *    An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 int validate_sfo_pathname(const char *pathname);
 
