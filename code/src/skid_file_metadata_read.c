@@ -4,10 +4,10 @@
 
 // #define SKID_DEBUG  // Enable DEBUG logging
 
-#include "skid_debug.h"                  // PRINT_ERRNO()
+#include "skid_debug.h"                     // PRINT_ERRNO()
 #include "skid_file_metadata_read.h"
-#include <string.h>                      // memset()
-#include <time.h>                      // localtime(), strftime()
+#include <string.h>                         // memset()
+#include <time.h>                           // localtime(), strftime()
 #ifndef ENOERR
 #define ENOERR ((int)0)
 #endif  /* ENOERR */
