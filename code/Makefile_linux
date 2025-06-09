@@ -79,6 +79,8 @@ CHECK_SFL_PREFIX = $(CHECK_PREFIX)sfl_
 CHECK_SFMR_PREFIX = $(CHECK_PREFIX)sfmr_
 # Prefix for all skid_file_metadata_write library unit tests
 CHECK_SFMW_PREFIX = $(CHECK_PREFIX)sfmw_
+# Prefix for all skid_validation library unit tests
+CHECK_SV_PREFIX = $(CHECK_PREFIX)sv_
 # All check*.c filenames found in TEST_DIR
 CHECK_SRC_FILES := $(shell cd $(TEST_DIR); ls $(CHECK_PREFIX)*$(SRC_FILE_EXT))
 # All CHECK_SRC_FILES with the file extension stripped
@@ -234,6 +236,12 @@ $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)
 
 # CHECK: Linking skid_file_metadata_write library unit test binaries
 $(DIST_DIR)$(CHECK_SFMW_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMW_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_write$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Linking Check unit test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
+
+# CHECK: Linking skid_validation library unit test binaries
+$(DIST_DIR)$(CHECK_SV_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SV_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS) $(UNIT_TEST_LINK_DEPS)
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Linking Check unit test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
