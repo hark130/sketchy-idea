@@ -278,7 +278,7 @@ $(DIST_DIR)$(MAN_TEST_SFL_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFL_PRE
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
 # MANUAL TEST: Linking skid_file_metadata_read library manual test binaries
-$(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT)
+$(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
