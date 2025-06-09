@@ -1,13 +1,14 @@
 /*
  *  Source file to highlight key differences between source compiled in glibc and musl.
  *  The portable source code must be computationally expensive to help highlight relative speeds.
- *  This binary will implement the Sieve of Eratosthenes for a given range of inclusive values.
+ *  This binary will implement the Sieve of Eratosthenes for a given range of inclusive values
+ *  that starts with 2 and ends with <RANGE_END>.
  *  Values will be converted to unsigned long long ints and then processed.
  *  This source file purposely avoids utilizing skid_* libraries to make compilation easier.
  *
  *  Copy/paste the following...
 
-./code/dist/test_misc_glibc_vs_musl.bin <RANGE_BEGIN> <RANGE_END>
+./code/dist/test_misc_glibc_vs_musl.bin <RANGE_END>
 
  *
  */
