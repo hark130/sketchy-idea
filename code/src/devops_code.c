@@ -22,11 +22,8 @@
 #include "skid_dir_operations.h"        // create_dir()
 #include "skid_file_metadata_read.h"    // is_directory()
 #include "skid_file_operations.h"       // create_file()
+#include "skid_macros.h"                // ENOERR
 
-
-#ifndef ENOERR
-#define ENOERR ((int)0)
-#endif  /* ENOERR */
 
 // The useradd utility may only support 32 but Linux supports more
 #define SKID_MAX_USERNAME_LEN 256  // Maximum username length
