@@ -5,6 +5,7 @@
 // #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // errno
+#include <stdbool.h>                        // false
 #include <unistd.h>                         // link(), symlink()
 #include "skid_debug.h"                     // PRINT_ERRNO()
 #include "skid_validation.h"                // validate_skid_pathname()
