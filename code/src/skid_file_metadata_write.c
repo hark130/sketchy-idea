@@ -8,10 +8,9 @@
 #include <fcntl.h>                          // AT_FDCWD
 #include "skid_debug.h"                     // PRINT_ERRNO()
 #include "skid_file_metadata_read.h"        // get_file_perms()
-#include "skid_file_metadata_write.h"       // set_mode()
-#ifndef ENOERR
-#define ENOERR ((int)0)
-#endif  /* ENOERR */
+#include "skid_file_metadata_write.h"       // ENOERR, set_mode()
+#include "skid_validation.h"                // validate_skid_err()
+
 #define SFMW_ATIME_INDEX 0  // Index of the atime timespec struct
 #define SFMW_MTIME_INDEX 1  // Index of the mtime timespec struct
 #define SFMW_IGNORE_ID -1   // When using the chown-family funcs, if an ID is -1 it is not changed.
@@ -20,6 +19,7 @@
 /**************************************************************************************************/
 /********************************* PRIVATE FUNCTION DECLARATIONS **********************************/
 /**************************************************************************************************/
+
 /*
  *  Description:
  *      Calls one of the chown-family functions based on caller arguments.  Defaults to chown().
@@ -485,6 +485,8 @@ int set_times_now(const char *pathname, bool follow_sym)
 /**************************************************************************************************/
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
+
+
 int call_a_chown(const char *pathname, uid_t new_owner, gid_t new_group, bool follow_sym)
 {
     // LOCAL VARIABLES
@@ -706,10 +708,9 @@ int validate_sfmw_input(const char *pathname, int *errnum)
     // pathname
     retval = validate_pathname(pathname);
     // errnum
-    if (!errnum)
+    if (ENOERR == retval)
     {
-        retval = EINVAL;  // Invalid argument
-        PRINT_ERROR(Invalid Argument - Received a null errnum pointer);
+        retval = validate_skid_err(errnum);
     }
 
     // DONE
