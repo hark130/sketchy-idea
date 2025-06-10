@@ -46,6 +46,11 @@ compile:
 	@echo "COMPILING"
 	$(CALL_MAKE) _compile
 
+install:
+	@echo ""
+	@echo "INSTALLING"
+	$(CALL_MAKE) _install
+
 release:
 	@echo ""
 	@echo "RELEASING"

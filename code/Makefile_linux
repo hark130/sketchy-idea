@@ -36,6 +36,8 @@ ifneq ($(OS),Windows_NT)
 else
 $(error Wrong operating system.  This is $(OS).)
 endif
+HDR_INSTALL_DIR = /usr/include
+LIB_INSTALL_DIR = /lib
 
 # $(NULL) - Shunt output here to silence it
 NULL :=
@@ -141,6 +143,7 @@ MAN_TEST_BIN_LIST = $(foreach MAN_TEST_BIN_FILE, $(MAN_TEST_BIN_FILES), $(DIST_D
 # Shared Object Variables
 # All skid_*.c filenames found in SRC_DIR
 SKID_SRC_FILES := $(shell ls $(SRC_DIR)skid_*$(SRC_FILE_EXT))
+SKID_HDR_FILES := $(shell ls $(INCLUDE_DIR)skid_*$(HDR_FILE_EXT))
 BASE_LIB_NAME = libsketchyidea
 MAJ_VER = 1
 MIN_VER = 0
@@ -152,7 +155,7 @@ FULL_LIB_NAME = $(SHORT_LIB_NAME).$(MIN_VER).$(MIC_VER)
 ### SPECIAL BUILT-IN TARGET NAMES ###
 
 # Do not treat these target names as file names
-.PHONY: _all _bespoke_builds _check_link _clean _clean_dist _compile _compilation _release _test _test_link _validate _validate_check _validate_gcc
+.PHONY: _all _bespoke_builds _check_link _clean _clean_dist _compile _compilation _install _release _test _test_link _validate _validate_check _validate_gcc
 
 # Don't auto-remove my object code
 .PRECIOUS: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FILE)) \
@@ -192,6 +195,11 @@ _compile:
 
 _compilation: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FILE))
 	@#echo "$@ needs $^"  # DEBUGGING
+
+_install: $(DIST_DIR)$(FULL_LIB_NAME)
+	@echo "Installing $^"  # DEBUGGING
+	$(foreach SKID_HDR_FILE, $(SKID_HDR_FILES), sudo cp $(SKID_HDR_FILE) $(HDR_INSTALL_DIR);)
+	@sudo cp $(DIST_DIR)$(FULL_LIB_NAME) $(LIB_INSTALL_DIR)
 
 _release:
 	@#echo "Releasing $(FULL_LIB_NAME)"  # DEBUGGING
