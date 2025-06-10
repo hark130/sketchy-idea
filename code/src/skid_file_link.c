@@ -23,7 +23,7 @@
  *  Returns:
  *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
-int validate_pathname(const char *pathname);
+int validate_sfl_pathname(const char *pathname);
 
 
 /**************************************************************************************************/
@@ -37,10 +37,10 @@ int create_hard_link(const char *source, const char *hard_link)
     int errnum = ENOERR;  // Results of the function call
 
     // INPUT VALIDATION
-    errnum = validate_pathname(source);
+    errnum = validate_sfl_pathname(source);
     if (ENOERR == errnum)
     {
-        errnum = validate_pathname(hard_link);
+        errnum = validate_sfl_pathname(hard_link);
     }
 
     // CREATE IT
@@ -65,10 +65,10 @@ int create_sym_link(const char *source, const char *sym_link)
     int errnum = ENOERR;  // Results of the function call
 
     // INPUT VALIDATION
-    errnum = validate_pathname(source);
+    errnum = validate_sfl_pathname(source);
     if (ENOERR == errnum)
     {
-        errnum = validate_pathname(sym_link);
+        errnum = validate_sfl_pathname(sym_link);
     }
 
     // CREATE IT
@@ -92,7 +92,7 @@ int create_sym_link(const char *source, const char *sym_link)
 /**************************************************************************************************/
 
 
-int validate_pathname(const char *pathname)
+int validate_sfl_pathname(const char *pathname)
 {
     return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
 }

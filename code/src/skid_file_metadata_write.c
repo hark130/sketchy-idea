@@ -143,7 +143,7 @@ int validate_sfmw_input(const char *pathname, int *errnum);
  *  Returns:
  *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
-int validate_pathname(const char *pathname);
+int validate_sfmw_pathname(const char *pathname);
 
 /*
  *  Description:
@@ -169,7 +169,7 @@ int add_mode(const char *pathname, mode_t more_mode)
     mode_t new_mode = 0;  // Set this with set_mode()
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // ADD IT UP
     // 1. Get current mode
@@ -201,7 +201,7 @@ int remove_mode(const char *pathname, mode_t less_mode)
     mode_t new_mode = 0;  // Set this with set_mode()
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // ADD IT UP
     // 1. Get current mode
@@ -232,7 +232,7 @@ int set_atime(const char *pathname, bool follow_sym, time_t seconds, long nsecon
     struct timespec times[2] = {};  // Communicate with utimensat() using atime, mtime
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // SET IT
     // Prepare atime
@@ -263,7 +263,7 @@ int set_atime_now(const char *pathname, bool follow_sym)
     struct timespec times[2] = {};  // Communicate with utimensat() using atime, mtime
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // SET IT
     // Prepare atime
@@ -294,7 +294,7 @@ int set_group_id(const char *pathname, gid_t new_group, bool follow_sym)
     uid_t uid = SFMW_IGNORE_ID;  // Ignore the owner
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // SET IT
     if (ENOERR == result)
@@ -313,7 +313,7 @@ int set_mode(const char *pathname, mode_t new_mode)
     int result = ENOERR;  // 0 on success, errno on failure
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // SET IT
     if (ENOERR == result)
@@ -338,7 +338,7 @@ int set_mtime(const char *pathname, bool follow_sym, time_t seconds, long nsecon
     struct timespec times[2] = {};  // Communicate with utimensat() using atime, mtime
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // SET IT
     // Prepare atime
@@ -369,7 +369,7 @@ int set_mtime_now(const char *pathname, bool follow_sym)
     struct timespec times[2] = {};  // Communicate with utimensat() using atime, mtime
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // SET IT
     // Prepare atime
@@ -400,7 +400,7 @@ int set_owner_id(const char *pathname, uid_t new_owner, bool follow_sym)
     gid_t gid = SFMW_IGNORE_ID;  // Ignore the group
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // SET IT
     if (ENOERR == result)
@@ -419,7 +419,7 @@ int set_ownership(const char *pathname, uid_t new_owner, gid_t new_group, bool f
     int result = ENOERR;  // 0 on success, errno on failure
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // SET IT
     if (ENOERR == result)
@@ -439,7 +439,7 @@ int set_times(const char *pathname, bool follow_sym, time_t seconds, long nsecon
     struct timespec times[2] = {};  // Communicate with utimensat() using atime, mtime
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // SET IT
     // Prepare atime
@@ -469,7 +469,7 @@ int set_times_now(const char *pathname, bool follow_sym)
     int result = ENOERR;            // 0 on success, errno on failure
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // Call call_utnsat()
     if (ENOERR == result)
@@ -495,7 +495,7 @@ int call_a_chown(const char *pathname, uid_t new_owner, gid_t new_group, bool fo
     bool is_sym = false;  // Is pathname a symbolic link?
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // CALL IT
     // Is pathname a symbolic link?
@@ -527,7 +527,7 @@ int call_chown(const char *pathname, uid_t new_owner, gid_t new_group)
     int result = ENOERR;  // The results of execution
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // CALL IT
     if (ENOERR == result)
@@ -551,7 +551,7 @@ int call_lchown(const char *pathname, uid_t new_owner, gid_t new_group)
     int result = ENOERR;  // The results of execution
 
     // INPUT VALIDATION
-    result = validate_pathname(pathname);
+    result = validate_sfmw_pathname(pathname);
 
     // CALL IT
     if (ENOERR == result)
@@ -577,7 +577,7 @@ int call_utnsat(const char *pathname, const struct timespec times[2], bool follo
     int flags = 0;        // flags argument for utimensat()
 
     // INPUT VALIDATION
-    retval = validate_pathname(pathname);
+    retval = validate_sfmw_pathname(pathname);
     // CALL IT
     // Is pathname absolute?
     if (ENOERR == retval)
@@ -707,7 +707,7 @@ int validate_sfmw_input(const char *pathname, int *errnum)
 
     // VALIDATE IT
     // pathname
-    retval = validate_pathname(pathname);
+    retval = validate_sfmw_pathname(pathname);
     // errnum
     if (ENOERR == retval)
     {
@@ -723,7 +723,7 @@ int validate_sfmw_input(const char *pathname, int *errnum)
 }
 
 
-int validate_pathname(const char *pathname)
+int validate_sfmw_pathname(const char *pathname)
 {
     return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
 }
