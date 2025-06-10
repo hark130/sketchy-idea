@@ -138,11 +138,21 @@ UNIT_TEST_LINK_DEPS = $(foreach UNIT_TEST_OBJ_FILE, $(UNIT_TEST_OBJ_FILES), $(DI
 # A space-separated list of all the test binaries
 CHECK_BIN_LIST = $(shell ls $(DIST_DIR)$(CHECK_PREFIX)*$(BIN_FILE_EXT))
 MAN_TEST_BIN_LIST = $(foreach MAN_TEST_BIN_FILE, $(MAN_TEST_BIN_FILES), $(DIST_DIR)$(MAN_TEST_BIN_FILE))
+# Shared Object Variables
+# All skid_*.c filenames found in SRC_DIR
+SKID_SRC_FILES := $(shell ls $(SRC_DIR)skid_*$(SRC_FILE_EXT))
+BASE_LIB_NAME = libsketchyidea
+MAJ_VER = 1
+MIN_VER = 0
+MIC_VER = 0
+SHORT_LIB_NAME = $(BASE_LIB_NAME)$(SHD_FILE_EXT).$(MAJ_VER)
+FULL_LIB_NAME = $(SHORT_LIB_NAME).$(MIN_VER).$(MIC_VER)
+
 
 ### SPECIAL BUILT-IN TARGET NAMES ###
 
 # Do not treat these target names as file names
-.PHONY: _all _bespoke_builds _check_link _clean _clean_dist _compile _compilation _test _test_link _validate _validate_check _validate_gcc
+.PHONY: _all _bespoke_builds _check_link _clean _clean_dist _compile _compilation _release _test _test_link _validate _validate_check _validate_gcc
 
 # Don't auto-remove my object code
 .PRECIOUS: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FILE)) \
@@ -157,6 +167,7 @@ _all:
 	$(CALL_MAKE) clean
 	$(CALL_MAKE) compile
 	$(CALL_MAKE) test
+	$(CALL_MAKE) release
 
 # Builds that don't conform to the prefix mnemonic used here (e.g., check_*, test_*)
 _bespoke_builds:
@@ -181,6 +192,10 @@ _compile:
 
 _compilation: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FILE))
 	@#echo "$@ needs $^"  # DEBUGGING
+
+_release:
+	@#echo "Releasing $(FULL_LIB_NAME)"  # DEBUGGING
+	@$(CC) -fpic -o $(DIST_DIR)$(FULL_LIB_NAME) $(SKID_SRC_FILES) -shared -Wl,-soname,$(SHORT_LIB_NAME) -I $(INCLUDE_DIR)
 
 _test:
 	@#echo "$@ needs $^"  # DEBUGGING
