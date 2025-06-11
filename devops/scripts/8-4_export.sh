@@ -74,14 +74,14 @@ EXIT_CODE=0                                                         # Exit value
 DIST_DIR=./code/dist/
 MAN_TEST_BIN=("${DIST_DIR}test_libskid_sa_read_cpu_tsc.bin" "${DIST_DIR}test_libskid_sdo_read_dir_contents.bin" "${DIST_DIR}test_libskid_sfmr_get_file_perms.bin")
 
-# # 1. Stores the date
-# date && \
-# # 2. Runs the build system (which also executes the Check-based unit tests)
-# make && echo && \
-# # 3. Executes the unit tests with Valgrind
-# ./devops/scripts/run_valgrind.sh; [[ $? -ne 0 ]] && exit; echo && \
-# # 4. Counts the number of unit tests (by running them again)
-# for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
+# 1. Stores the date
+date && \
+# 2. Runs the build system (which also executes the Check-based unit tests)
+make && echo && \
+# 3. Executes the unit tests with Valgrind
+./devops/scripts/run_valgrind.sh; [[ $? -ne 0 ]] && exit; echo && \
+# 4. Counts the number of unit tests (by running them again)
+for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
 # 5. Misc.
 # 5.A. Showcases the "installed" shared object
 printf "\n%s SKETCHY IDEA (SKID) has been released as a shared object and installed locally %s\n" "$BOOKEND" "$BOOKEND"
