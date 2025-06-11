@@ -155,7 +155,7 @@ FULL_LIB_NAME = $(SHORT_LIB_NAME).$(MIN_VER).$(MIC_VER)
 ### SPECIAL BUILT-IN TARGET NAMES ###
 
 # Do not treat these target names as file names
-.PHONY: _all _bespoke_builds _check_link _clean _clean_dist _compile _compilation _install _release _test _test_link _validate _validate_check _validate_gcc
+.PHONY: _all _bespoke_builds _check_link _clean _clean_dist _compile _compilation _install _release _test _test_link _validate _validate_check _validate_gcc _validate_musl
 
 # Don't auto-remove my object code
 .PRECIOUS: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FILE)) \
@@ -217,6 +217,7 @@ _validate:
 	$(CALL_MAKE) _validate_gcc
 	$(CALL_MAKE) _validate_glibc
 	$(CALL_MAKE) _validate_check
+	$(CALL_MAKE) _validate_musl
 
 _validate_check:
 	@echo "    Validating Check"
@@ -232,6 +233,11 @@ _validate_glibc:
 	@echo "    Validating glibc"
 	@ldd --version > $(NULL)
 	@echo "        $(CHECK) $(shell ldd --version | head -n 1)"
+
+_validate_musl:
+	@echo "    Validating "$(MCC)""
+	@$(MCC) --version > $(NULL)
+	@echo "        $(CHECK) $(shell $(MCC) --version | head -n 1)"
 
 # CHECK: Linking skid_dir_operations library unit test binaries
 $(DIST_DIR)$(CHECK_SDO_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SDO_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS)
