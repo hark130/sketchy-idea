@@ -205,7 +205,7 @@ _install: $(DIST_DIR)$(FULL_LIB_NAME)
 	sudo ln -f -s $(LIB_INSTALL_DIR)/$(SHORT_LIB_NAME) $(LIB_INSTALL_DIR)/$(BASE_SO_NAME)
 
 _release:
-	@#echo "Releasing $(FULL_LIB_NAME)"  # DEBUGGING
+	@echo "Releasing $(FULL_LIB_NAME)"  # DEBUGGING
 	@$(CC) -fpic -o $(DIST_DIR)$(FULL_LIB_NAME) $(SKID_SRC_FILES) -shared -Wl,-soname,$(SHORT_LIB_NAME) -I $(INCLUDE_DIR)
 
 _test:
