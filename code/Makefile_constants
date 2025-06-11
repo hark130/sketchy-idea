@@ -26,6 +26,7 @@ TEST_DIR = test/
 HDR_FILE_EXT = .h
 LIB_FILE_EXT = .lib
 OBJ_FILE_EXT = .o
+SHD_FILE_EXT = .so
 SRC_FILE_EXT = .c
 
 ### MAKEFILE ARGUMENTS ###

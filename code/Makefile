@@ -34,6 +34,7 @@ all:
 	$(CALL_MAKE) clean
 	$(CALL_MAKE) compile
 	$(CALL_MAKE) test
+	$(CALL_MAKE) release
 
 clean:
 	@echo ""
@@ -44,6 +45,16 @@ compile:
 	@echo ""
 	@echo "COMPILING"
 	$(CALL_MAKE) _compile
+
+install:
+	@echo ""
+	@echo "INSTALLING"
+	$(CALL_MAKE) _install
+
+release:
+	@echo ""
+	@echo "RELEASING"
+	$(CALL_MAKE) _release
 
 test:
 	@echo ""
