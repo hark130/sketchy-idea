@@ -26,10 +26,10 @@
 #endif  /* __GNUC__ */
 // SKID_INTERNAL
 #if (defined(__GNUC__) || defined(__clang__)) && defined(SKID_RELEASE)
-#define SKID_INTERNAL __attribute__((visibility("internal"))) static
+#define SKID_INTERNAL __attribute__((visibility("internal")))
 #else
 #define SKID_INTERNAL
-#end  /* SKID_INTERNAL */
+#endif  /* SKID_INTERNAL */
 
 /* FILE MACROS */
 #if defined(PATH_MAX)
