@@ -208,7 +208,6 @@ _install: $(DIST_DIR)$(FULL_LIB_NAME)
 
 _release:
 	@echo "Releasing $(FULL_LIB_NAME)"
-	@#$(CC) -fpic -o $(DIST_DIR)$(FULL_LIB_NAME) $(SKID_SRC_FILES) -fvisibility=hidden -DSKID_RELEASE -shared -Wl,-soname,$(SHORT_LIB_NAME) -I $(INCLUDE_DIR)
 	@$(CC) -fpic -o $(DIST_DIR)$(FULL_LIB_NAME) $(SKID_SRC_FILES) -DSKID_RELEASE -shared -Wl,-soname,$(SHORT_LIB_NAME) -I $(INCLUDE_DIR)  # DEBUGGING
 
 _test:
