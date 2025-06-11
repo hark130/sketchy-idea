@@ -8,7 +8,7 @@
 #include "skid_dir_operations.h"        // _DEFAULT_SOURCE, delete_dir()
 #include "skid_file_metadata_read.h"    // is_directory()
 #include "skid_file_operations.h"       // delete_file()
-#include "skid_macros.h"                // ENOERR
+#include "skid_macros.h"                // ENOERR, SKID_INTERNAL
 #include "skid_memory.h"                // copy_skid_string(), free_skid_mem(), free_skid_string()
 #include "skid_validation.h"            // validate_skid_err(), validate_skid_pathname()
 #include <dirent.h>                     // closedir(), opendir(), readdir(), struct dirent
@@ -43,7 +43,7 @@
  *      The number of non-NULL entries in the content_arr.  0 on bad input: NULL pointer, invalid
  *      capacity value.
  */
-size_t count_content_arr_entries(char **content_arr, size_t *capacity);
+SKID_INTERNAL size_t count_content_arr_entries(char **content_arr, size_t *capacity);
 
 /*
  *  Description:
@@ -408,7 +408,7 @@ char **read_dir_contents(const char *dirname, bool recurse, int *errnum, size_t 
 /**************************************************************************************************/
 
 
-size_t count_content_arr_entries(char **content_arr, size_t *capacity)
+SKID_INTERNAL size_t count_content_arr_entries(char **content_arr, size_t *capacity)
 {
     // LOCAL VARIABLES
     size_t count = 0;              // Number of non-NULL entries in content_arr.
