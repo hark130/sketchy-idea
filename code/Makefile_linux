@@ -144,11 +144,12 @@ MAN_TEST_BIN_LIST = $(foreach MAN_TEST_BIN_FILE, $(MAN_TEST_BIN_FILES), $(DIST_D
 # All skid_*.c filenames found in SRC_DIR
 SKID_SRC_FILES := $(shell ls $(SRC_DIR)skid_*$(SRC_FILE_EXT))
 SKID_HDR_FILES := $(shell ls $(INCLUDE_DIR)skid_*$(HDR_FILE_EXT))
-BASE_LIB_NAME = libsketchyidea
 MAJ_VER = 1
 MIN_VER = 0
 MIC_VER = 0
-SHORT_LIB_NAME = $(BASE_LIB_NAME)$(SHD_FILE_EXT).$(MAJ_VER)
+BASE_LIB_NAME = libsketchyidea
+BASE_SO_NAME = $(BASE_LIB_NAME)$(SHD_FILE_EXT)
+SHORT_LIB_NAME = $(BASE_SO_NAME).$(MAJ_VER)
 FULL_LIB_NAME = $(SHORT_LIB_NAME).$(MIN_VER).$(MIC_VER)
 
 
@@ -199,7 +200,9 @@ _compilation: $(foreach RAW_OBJ_FILE, $(RAW_OBJ_FILES), $(DIST_DIR)$(RAW_OBJ_FIL
 _install: $(DIST_DIR)$(FULL_LIB_NAME)
 	@echo "Installing $^"  # DEBUGGING
 	$(foreach SKID_HDR_FILE, $(SKID_HDR_FILES), sudo cp $(SKID_HDR_FILE) $(HDR_INSTALL_DIR);)
-	@sudo cp $(DIST_DIR)$(FULL_LIB_NAME) $(LIB_INSTALL_DIR)
+	sudo cp $(DIST_DIR)$(FULL_LIB_NAME) $(LIB_INSTALL_DIR)
+	sudo ln -f -s $(LIB_INSTALL_DIR)/$(FULL_LIB_NAME) $(LIB_INSTALL_DIR)/$(SHORT_LIB_NAME)
+	sudo ln -f -s $(LIB_INSTALL_DIR)/$(SHORT_LIB_NAME) $(LIB_INSTALL_DIR)/$(BASE_SO_NAME)
 
 _release:
 	@#echo "Releasing $(FULL_LIB_NAME)"  # DEBUGGING
