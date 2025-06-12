@@ -27,7 +27,7 @@
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
-int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum, bool follow_sym);
+SKID_INTERNAL int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum, bool follow_sym);
 
 /*
  *  Description:
@@ -40,7 +40,7 @@ int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum, bool fo
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
-int call_lstat(const char *pathname, struct stat *statbuf, int *errnum);
+SKID_INTERNAL int call_lstat(const char *pathname, struct stat *statbuf, int *errnum);
 
 /*
  *  Description:
@@ -66,7 +66,7 @@ SKID_INTERNAL int call_stat(const char *pathname, struct stat *statbuf, int *err
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
-int validate_call_input(const char *pathname, struct stat *statbuf, int *errnum);
+SKID_INTERNAL int validate_call_input(const char *pathname, struct stat *statbuf, int *errnum);
 
 /*
  *  Description:
@@ -78,7 +78,7 @@ int validate_call_input(const char *pathname, struct stat *statbuf, int *errnum)
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
-int validate_sfmr_input(const char *pathname, int *errnum);
+SKID_INTERNAL int validate_sfmr_input(const char *pathname, int *errnum);
 
 /*
  *  Description:
@@ -88,7 +88,7 @@ int validate_sfmr_input(const char *pathname, int *errnum);
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
-int validate_sfmr_pathname(const char *pathname);
+SKID_INTERNAL int validate_sfmr_pathname(const char *pathname);
 
 /*
  *  Description:
@@ -100,12 +100,14 @@ int validate_sfmr_pathname(const char *pathname);
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
-int validate_timestamp(const char *pathname, time_t *seconds, long *nseconds);
+SKID_INTERNAL int validate_timestamp(const char *pathname, time_t *seconds, long *nseconds);
 
 
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
 /**************************************************************************************************/
+
+
 time_t get_access_time(const char *pathname, int *errnum, bool follow_sym)
 {
     // LOCAL VARIABLES
@@ -842,7 +844,9 @@ bool is_sym_link(const char *filename, int *errnum)
 /**************************************************************************************************/
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
-int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum, bool follow_sym)
+
+
+SKID_INTERNAL int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum, bool follow_sym)
 {
     // LOCAL VARIABLES
     int result = validate_call_input(pathname, statbuf, errnum);  // Errno value
@@ -870,7 +874,7 @@ int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum, bool fo
 }
 
 
-int call_lstat(const char *pathname, struct stat *statbuf, int *errnum)
+SKID_INTERNAL int call_lstat(const char *pathname, struct stat *statbuf, int *errnum)
 {
     // LOCAL VARIABLES
     int result = validate_call_input(pathname, statbuf, errnum);  // Errno value
@@ -920,7 +924,7 @@ SKID_INTERNAL int call_stat(const char *pathname, struct stat *statbuf, int *err
 }
 
 
-int validate_call_input(const char *pathname, struct stat *statbuf, int *errnum)
+SKID_INTERNAL int validate_call_input(const char *pathname, struct stat *statbuf, int *errnum)
 {
     // LOCAL VARIABLES
     int retval = ENOERR;  // The results of validation
@@ -948,7 +952,7 @@ int validate_call_input(const char *pathname, struct stat *statbuf, int *errnum)
 }
 
 
-int validate_sfmr_input(const char *pathname, int *errnum)
+SKID_INTERNAL int validate_sfmr_input(const char *pathname, int *errnum)
 {
     // LOCAL VARIABLES
     int retval = ENOERR;  // The results of validation
@@ -971,13 +975,13 @@ int validate_sfmr_input(const char *pathname, int *errnum)
 }
 
 
-int validate_sfmr_pathname(const char *pathname)
+SKID_INTERNAL int validate_sfmr_pathname(const char *pathname)
 {
     return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
 }
 
 
-int validate_timestamp(const char *pathname, time_t *seconds, long *nseconds)
+SKID_INTERNAL int validate_timestamp(const char *pathname, time_t *seconds, long *nseconds)
 {
     // LOCAL VARIABLES
     int retval = ENOERR;  // The results of validation
