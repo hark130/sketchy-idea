@@ -10,6 +10,64 @@
 # 5. Misc. (e.g., executing bespoke manual test code highlighting features/functionality)
 #   A. 
 
+
+BOOKEND="***"  # SPOT for formatting titles and banners
+
+
+#
+# PURPOSE:
+#   Standardize how high-level banners are printed
+#       *****************
+#       *** The title ***
+#       *****************
+# ARGUMENTS:
+#   title: The title to print as a string inside a banner
+# RETURN:
+#   The exit code
+#
+print_banner()
+{
+    # LOCAL VARIABLES
+    EXIT_CODE=0                                                # Exit code from command execution
+    FORMAT_CHAR="${BOOKEND:0:1}"                               # Formatting
+    TITLE="$@"                                                 # The title argument
+    LENGTH=$((${#BOOKEND} + 1 + ${#TITLE} + 1 + ${#BOOKEND}))  # Length of the title
+    BANNER=$(printf "%${LENGTH}s" | tr " " "$FORMAT_CHAR")     # Banner string
+
+    # DO IT
+    printf "\n%s\n" "$BANNER"  # Header
+    print_title "$TITLE"
+    EXIT_CODE=$?
+    printf "%s\n" "$BANNER"  # Footer
+
+    # DONE
+    return $EXIT_CODE
+}
+
+#
+# PURPOSE:
+#   Standardize how titles are printed in the exported output:
+#   No leading newline will be added
+#       *** The title ***
+# ARGUMENTS:
+#   title: The title to print as a string
+# RETURN:
+#   The exit code
+#
+print_title()
+{
+    # LOCAL VARIABLES
+    EXIT_CODE=0    # Exit code from command execution
+    TITLE="$@"     # The title argument
+
+    # DO IT
+    printf "%s %s %s\n" "$BOOKEND" "$TITLE" "$BOOKEND"
+    EXIT_CODE=$?
+
+    # DONE
+    return $EXIT_CODE
+}
+
 #
 # PURPOSE:
 #   Run manual test code in a standardized way
@@ -80,7 +138,8 @@ make && echo && \
 for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
 # 5. Misc.
 # 5.A.
-printf "\n%s TO DO: DON'T DO NOW... Put something here! %s\n" "$BOOKEND" "$BOOKEND"
+echo
+print_title "TO DO: DON'T DO NOW... Put something here!"
 
 # DONE
 if [ $EXIT_CODE -ne 0 ]
