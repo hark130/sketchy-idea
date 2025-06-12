@@ -208,7 +208,7 @@ _install: $(DIST_DIR)$(FULL_LIB_NAME)
 
 _release:
 	@echo "Releasing $(FULL_LIB_NAME)"
-	@$(CC) -fpic -o $(DIST_DIR)$(FULL_LIB_NAME) $(SKID_SRC_FILES) -DSKID_RELEASE -shared -Wl,-soname,$(SHORT_LIB_NAME) -I $(INCLUDE_DIR)  # DEBUGGING
+	@$(CC) -fpic -o $(DIST_DIR)$(FULL_LIB_NAME) $(SKID_SRC_FILES) -DSKID_RELEASE -shared -Wl,-soname,$(SHORT_LIB_NAME) -I $(INCLUDE_DIR)
 
 _test:
 	@#echo "$@ needs $^"  # DEBUGGING
@@ -386,3 +386,9 @@ $(DIST_DIR)test_misc_glibc_vs_musl-static_musl$(BIN_FILE_EXT): $(TEST_DIR)test_m
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Statically compiling bespoke binary: $@"
 	@$(MCC) $(CFLAGS) -g -static -o $@ $^
+
+# BESPOKE: test_misc_sfmr_call_stat.bin
+$(DIST_DIR)test_misc_sfmr_call_stat$(BIN_FILE_EXT): $(TEST_DIR)test_misc_sfmr_call_stat$(SRC_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Compiling bespoke binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^
