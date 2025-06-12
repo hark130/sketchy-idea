@@ -8,6 +8,7 @@
 #include <stdbool.h>                        // false
 #include <unistd.h>                         // link(), symlink()
 #include "skid_debug.h"                     // PRINT_ERRNO()
+#include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
 #include "skid_validation.h"                // validate_skid_pathname()
 
 
@@ -23,7 +24,7 @@
  *  Returns:
  *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
-int validate_sfl_pathname(const char *pathname);
+SKID_INTERNAL int validate_sfl_pathname(const char *pathname);
 
 
 /**************************************************************************************************/
@@ -92,7 +93,7 @@ int create_sym_link(const char *source, const char *sym_link)
 /**************************************************************************************************/
 
 
-int validate_sfl_pathname(const char *pathname)
+SKID_INTERNAL int validate_sfl_pathname(const char *pathname)
 {
     return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
 }
