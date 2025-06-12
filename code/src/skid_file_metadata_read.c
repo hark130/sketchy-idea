@@ -1,5 +1,5 @@
 /*
- *    This library defines functionality to read, parse, and report on Linux file metadata.
+ *  This library defines functionality to read, parse, and report on Linux file metadata.
  */
 
 // #define SKID_DEBUG  // Enable DEBUG logging
@@ -18,12 +18,12 @@
 /*
  *  Description:
  *      Calls one of the stat-family functions based on caller arguments.  Defaults to stat().
- *        If pathname is a symbolic link and follow_sym is false, uses lstat() instead.
+ *      If pathname is a symbolic link and follow_sym is false, uses lstat() instead.
  *  Args:
  *      pathname: Absolute or relative pathname to check with lstat().
- *        statbuf: [Out] Pointer to a stat struct to update with the results of the call to stat().
+ *      statbuf: [Out] Pointer to a stat struct to update with the results of the call to stat().
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
- *        follow_sym: If false, uses lstat() for symlinks.
+ *      follow_sym: If false, uses lstat() for symlinks.
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
@@ -32,10 +32,10 @@ int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum, bool fo
 /*
  *  Description:
  *      Calls lstat(pathname) and updates statbuf.  Standardizes basic error handling.  Updates
- *        errnum with any errno values encountered, 0 on success.
+ *      errnum with any errno values encountered, 0 on success.
  *  Args:
  *      pathname: Absolute or relative pathname to check with lstat().
- *        statbuf: [Out] Pointer to a stat struct to update with the results of the call to stat().
+ *      statbuf: [Out] Pointer to a stat struct to update with the results of the call to stat().
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
@@ -48,7 +48,7 @@ int call_lstat(const char *pathname, struct stat *statbuf, int *errnum);
  *        errnum with any errno values encountered, 0 on success.
  *  Args:
  *      pathname: Absolute or relative pathname to check with stat().
- *        statbuf: [Out] Pointer to a stat struct to update with the results of the call to stat().
+ *      statbuf: [Out] Pointer to a stat struct to update with the results of the call to stat().
  *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
@@ -58,10 +58,10 @@ int call_stat(const char *pathname, struct stat *statbuf, int *errnum);
 /*
  *  Description:
  *      Validates the input arguments and updates errnum accordingly.  Will update errnum unless
- *        errnum is the cause of the problem.
+ *      errnum is the cause of the problem.
  *  Args:
  *      filename: Must be non-NULL and also can't be empty.
- *        statbuf: Must be a non-NULL pointer.
+ *      statbuf: Must be a non-NULL pointer.
  *      errnum: Must be a non-NULL pointer.  Set to 0 on success.
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
@@ -71,7 +71,7 @@ int validate_call_input(const char *pathname, struct stat *statbuf, int *errnum)
 /*
  *  Description:
  *      Validates the input arguments and updates errnum accordingly.  Will update errnum unless
- *        errnum is the cause of the problem.
+ *      errnum is the cause of the problem.
  *  Args:
  *      pathname: Must be non-NULL and also can't be empty.
  *      errnum: Must be a non-NULL pointer.  Set to 0 on success.
@@ -95,8 +95,8 @@ int validate_sfmr_pathname(const char *pathname);
  *      Validates the timestamp input arguments.
  *  Args:
  *      pathname: Must be non-NULL and also can't be empty.
- *        seconds: Non-NULL pointer.
- *        nseconds: Non-NULL pointer.
+ *      seconds: Non-NULL pointer.
+ *      nseconds: Non-NULL pointer.
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
@@ -115,12 +115,12 @@ time_t get_access_time(const char *pathname, int *errnum, bool follow_sym)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_a_stat(pathname, &stat_struct, errnum, follow_sym);
     }
     // Check it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_atime;
     }
@@ -139,12 +139,12 @@ long get_access_time_nsecs(const char *pathname, int *errnum, bool follow_sym)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_a_stat(pathname, &stat_struct, errnum, follow_sym);
     }
     // Check it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_atim.tv_nsec;
     }
@@ -188,12 +188,12 @@ blkcnt_t get_block_count(const char *filename, int *errnum)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_stat(filename, &stat_struct, errnum);
     }
     // Check it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_blocks;
     }
@@ -212,12 +212,12 @@ blksize_t get_block_size(const char *filename, int *errnum)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_stat(filename, &stat_struct, errnum);
     }
     // Check it
-    if (!err)
+    if (ENOERR == err)
     {
         // The st_blksize field gives the "preferred" blocksize for efficient file system I/O.
         retval = stat_struct.st_blksize;
@@ -237,12 +237,12 @@ time_t get_change_time(const char *pathname, int *errnum, bool follow_sym)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_a_stat(pathname, &stat_struct, errnum, follow_sym);
     }
     // Check it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_ctime;
     }
@@ -261,12 +261,12 @@ long get_change_time_nsecs(const char *pathname, int *errnum, bool follow_sym)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_a_stat(pathname, &stat_struct, errnum, follow_sym);
     }
     // Check it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_ctim.tv_nsec;
     }
@@ -310,12 +310,12 @@ dev_t get_container_device_id(const char *pathname, int *errnum)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_stat(pathname, &stat_struct, errnum);
     }
     // Get it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_rdev;
     }
@@ -334,12 +334,12 @@ dev_t get_file_device_id(const char *pathname, int *errnum)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_stat(pathname, &stat_struct, errnum);
     }
     // Get it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_dev;
     }
@@ -359,12 +359,12 @@ mode_t get_file_perms(const char *pathname, int *errnum)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_stat(pathname, &stat_struct, errnum);
     }
     // Get it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_mode & perm_mask;
     }
@@ -383,12 +383,12 @@ mode_t get_file_type(const char *filename, int *errnum)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_stat(filename, &stat_struct, errnum);
     }
     // Check it
-    if (!err)
+    if (ENOERR == err)
     {
         // S_IFMT is the bit mask for the file type bit field
         retval = stat_struct.st_mode & S_IFMT;
@@ -408,7 +408,7 @@ gid_t get_group(const char *pathname, int *errnum, bool follow_sym)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         if (true == follow_sym)
         {
@@ -420,7 +420,7 @@ gid_t get_group(const char *pathname, int *errnum, bool follow_sym)
         }
     }
     // Get it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_gid;
     }
@@ -439,12 +439,12 @@ nlink_t get_hard_link_num(const char *pathname, int *errnum)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_stat(pathname, &stat_struct, errnum);
     }
     // Get it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_nlink;
     }
@@ -463,12 +463,12 @@ time_t get_mod_time(const char *filename, int *errnum, bool follow_sym)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_a_stat(filename, &stat_struct, errnum, follow_sym);
     }
     // Check it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_mtime;
     }
@@ -487,12 +487,12 @@ long get_mod_time_nsecs(const char *pathname, int *errnum, bool follow_sym)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_a_stat(pathname, &stat_struct, errnum, follow_sym);
     }
     // Check it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_mtim.tv_nsec;
     }
@@ -536,7 +536,7 @@ uid_t get_owner(const char *pathname, int *errnum, bool follow_sym)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         if (true == follow_sym)
         {
@@ -548,7 +548,7 @@ uid_t get_owner(const char *pathname, int *errnum, bool follow_sym)
         }
     }
     // Get it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_uid;
     }
@@ -567,12 +567,12 @@ ino_t get_serial_num(const char *pathname, int *errnum)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_stat(pathname, &stat_struct, errnum);
     }
     // Get it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_ino;
     }
@@ -591,12 +591,12 @@ off_t get_size(const char *pathname, int *errnum)
 
     // GET IT
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_stat(pathname, &stat_struct, errnum);
     }
     // Get it
-    if (!err)
+    if (ENOERR == err)
     {
         retval = stat_struct.st_size;
     }
@@ -699,7 +699,7 @@ bool is_block_device(const char *filename, int *errnum)
     int err = validate_sfmr_input(filename, errnum);  // Errno value
 
     // IS IT?
-    if (!err)
+    if (ENOERR == err)
     {
         if (S_IFBLK == get_file_type(filename, errnum))
         {
@@ -719,7 +719,7 @@ bool is_character_device(const char *filename, int *errnum)
     int err = validate_sfmr_input(filename, errnum);  // Errno value
 
     // IS IT?
-    if (!err)
+    if (ENOERR == err)
     {
         if (S_IFCHR == get_file_type(filename, errnum))
         {
@@ -739,7 +739,7 @@ bool is_directory(const char *pathname, int *errnum)
     int err = validate_sfmr_input(pathname, errnum);  // Errno value
 
     // IS IT?
-    if (!err)
+    if (ENOERR == err)
     {
         if (S_IFDIR == get_file_type(pathname, errnum))
         {
@@ -759,7 +759,7 @@ bool is_named_pipe(const char *filename, int *errnum)
     int err = validate_sfmr_input(filename, errnum);  // Errno value
 
     // IS IT?
-    if (!err)
+    if (ENOERR == err)
     {
         if (S_IFIFO == get_file_type(filename, errnum))
         {
@@ -779,7 +779,7 @@ bool is_regular_file(const char *filename, int *errnum)
     int err = validate_sfmr_input(filename, errnum);  // Errno value
 
     // IS IT?
-    if (!err)
+    if (ENOERR == err)
     {
         if (S_IFREG == get_file_type(filename, errnum))
         {
@@ -799,7 +799,7 @@ bool is_socket(const char *filename, int *errnum)
     int err = validate_sfmr_input(filename, errnum);  // Errno value
 
     // IS IT?
-    if (!err)
+    if (ENOERR == err)
     {
         if (S_IFSOCK == get_file_type(filename, errnum))
         {
@@ -821,12 +821,12 @@ bool is_sym_link(const char *filename, int *errnum)
 
     // IS IT?
     // Fetch metadata
-    if (!err)
+    if (ENOERR == err)
     {
         err = call_lstat(filename, &stat_struct, errnum);
     }
     // Check it
-    if (!err)
+    if (ENOERR == err)
     {
         if (S_IFLNK == (stat_struct.st_mode & S_IFMT))
         {
