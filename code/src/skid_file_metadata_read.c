@@ -6,7 +6,7 @@
 
 #include "skid_debug.h"                     // PRINT_ERRNO()
 #include "skid_file_metadata_read.h"
-#include "skid_macros.h"                    // ENOERR
+#include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
 #include "skid_validation.h"                // validate_skid_err(), validate_skid_pathname()
 #include <string.h>                         // memset()
 #include <time.h>                           // localtime(), strftime()
@@ -53,7 +53,7 @@ int call_lstat(const char *pathname, struct stat *statbuf, int *errnum);
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
-int call_stat(const char *pathname, struct stat *statbuf, int *errnum);
+SKID_INTERNAL int call_stat(const char *pathname, struct stat *statbuf, int *errnum);
 
 /*
  *  Description:
@@ -895,7 +895,7 @@ int call_lstat(const char *pathname, struct stat *statbuf, int *errnum)
 }
 
 
-int call_stat(const char *pathname, struct stat *statbuf, int *errnum)
+SKID_INTERNAL int call_stat(const char *pathname, struct stat *statbuf, int *errnum)
 {
     // LOCAL VARIABLES
     int result = validate_call_input(pathname, statbuf, errnum);  // Errno value
