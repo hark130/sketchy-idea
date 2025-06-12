@@ -9,7 +9,7 @@
 #include <unistd.h>                     // close()
 #include "skid_debug.h"                 // PRINT_ERROR()
 #include "skid_file_descriptors.h"      // close_fd()
-#include "skid_macros.h"                // SKID_BAD_FD
+#include "skid_macros.h"                // ENOERR, SKID_BAD_FD, SKID_INTERNAL
 #include "skid_memory.h"                // alloc_skid_mem(), free_skid_mem()
 #include "skid_validation.h"            // validate_skid_fd(), validate_skid_string()
 
@@ -21,86 +21,86 @@
 /**************************************************************************************************/
 
 /*
- *    Description:
- *        Determine if the bytes_read can fit into the output buffer based on its size and current
- *        length.
+ *  Description:
+ *      Determine if the bytes_read can fit into the output buffer based on its size and current
+ *      length.
  *
- *    Args:
- *        bytes_read: The number of bytes to append to the output buffer.
- *        output_len: The number of bytes currently in the buffer.
- *        output_size: Total size of the output buffer.
+ *  Args:
+ *      bytes_read: The number of bytes to append to the output buffer.
+ *      output_len: The number of bytes currently in the buffer.
+ *      output_size: Total size of the output buffer.
  *
- *    Returns:
- *        True if there's room.  False if there isn't (time to reallocate), on for invalid args.
+ *  Returns:
+ *      True if there's room.  False if there isn't (time to reallocate), on for invalid args.
  */
-bool check_for_space(size_t bytes_read, size_t output_len, size_t output_size);
+SKID_INTERNAL bool check_for_space(size_t bytes_read, size_t output_len, size_t output_size);
 
 /*
- *    Description:
- *        Check for an existing buffer pointer.  If one does not exist, make the first allocation.
+ *  Description:
+ *      Check for an existing buffer pointer.  If one does not exist, make the first allocation.
  *
- *    Args:
- *        output_buf: [Out] Pointer to the working heap-allocated buffer.  If this pointer holds
- *            a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
- *            output_size will be updated.
- *        output_size: [Out] Pointer to the size of output_buf.
+ *  Args:
+ *      output_buf: [Out] Pointer to the working heap-allocated buffer.  If this pointer holds
+ *          a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
+ *          output_size will be updated.
+ *      output_size: [Out] Pointer to the size of output_buf.
  *
- *    Returns:
- *        0 on success, errno on failure.
+ *  Returns:
+ *      0 on success, errno on failure.
  */
-int check_for_pre_alloc(char **output_buf, size_t *output_size);
+SKID_INTERNAL int check_for_pre_alloc(char **output_buf, size_t *output_size);
 
 /*
- *    Description:
- *        Read the contents of the file descriptor into a heap-allocated buffer.  If the buffer ever
- *        fills then this function will (effectively) reallocate more space.  It will read until
- *        no other data can be read or an error occurred.  It is the caller's responsibility to
- *        free the buffer with free_skid_mem().
+ *  Description:
+ *      Read the contents of the file descriptor into a heap-allocated buffer.  If the buffer ever
+ *      fills then this function will (effectively) reallocate more space.  It will read until
+ *      no other data can be read or an error occurred.  It is the caller's responsibility to
+ *      free the buffer with free_skid_mem().
  *
- *    Args:
- *        fd: File descriptor to read from.
- *        output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
- *            a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
- *            output_size will be updated.
- *        output_size: [In/Out] Pointer to the size of output_buf.
+ *  Args:
+ *      fd: File descriptor to read from.
+ *      output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
+ *          a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
+ *          output_size will be updated.
+ *      output_size: [In/Out] Pointer to the size of output_buf.
  *
- *    Returns:
- *        0 on success, errno on failure.
+ *  Returns:
+ *      0 on success, errno on failure.
  */
-int read_fd_dynamic(int fd, char **output_buf, size_t *output_size);
+SKID_INTERNAL int read_fd_dynamic(int fd, char **output_buf, size_t *output_size);
 
 /*
- *    Description:
- *        Reallocate a buffer: allocate a new buffer double the *output_size, copy the contents of
- *        *output_buf into the new buffer, free the old buffer, update the Out arguments.
- *        It is the caller's responsibility to free the buffer with free_skid_mem().
+ *  Description:
+ *      Reallocate a buffer: allocate a new buffer double the *output_size, copy the contents of
+ *      *output_buf into the new buffer, free the old buffer, update the Out arguments.
+ *      It is the caller's responsibility to free the buffer with free_skid_mem().
  *
- *    Args:
- *        output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
- *            a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
- *            output_size will be updated.
- *        output_size: [In/Out] Pointer to the size of output_buf.
+ *  Args:
+ *      output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
+ *          a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
+ *          output_size will be updated.
+ *      output_size: [In/Out] Pointer to the size of output_buf.
  *
- *    Returns:
- *        0 on success, errno on failure.  EOVERFLOW is used to indicate the output_size can not
- *        be doubled without overflowing the size_t data type.
+ *  Returns:
+ *      0 on success, errno on failure.  EOVERFLOW is used to indicate the output_size can not
+ *      be doubled without overflowing the size_t data type.
  */
-int realloc_fd_dynamic(char **output_buf, size_t *output_size);
+SKID_INTERNAL int realloc_fd_dynamic(char **output_buf, size_t *output_size);
 
 /*
- *    Description:
- *        Validate common In/Out args on behalf of the library.
+ *  Description:
+ *      Validate common In/Out args on behalf of the library.
  *
- *    Args:
- *        output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
- *            a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
- *            output_size will be updated.
- *        output_size: [In/Out] Pointer to the size of output_buf.
+ *  Args:
+ *      output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
+ *          a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
+ *          output_size will be updated.
+ *      output_size: [In/Out] Pointer to the size of output_buf.
  *
- *    Returns:
- *        0 on success, errno on failed validation.
+ *  Returns:
+ *      0 on success, errno on failed validation.
  */
-int validate_sfd_args(char **output_buf, size_t *output_size);
+SKID_INTERNAL int validate_sfd_args(char **output_buf, size_t *output_size);
 
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
@@ -309,7 +309,7 @@ int write_fd(int fd, const char *msg)
 /**************************************************************************************************/
 
 
-bool check_for_space(size_t bytes_read, size_t output_len, size_t output_size)
+SKID_INTERNAL bool check_for_space(size_t bytes_read, size_t output_len, size_t output_size)
 {
     // LOCAL VARIABLES
     bool has_room = false;  // Is there enough room in the output buffer to store bytes_read
@@ -328,7 +328,7 @@ bool check_for_space(size_t bytes_read, size_t output_len, size_t output_size)
 }
 
 
-int check_for_pre_alloc(char **output_buf, size_t *output_size)
+SKID_INTERNAL int check_for_pre_alloc(char **output_buf, size_t *output_size)
 {
     // LOCAL VARIABLES
     int result = ENOERR;   // Success of execution
@@ -361,7 +361,7 @@ int check_for_pre_alloc(char **output_buf, size_t *output_size)
 }
 
 
-int read_fd_dynamic(int fd, char **output_buf, size_t *output_size)
+SKID_INTERNAL int read_fd_dynamic(int fd, char **output_buf, size_t *output_size)
 {
     // LOCAL VARIABLES
     int result = validate_skid_fd(fd);          // Success of execution
@@ -455,7 +455,7 @@ int read_fd_dynamic(int fd, char **output_buf, size_t *output_size)
 }
 
 
-int realloc_fd_dynamic(char **output_buf, size_t *output_size)
+SKID_INTERNAL int realloc_fd_dynamic(char **output_buf, size_t *output_size)
 {
     // LOCAL VARIABLES
     int result = ENOERR;   // Success of execution
@@ -524,7 +524,7 @@ int realloc_fd_dynamic(char **output_buf, size_t *output_size)
 }
 
 
-int validate_sfd_args(char **output_buf, size_t *output_size)
+SKID_INTERNAL int validate_sfd_args(char **output_buf, size_t *output_size)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // Validation result
