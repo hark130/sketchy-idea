@@ -23,8 +23,6 @@ make && make install && \
 
 # 3. Prove the linker fails when pointed at the SKID shared object
 gcc -o ./code/dist/test_libskid_sfmr_call_stat.bin ./code/test/test_misc_sfmr_call_stat.c -lsketchyidea && \
-./code/dist/test_libskid_sfmr_call_stat.bin ./code/test/test_input/regular_file.txt && \
-./code/dist/test_libskid_sfmr_call_stat.bin ./code/test/test_input/ && \
 
 # 4. Trailing do-nothing command (for a partial copy/paste)
 echo
