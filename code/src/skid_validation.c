@@ -1,5 +1,5 @@
 /*
- *    This library defines functionality to help automate validation.
+ *  This library defines functionality to help automate validation.
  */
 
 // #define SKID_DEBUG                        // Enable DEBUG logging
@@ -55,7 +55,6 @@ int validate_skid_fd(int fd)
     // DONE
     return result;
 }
-
 
 
 int validate_skid_pathname(const char *pathname, bool must_exist)
