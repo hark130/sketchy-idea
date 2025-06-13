@@ -1,11 +1,17 @@
 
-#include <errno.h>              // errno
-#include <stdio.h>              // sprintf()
-#include <string.h>             // strlen()
-#include "skid_debug.h"         // PRINT_ERRNO, PRINT_ERROR
-#include "skid_memory.h"        // alloc_skid_mem(), free_skid_mem()
-#include "skid_time.h"          // SKID_BAD_TIME_T, time.h
-#include "skid_validation.h"    // validate_skid_err()
+#include <errno.h>                          // errno
+#include <stdio.h>                          // sprintf()
+#include <string.h>                         // strlen()
+#include "skid_debug.h"                     // PRINT_ERRNO, PRINT_ERROR
+#include "skid_macros.h"                    // ENOERR
+#include "skid_memory.h"                    // alloc_skid_mem(), free_skid_mem()
+#include "skid_time.h"                      // SKID_BAD_TIME_T, time.h
+#include "skid_validation.h"                // validate_skid_err()
+
+
+/**************************************************************************************************/
+/********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
+/**************************************************************************************************/
 
 
 struct tm *get_localtime(int *errnum)
