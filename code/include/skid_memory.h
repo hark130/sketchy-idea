@@ -1,7 +1,41 @@
+/*
+ *  This library defines functionality to allocate and free memory on behalf of SKID.
+ *  Macros have been implemented to assist with Resource Acquisition Is Initialization (RAII) style
+ *  automated cleanup of skid_memory allocations.
+ *
+ *  USAGE:
+ *      // These macros utilize the gcc attribute "cleanup".  Their usage will fail compilation
+ *      // if the attribute isn't supported.  Also, don't use these macros on non-skid_memory
+ *      // functions (e.g., calloc(), malloc()).
+ *      int errnum = ENOERR;  // Out-parameter for the results of SKID API functions
+ *
+ *      SKID_AUTO_FREE_CHAR char *string = copy_skid_string("My string", &errnum);  // A string var
+ *      // Utilize string, as normal
+ *      // string is automatically free()'d when it goes out of scope
+ *
+ *      SKID_AUTO_FREE_VOID void *buffer = alloc_skid_mem(128, 8, &errnum);  // A buffer var
+ *      // Utilize buffer, as normal
+ *      // buffer is automatically free()'d when it goes out of scope
+ */
+
 #ifndef __SKID_MEMORY__
 #define __SKID_MEMORY__
 
-#include <stddef.h>        					// size_t
+#if (defined(__GNUC__) || defined(__clang__))
+// Auto-cleanup a "char *" variable which holds a heap-allocated address provided by skid_memory.
+#define SKID_AUTO_FREE_CHAR __attribute__((cleanup(free_skid_string)))  // char *-use only
+// Auto-cleanup a "void *" variable which holds a heap-allocated address provided by skid_memory.
+#define SKID_AUTO_FREE_VOID __attribute__((cleanup(free_skid_mem)))     // void *-use only
+#else
+// Let the compiler inform the user that these macros are unresolved.
+//  Otherwise, defining these macros as "empty" (which is pretty standard) will likely result in
+//  a memory leak and that BUG shouldn't pass quietly.
+// An alternative was to use #error to invoke a pre-processor phase error message but I didn't
+//  want to penalize the user for utilizing a different compiler.
+#endif  /* SKID_AUTO_FREE_CHAR, SKID_AUTO_FREE_VOID */
+
+#include <stddef.h>                         // size_t
+#include "skid_macros.h"                    // ENOERR
 
 /*
  *  Description:
