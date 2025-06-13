@@ -1,5 +1,5 @@
 /*
- *    This library defines functionality to allocate and free memory on behalf of SKID.
+ *  This library defines functionality to allocate and free memory on behalf of SKID.
  */
 
 // #define SKID_DEBUG                          // Enable DEBUG logging
@@ -19,27 +19,27 @@
 /**************************************************************************************************/
 
 /*
- *    Description:
- *        Validate common arguments on behalf of skid_memory.
+ *  Description:
+ *      Validate common arguments on behalf of skid_memory.
  *
- *    Args:
- *        pathname: A non-NULL, non-empty, pathname.
- *        err: A non-NULL integer pointer.
+ *  Args:
+ *      pathname: A non-NULL, non-empty, pathname.
+ *      err: A non-NULL integer pointer.
  *
- *    Returns:
- *        0 for good input, errno for failed validation.
+ *  Returns:
+ *      0 for good input, errno for failed validation.
  */
 SKID_INTERNAL int validate_sm_standard_args(const char *pathname, int *err);
 
 /*
- *    Description:
- *        Validate pathnames on behalf of skid_memory.
+ *  Description:
+ *      Validate pathnames on behalf of skid_memory.
  *
- *    Args:
- *        pathname: A non-NULL, non-empty, pathname.
+ *  Args:
+ *      pathname: A non-NULL, non-empty, pathname.
  *
- *    Returns:
- *        0 for good input, errno for failed validation.
+ *  Returns:
+ *      0 for good input, errno for failed validation.
  */
 SKID_INTERNAL int validate_sm_pathname(const char *pathname);
 
