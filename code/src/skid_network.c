@@ -2,18 +2,18 @@
  *  This library defines functionality to help manager server/clients.
  */
 
-// #define SKID_DEBUG                        // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
-#include "skid_file_descriptors.h"        // close_fd()
-#include "skid_debug.h"                    // PRINT_ERRNO(), PRINT_ERROR()
-#include "skid_macros.h"                // ENOERR
-#include "skid_memory.h"                // alloc_skid_mem()
-#include "skid_network.h"                // SKID_BAD_FD
-#include "skid_validation.h"            // validate_skid_err(), validate_skid_sockfd()
-#include <arpa/inet.h>                    // inet_ntop()
-#include <errno.h>                        // EINVAL
-#include <string.h>                        // strlen()
-#include <unistd.h>                        // close()
+#include "skid_file_descriptors.h"          // close_fd()
+#include "skid_debug.h"                     // PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
+#include "skid_memory.h"                    // alloc_skid_mem()
+#include "skid_network.h"                   // SKID_BAD_FD
+#include "skid_validation.h"                // validate_skid_err(), validate_skid_sockfd()
+#include <arpa/inet.h>                      // inet_ntop()
+#include <errno.h>                          // EINVAL
+#include <string.h>                         // strlen()
+#include <unistd.h>                         // close()
 
 #ifdef SKID_DEBUG
 #include <stdio.h>   // fprintf()
@@ -45,7 +45,7 @@
  *  Returns:
  *      0 on success, errno on failure.
  */
-int check_sn_pre_alloc(char **output_buf, size_t *output_size);
+SKID_INTERNAL int check_sn_pre_alloc(char **output_buf, size_t *output_size);
 
 /*
  *  Description:
@@ -60,7 +60,7 @@ int check_sn_pre_alloc(char **output_buf, size_t *output_size);
  *  Returns:
  *      True if there's room.  False if there isn't (time to reallocate), on for invalid args.
  */
-bool check_sn_space(size_t bytes_read, size_t output_len, size_t output_size);
+SKID_INTERNAL bool check_sn_space(size_t bytes_read, size_t output_len, size_t output_size);
 
 /*
  *  Description:
@@ -74,7 +74,7 @@ bool check_sn_space(size_t bytes_read, size_t output_len, size_t output_size);
  *      Pointer to the relevant struct in*_addr member on success.  NULL on error (consult
  *      errnum for details).  EPFNOSUPPORT is used to indicate an unsupported sa->sa_family.
  */
-void *get_inet_addr(struct sockaddr *sa, int *errnum);
+SKID_INTERNAL void *get_inet_addr(struct sockaddr *sa, int *errnum);
 
 /*
  *  Description:
@@ -87,7 +87,7 @@ void *get_inet_addr(struct sockaddr *sa, int *errnum);
  *  Returns:
  *      The struct sockaddr.sa_family value on success, 0 on failure (sets errno value in errnum).
  */
-sa_family_t get_socket_family(int sockfd, int *errnum);
+SKID_INTERNAL sa_family_t get_socket_family(int sockfd, int *errnum);
 
 /*
  *  Description:
@@ -117,8 +117,8 @@ sa_family_t get_socket_family(int sockfd, int *errnum);
  *  Returns:
  *      0 on success, errno on failure.
  */
-int get_socket_option(int sockfd, int level, int option_name,
-                      void *restrict option_value, socklen_t *restrict option_len);
+SKID_INTERNAL int get_socket_option(int sockfd, int level, int option_name,
+                                    void *restrict option_value, socklen_t *restrict option_len);
 
 /*
  *  Description:
@@ -136,7 +136,7 @@ int get_socket_option(int sockfd, int level, int option_name,
  *      0 on success, errno on failure.  EOVERFLOW is used to indicate the output_size can not
  *      be doubled without overflowing the size_t data type.
  */
-int realloc_sock_dynamic(char **output_buf, size_t *output_size);
+SKID_INTERNAL int realloc_sock_dynamic(char **output_buf, size_t *output_size);
 
 /*
  *  Description:
@@ -157,7 +157,7 @@ int realloc_sock_dynamic(char **output_buf, size_t *output_size);
  *      "nothing to read" and 0 will be returned: zero-length datagrams, no data to read, etc.
  *      On an actual error, -1 is returned but the errno value will be stored in errnum.
  */
-ssize_t recv_from_size(int sockfd, int *errnum);
+SKID_INTERNAL ssize_t recv_from_size(int sockfd, int *errnum);
 
 /*
  *  Description:
@@ -179,8 +179,9 @@ ssize_t recv_from_size(int sockfd, int *errnum);
  *  Returns:
  *      0 on success, errno on failure.
  */
-int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
-                             char **output_buf, size_t *output_size);
+SKID_INTERNAL int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr,
+                                           socklen_t *addrlen, char **output_buf,
+                                           size_t *output_size);
 
 /*
  *  Description:
@@ -200,7 +201,8 @@ int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, s
  *  Returns:
  *      0 on success, errno on failure.
  */
-int recv_socket_dynamic(int sockfd, int flags, char **output_buf, size_t *output_size);
+SKID_INTERNAL int recv_socket_dynamic(int sockfd, int flags, char **output_buf,
+                                      size_t *output_size);
 
 /*
  *  Description:
@@ -223,8 +225,8 @@ int recv_socket_dynamic(int sockfd, int flags, char **output_buf, size_t *output
  *    Partial sends, number of bytes sent < len, are treated as successful.
  *    Otherwise, -1 shall be returned and errnum set to indicate the error.
  */
-ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
-                const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum);
+SKID_INTERNAL ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
+                              const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum);
 
 /*
  *  Description:
@@ -246,8 +248,9 @@ ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
  *    Partial sends, number of bytes sent < len, are treated as successful.
  *    Otherwise, -1 shall be returned and errnum set to indicate the error.
  */
-ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
-                      const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum);
+SKID_INTERNAL ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
+                                    const struct sockaddr *dest_addr, socklen_t addrlen,
+                                    int *errnum);
 
 /*
  *  Description:
@@ -262,7 +265,7 @@ ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
  *  Returns:
  *    0 on success, errno on failed validation.
  */
-int validate_sn_args(char **output_buf, size_t *output_size);
+SKID_INTERNAL int validate_sn_args(char **output_buf, size_t *output_size);
 
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
@@ -965,7 +968,7 @@ int send_to_socket(int sockfd, const char *msg, int flags, const struct sockaddr
 /**************************************************************************************************/
 
 
-int check_sn_pre_alloc(char **output_buf, size_t *output_size)
+SKID_INTERNAL int check_sn_pre_alloc(char **output_buf, size_t *output_size)
 {
     // LOCAL VARIABLES
     int result = ENOERR;   // Success of execution
@@ -998,7 +1001,7 @@ int check_sn_pre_alloc(char **output_buf, size_t *output_size)
 }
 
 
-bool check_sn_space(size_t bytes_read, size_t output_len, size_t output_size)
+SKID_INTERNAL bool check_sn_space(size_t bytes_read, size_t output_len, size_t output_size)
 {
     // LOCAL VARIABLES
     bool has_room = false;  // Is there enough room in the output buffer to store bytes_read
@@ -1018,7 +1021,7 @@ bool check_sn_space(size_t bytes_read, size_t output_len, size_t output_size)
 }
 
 
-void *get_inet_addr(struct sockaddr *sa, int *errnum)
+SKID_INTERNAL void *get_inet_addr(struct sockaddr *sa, int *errnum)
 {
     // LOCAL VARIABLES
     void *inet_addr = NULL;  // Pointer to the relevant struct in*_addr member
@@ -1054,7 +1057,7 @@ void *get_inet_addr(struct sockaddr *sa, int *errnum)
 }
 
 
-sa_family_t get_socket_family(int sockfd, int *errnum)
+SKID_INTERNAL sa_family_t get_socket_family(int sockfd, int *errnum)
 {
     // LOCAL VARIABLES
     int result = validate_skid_fd(sockfd);         // Success of execution
@@ -1098,8 +1101,8 @@ sa_family_t get_socket_family(int sockfd, int *errnum)
 }
 
 
-int get_socket_option(int sockfd, int level, int option_name,
-                      void *restrict option_value, socklen_t *restrict option_len)
+SKID_INTERNAL int get_socket_option(int sockfd, int level, int option_name,
+                                    void *restrict option_value, socklen_t *restrict option_len)
 {
     // LOCAL VARIABLES
     int result = validate_skid_fd(sockfd);   // Success of execution
@@ -1120,7 +1123,7 @@ int get_socket_option(int sockfd, int level, int option_name,
 }
 
 
-int realloc_sock_dynamic(char **output_buf, size_t *output_size)
+SKID_INTERNAL int realloc_sock_dynamic(char **output_buf, size_t *output_size)
 {
     // LOCAL VARIABLES
     int result = ENOERR;   // Success of execution
@@ -1189,7 +1192,7 @@ int realloc_sock_dynamic(char **output_buf, size_t *output_size)
 }
 
 
-ssize_t recv_from_size(int sockfd, int *errnum)
+SKID_INTERNAL ssize_t recv_from_size(int sockfd, int *errnum)
 {
     // LOCAL VARIABLES
     int result = validate_skid_fd(sockfd);            // Success of execution
@@ -1250,8 +1253,9 @@ ssize_t recv_from_size(int sockfd, int *errnum)
 }
 
 
-int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, socklen_t *addrlen,
-                             char **output_buf, size_t *output_size)
+SKID_INTERNAL int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr,
+                                           socklen_t *addrlen, char **output_buf,
+                                           size_t *output_size)
 {
     // LOCAL VARIABLES
     int result = validate_skid_fd(sockfd);       // Success of execution
@@ -1344,7 +1348,7 @@ int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr, s
 }
 
 
-int recv_socket_dynamic(int sockfd, int flags, char **output_buf, size_t *output_size)
+SKID_INTERNAL int recv_socket_dynamic(int sockfd, int flags, char **output_buf, size_t *output_size)
 {
     // LOCAL VARIABLES
     int result = validate_skid_fd(sockfd);       // Success of execution
@@ -1438,8 +1442,8 @@ int recv_socket_dynamic(int sockfd, int flags, char **output_buf, size_t *output
 }
 
 
-ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
-                const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum)
+SKID_INTERNAL ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
+                              const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum)
 {
     // LOCAL VARIABLES
     int result = ENOERR;     // Validation result
@@ -1486,8 +1490,9 @@ ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
 }
 
 
-ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
-                      const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum)
+SKID_INTERNAL ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
+                                    const struct sockaddr *dest_addr, socklen_t addrlen,
+                                    int *errnum)
 {
     // LOCAL VARIABLES
     int result = validate_skid_fd(sockfd);  // Validation result
@@ -1582,7 +1587,7 @@ ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
 }
 
 
-int validate_sn_args(char **output_buf, size_t *output_size)
+SKID_INTERNAL int validate_sn_args(char **output_buf, size_t *output_size)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // Validation result
