@@ -157,4 +157,3 @@ uint64_t read_cpu_tsc()
     // DONE
     return tsc_val;
 }
-
