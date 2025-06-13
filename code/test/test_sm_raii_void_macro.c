@@ -4,7 +4,7 @@
  *
  *  Copy/paste the following...
 
-./code/dist/test_sm_raii_void_macro.bin
+./code/dist/test_sm_raii_void_macro.bin 90
 CK_FORK=no valgrind --leak-check=full --show-leak-kinds=all ./code/dist/test_sm_raii_void_macro.bin 90
 
  *
@@ -27,35 +27,35 @@ void print_usage(const char *prog_name);
 int main(int argc, char *argv[])
 {
     // LOCAL VARIABLES
-    int exit_code = ENOERR;                     // Errno values from execution
+    int retval = ENOERR;                        // Errno values from execution (DO NOT CALL exit()!)
     SKID_AUTO_FREE_VOID void *raii_buf = NULL;  // RAII buffer variable
 
     // INPUT VALIDATION
     if (argc != 2)
     {
-       exit_code = EINVAL;
+       retval = EINVAL;
     }
 
     // DO IT
     // Allocate memory
-    if (ENOERR == exit_code)
+    if (ENOERR == retval)
     {
-        raii_buf = alloc_skid_mem(1, sizeof(int), &exit_code);
+        raii_buf = alloc_skid_mem(1, sizeof(int), &retval);
     }
     // Convert it
-    if (ENOERR == exit_code)
+    if (ENOERR == retval)
     {
         errno = ENOERR;
         *(int *)raii_buf = atoi(argv[1]);
-        exit_code = errno;
-        if (0 == *(int *)raii_buf && ENOERR != exit_code)
+        retval = errno;
+        if (0 == *(int *)raii_buf && ENOERR != retval)
         {
             FPRINTF_ERR("%s The call to atoi(%s) failed\n", DEBUG_INFO_STR, argv[1]);
-            PRINT_ERRNO(exit_code);
+            PRINT_ERRNO(retval);
         }
     }
     // Print it
-    if (ENOERR == exit_code)
+    if (ENOERR == retval)
     {
         printf("Read the string '%s' which was converted to the integer '%d'\n",
                argv[1], *(int *)raii_buf);
@@ -65,11 +65,11 @@ int main(int argc, char *argv[])
     // Not necessary!
 
     // DONE
-    if (ENOERR != exit_code)
+    if (ENOERR != retval)
     {
        print_usage(argv[0]);
     }
-    exit(exit_code);
+    return retval;
 }
 
 
