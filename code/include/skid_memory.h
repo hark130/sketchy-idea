@@ -6,7 +6,9 @@
  *  USAGE:
  *      // These macros utilize the gcc attribute "cleanup".  Their usage will fail compilation
  *      // if the attribute isn't supported.  Also, don't use these macros on non-skid_memory
- *      // functions (e.g., calloc(), malloc()).
+ *      // functions (e.g., calloc(), malloc()).  Most importantly, the function containing the
+ *      // variable must leave its code block (AKA return) before the program is terminated
+ *      // (AKA exit).  TL;DR - Don't call exit() in the same code block as this macro.
  *      int errnum = ENOERR;  // Out-parameter for the results of SKID API functions
  *
  *      SKID_AUTO_FREE_CHAR char *string = copy_skid_string("My string", &errnum);  // A string var
