@@ -13,7 +13,7 @@
 #include "skid_debug.h"                 // PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_file_control.h"          // get_read_lock(), get_write_lock()
 #include "skid_file_descriptors.h"      // read_fd(), write_fd()
-#include "skid_macros.h"                // ENOERR, NULL
+#include "skid_macros.h"                // ENOERR, NULL, SKID_INTERNAL
 #include "skid_validation.h"            // validate_skid_fd(), validate_skid_err()
 
 /*
@@ -42,7 +42,7 @@ typedef enum { Void = 0, Integer = 1, FlockPtr = 2, FOwnerEx = 3, Uint64tPtr = 4
  *      For a successful call, the return value depends on the operation.  See: fcntl(2).
  *      On error, -1 is returned, and errnum is set appropriately.
  */
-int call_fcntl(int *errnum, FcntlOptArg_t opt_arg, int fd, int cmd, ... /* arg */ );
+SKID_INTERNAL int call_fcntl(int *errnum, FcntlOptArg_t opt_arg, int fd, int cmd, ... /* arg */ );
 
 /*
  *  Description:
@@ -63,7 +63,7 @@ int call_fcntl(int *errnum, FcntlOptArg_t opt_arg, int fd, int cmd, ... /* arg *
  *      On error, -1 is returned, and errnum is set appropriately.  The errno value
  *      EOPNOTSUPP is used to indicate an unsupported cmd or lock_type.
  */
-int call_fcntl_flock(int *errnum, int fd, int cmd, short lock_type);
+SKID_INTERNAL int call_fcntl_flock(int *errnum, int fd, int cmd, short lock_type);
 
 /*
  *  Description:
@@ -77,7 +77,7 @@ int call_fcntl_flock(int *errnum, int fd, int cmd, short lock_type);
  *      On success, the value of file descriptor flags.  On error, -1 is returned,
  *      and errnum is set appropriately.
  */
-int get_fd_flags(int *errnum, int fd);
+SKID_INTERNAL int get_fd_flags(int *errnum, int fd);
 
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
@@ -249,7 +249,7 @@ int write_locked_fd(int fd, const char *msg)
 /**************************************************************************************************/
 
 
-int call_fcntl(int *errnum, FcntlOptArg_t opt_arg, int fd, int cmd, ... /* arg */ )
+SKID_INTERNAL int call_fcntl(int *errnum, FcntlOptArg_t opt_arg, int fd, int cmd, ... /* arg */ )
 {
     // LOCAL VARIABLES
     va_list arg_ptr;
@@ -314,7 +314,7 @@ int call_fcntl(int *errnum, FcntlOptArg_t opt_arg, int fd, int cmd, ... /* arg *
 }
 
 
-int call_fcntl_flock(int *errnum, int fd, int cmd, short lock_type)
+SKID_INTERNAL int call_fcntl_flock(int *errnum, int fd, int cmd, short lock_type)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // Errno values
@@ -358,7 +358,7 @@ int call_fcntl_flock(int *errnum, int fd, int cmd, short lock_type)
 }
 
 
-int get_fd_flags(int *errnum, int fd)
+SKID_INTERNAL int get_fd_flags(int *errnum, int fd)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // Errno values
