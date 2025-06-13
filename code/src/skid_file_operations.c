@@ -12,7 +12,7 @@
 #include "skid_debug.h"                     // PRINT_ERROR()
 #include "skid_file_metadata_read.h"        // get_size()
 #include "skid_file_operations.h"           // bool, empty_file(), false, true
-#include "skid_macros.h"                    // ENOERR
+#include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
 #include "skid_memory.h"                    // alloc_skid_mem()
 #include "skid_validation.h"                // validate_skid_pathname()
 
@@ -32,7 +32,7 @@
  *  Returns:
  *      0 on success, errno on failure.
  */
-int close_stream(FILE **stream);
+SKID_INTERNAL int close_stream(FILE **stream);
 
 /*
  *  Description:
@@ -44,7 +44,7 @@ int close_stream(FILE **stream);
  *  Returns:
  *    True if filename exists as a file.  False otherwise.
  */
-bool is_file(const char *filename);
+SKID_INTERNAL bool is_file(const char *filename);
 
 /*
  *  Description:
@@ -60,7 +60,7 @@ bool is_file(const char *filename);
  *  Returns:
  *      0, on success.  On failure, an errno value (or -1 for an unspecified error).
  */
-int read_stream(FILE *stream, char *contents, size_t buff_size);
+SKID_INTERNAL int read_stream(FILE *stream, char *contents, size_t buff_size);
 
 /*
  *  Description:
@@ -72,7 +72,7 @@ int read_stream(FILE *stream, char *contents, size_t buff_size);
  *  Returns:
  *    An errno value indicating the results of validation.  ENOERR on successful validation.
  */
-int validate_sfo_pathname(const char *pathname);
+SKID_INTERNAL int validate_sfo_pathname(const char *pathname);
 
 /*
  *  Description:
@@ -85,7 +85,7 @@ int validate_sfo_pathname(const char *pathname);
  *  Returns:
  *      0, on success.  On failure, an errno value (or -1 for an unspecified error).
  */
-int write_stream(const char *contents, FILE *stream);
+SKID_INTERNAL int write_stream(const char *contents, FILE *stream);
 
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
@@ -269,7 +269,7 @@ char *read_file(const char *filename, int *errnum)
 /**************************************************************************************************/
 
 
-int close_stream(FILE **stream)
+SKID_INTERNAL int close_stream(FILE **stream)
 {
     // LOCAL VARIABLES
     int errnum = ENOERR;  // Store errno values here
@@ -291,7 +291,7 @@ int close_stream(FILE **stream)
 }
 
 
-bool is_file(const char *filename)
+SKID_INTERNAL bool is_file(const char *filename)
 {
     // LOCAL VARIABLES
     bool is_a_file = false;  // Results of execution
@@ -305,7 +305,7 @@ bool is_file(const char *filename)
 }
 
 
-int read_stream(FILE *stream, char *contents, size_t buff_size)
+SKID_INTERNAL int read_stream(FILE *stream, char *contents, size_t buff_size)
 {
     // LOCAL VARIABLES
     int result = ENOERR;    // The results of validation
@@ -348,13 +348,13 @@ int read_stream(FILE *stream, char *contents, size_t buff_size)
 }
 
 
-int validate_sfo_pathname(const char *pathname)
+SKID_INTERNAL int validate_sfo_pathname(const char *pathname)
 {
     return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
 }
 
 
-int write_stream(const char *contents, FILE *stream)
+SKID_INTERNAL int write_stream(const char *contents, FILE *stream)
 {
     // LOCAL VARIABLES
     int result = ENOERR;         // The results of validation

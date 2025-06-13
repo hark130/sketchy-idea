@@ -36,7 +36,7 @@
  *
  *  Args:
  *      content_arr: [Optional] Starting array of strings (which represent pathnames).  If NULL,
- *        this function will return 0.
+ *          this function will return 0.
  *      capacity: [In] Current capacity of content_arr.
  *
  *  Returns:
@@ -55,7 +55,7 @@ SKID_INTERNAL size_t count_content_arr_entries(char **content_arr, size_t *capac
  *  Returns:
  *      True if direntp represents a directory, false otherwise.  Also returns false on any error.
  */
-bool is_dirent_a_dir(struct dirent *direntp);
+SKID_INTERNAL bool is_dirent_a_dir(struct dirent *direntp);
 
 /*
  *  Description:
@@ -71,7 +71,7 @@ bool is_dirent_a_dir(struct dirent *direntp);
  *  Returns:
  *      A heap-allocated copy of dirname/path on success.  NULL on failure (see errnum for details).
  */
-char *join_dir_path(const char *dirname, const char *path, int *errnum);
+SKID_INTERNAL char *join_dir_path(const char *dirname, const char *path, int *errnum);
 
 /*
  *  Description:
@@ -88,7 +88,7 @@ char *join_dir_path(const char *dirname, const char *path, int *errnum);
  *      A larger string array on success, content_arr on failure.  Ensure errnum is checked for
  *      errno values.
  */
-char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum);
+SKID_INTERNAL char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum);
 
 /*
  *  Description:
@@ -111,8 +111,8 @@ char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum);
  *      is empty, this function will return NULL.  On failure, NULL an errnum will be set with
  *      an errno value (or -1 for an unspecified error).
  */
-char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *dirname,
-                            bool recurse, int *errnum);
+SKID_INTERNAL char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *dirname,
+                                          bool recurse, int *errnum);
 
 /*
  *  Description:
@@ -137,8 +137,8 @@ char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *di
  *      The array contains a number of indices equal to capacity.  On failure, NULL an errnum
  *      will be set with an errno value (or -1 for an unspecified error).
  */
-char **store_dirent(char **content_arr, size_t *capacity, const char *dirname,
-                    struct dirent *direntp, int *errnum);
+SKID_INTERNAL char **store_dirent(char **content_arr, size_t *capacity, const char *dirname,
+                                  struct dirent *direntp, int *errnum);
 
 /*
  *  Description:
@@ -151,7 +151,7 @@ char **store_dirent(char **content_arr, size_t *capacity, const char *dirname,
  *      True if direntp is valid: non-NULL, d_name lenth > 0, is not a relative symbol
  *      (e.g., ".", "..").  False otherwise.
  */
-bool validate_direntp(struct dirent *direntp);
+SKID_INTERNAL bool validate_direntp(struct dirent *direntp);
 
 /*
  *  Description:
@@ -163,8 +163,8 @@ bool validate_direntp(struct dirent *direntp);
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
-int validate_rdc_args(char **content_arr, size_t *capacity, const char *dirname,
-                      bool recurse, int *errnum);
+SKID_INTERNAL int validate_rdc_args(char **content_arr, size_t *capacity, const char *dirname,
+                                    bool recurse, int *errnum);
 
 /*
  *  Description:
@@ -176,7 +176,7 @@ int validate_rdc_args(char **content_arr, size_t *capacity, const char *dirname,
  *  Returns:
  *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
-int validate_sdo_pathname(const char *pathname);
+SKID_INTERNAL int validate_sdo_pathname(const char *pathname);
 
 
 /**************************************************************************************************/
@@ -436,7 +436,7 @@ SKID_INTERNAL size_t count_content_arr_entries(char **content_arr, size_t *capac
 }
 
 
-bool is_dirent_a_dir(struct dirent *direntp)
+SKID_INTERNAL bool is_dirent_a_dir(struct dirent *direntp)
 {
     // LOCAL VARIABLES
     bool is_dir = false;  // Does direntp represent a directory?
@@ -455,7 +455,7 @@ bool is_dirent_a_dir(struct dirent *direntp)
 }
 
 
-char *join_dir_path(const char *dirname, const char *path, int *errnum)
+SKID_INTERNAL char *join_dir_path(const char *dirname, const char *path, int *errnum)
 {
     // LOCAL VARIABLES
     char work_buff[PATH_MAX + 3] = { 0 };  // Working array
@@ -510,7 +510,7 @@ char *join_dir_path(const char *dirname, const char *path, int *errnum)
 }
 
 
-char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum)
+SKID_INTERNAL char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum)
 {
     // LOCAL VARIABLES
     int result = validate_skid_err(errnum);  // Errno value
@@ -605,8 +605,8 @@ char **realloc_dir_contents(char **content_arr, size_t *capacity, int *errnum)
 }
 
 
-char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *dirname,
-                            bool recurse, int *errnum)
+SKID_INTERNAL char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *dirname,
+                                          bool recurse, int *errnum)
 {
     // LOCAL VARIABLES
     char **curr_arr = content_arr;      // Current content array
@@ -711,8 +711,8 @@ char **recurse_dir_contents(char **content_arr, size_t *capacity, const char *di
 }
 
 
-char **store_dirent(char **content_arr, size_t *capacity, const char *dirname,
-                    struct dirent *direntp, int *errnum)
+SKID_INTERNAL char **store_dirent(char **content_arr, size_t *capacity, const char *dirname,
+                                  struct dirent *direntp, int *errnum)
 {
     // LOCAL VARIABLES
     char **curr_arr = content_arr;  // Current content array
@@ -813,7 +813,7 @@ char **store_dirent(char **content_arr, size_t *capacity, const char *dirname,
 }
 
 
-bool validate_direntp(struct dirent *direntp)
+SKID_INTERNAL bool validate_direntp(struct dirent *direntp)
 {
     // LOCAL VARIABLES
     bool is_valid = true;  // Is direntp valid?
@@ -841,8 +841,8 @@ bool validate_direntp(struct dirent *direntp)
 }
 
 
-int validate_rdc_args(char **content_arr, size_t *capacity, const char *dirname,
-                      bool recurse, int *errnum)
+SKID_INTERNAL int validate_rdc_args(char **content_arr, size_t *capacity, const char *dirname,
+                                    bool recurse, int *errnum)
 {
     // LOCAL VARIABLES
     int result = validate_sdo_pathname(dirname);  // The results of validation
@@ -869,7 +869,7 @@ int validate_rdc_args(char **content_arr, size_t *capacity, const char *dirname,
 }
 
 
-int validate_sdo_pathname(const char *pathname)
+SKID_INTERNAL int validate_sdo_pathname(const char *pathname)
 {
     return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
 }
