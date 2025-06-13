@@ -14,6 +14,9 @@
 # 5.E.i     Prove the manual test code works when statically compiled against source
 # 5.E.ii    Prove the linker fails when utilizing the shared object
 # 5.E.iii   Prove internal functions aren't dynamically exported
+# 5.F. Showcase the cleanup attribute
+# 5.F.i     Execute the code
+# 5.F.ii    Also run it through Valgrind
 
 
 BOOKEND="***"  # SPOT for formatting titles and banners
@@ -133,6 +136,8 @@ TEMP_RET=0                                                          # Temporary 
 EXIT_CODE=0                                                         # Exit value
 DIST_DIR=./code/dist/                                               # Distribution directory
 LIB_NAME=libsketchyidea.so.1.0.0                                    # Basename of the shared object
+# Manual test binary names for 5.F. Showcase the cleanup attribute
+CLEAN_MAN_TEST_BIN=("${DIST_DIR}test_sm_raii_string_macro.bin" "${DIST_DIR}test_sm_raii_void_macro.bin")
 
 # 1. Stores the date
 printf "\n%s This output was created by %s on %s %s\n" "$BOOKEND" "$(basename "$0")" "$(date)" "$BOOKEND" && \
@@ -154,6 +159,9 @@ then
     EXIT_CODE=$TEMP_RET
     echo "make install failed with: $TEMP_RET"
 else
+# 5.B. Showcase the constructor attribute
+# 5.C. Showcase the destructor attribute
+# 5.D. Showcase the packed attribute
 # 5.E. Showcase the visibility attribute
 print_banner "GCC ATTRIBUTE: visibility"
 # 5.E.i     Prove the manual test code works when statically compiled against source
@@ -183,6 +191,31 @@ else
     EXIT_CODE=0
     TEMP_RET=0  # Everything is actually fine
     echo "The hidden internal symbol is not listed among the dynamic symbols exported from the shared object"
+# 5.F. Showcase the cleanup attribute
+print_banner "GCC ATTRIBUTE: cleanup"
+print_title "SKID_AUTO_FREE_CHAR"
+# 5.F.i     Execute the code (string)
+run_manual_test_command "${CLEAN_MAN_TEST_BIN[0]} ${LIB_NAME}"
+# 5.F.ii    Also run it through Valgrind (string)
+run_manual_test_command "valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all ${CLEAN_MAN_TEST_BIN[0]} ${LIB_NAME}"
+TEMP_RET=$?
+if [ $TEMP_RET -ne 0 ]
+then
+    EXIT_CODE=$TEMP_RET
+    echo "Valgrind unexpectedly with: $TEMP_RET"
+else
+print_title "SKID_AUTO_FREE_VOID"
+# 5.F.i     Execute the code (void)
+run_manual_test_command "${CLEAN_MAN_TEST_BIN[1]} 00000090"
+# 5.F.ii    Also run it through Valgrind (void)
+run_manual_test_command "valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all ${CLEAN_MAN_TEST_BIN[1]} -0318"
+TEMP_RET=$?
+if [ $TEMP_RET -ne 0 ]
+then
+    EXIT_CODE=$TEMP_RET
+    echo "Valgrind unexpectedly with: $TEMP_RET"
+fi
+fi
 fi
 fi
 fi
