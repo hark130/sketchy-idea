@@ -1,17 +1,17 @@
 /*
- *    This library defines functionality to help automate signal handling.
+ *  This library defines functionality to help automate signal handling.
  */
 
-// #define SKID_DEBUG                        // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
-#include "skid_debug.h"                      // PRINT_ERRNO(), PRINT_ERROR()
-#include "skid_macros.h"                // SignalHandler
-#include "skid_signals.h"                // SignalHandler
-#include "skid_signal_handlers.h"        // Externed atomic variables
-#include <errno.h>                        // EINVAL
-#include <stddef.h>                        // NULL
-#include <sys/types.h>                    // pid_t
-#include <sys/wait.h>                    // waitpid()
+#include "skid_debug.h"                     // PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_macros.h"                    // SignalHandler, SKID_INTERNAL
+#include "skid_signals.h"                   // SignalHandler
+#include "skid_signal_handlers.h"           // Externed atomic variables
+#include <errno.h>                          // EINVAL
+#include <stddef.h>                         // NULL
+#include <sys/types.h>                      // pid_t
+#include <sys/wait.h>                       // waitpid()
 
 /**************************************************************************************************/
 /*************************** SIGNAL HANDLER ATOMIC VARIABLE DEFINITION ****************************/
@@ -43,7 +43,7 @@ volatile sig_atomic_t skid_sig_hand_uid = 0;
  *    Returns:
  *        On success, ENOERR is returned.  On error, errno is returned.
  */
-int block_signal_safe(int signum);
+SKID_INTERNAL int block_signal_safe(int signum);
 
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
@@ -160,7 +160,7 @@ void handle_ext_signal_code(int signum, siginfo_t *info, void *context)
 /**************************************************************************************************/
 
 
-int block_signal_safe(int signum)
+SKID_INTERNAL int block_signal_safe(int signum)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // Results of the function call
