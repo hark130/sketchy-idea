@@ -24,6 +24,8 @@
 #define PRINT_ERROR(msg) do { fprintf(stderr, "%s - %s - %s() - line %d - %s!\n", DEBUG_ERROR_STR, __FILE__, __FUNCTION_NAME__, __LINE__, #msg); } while (0);
 #define PRINT_WARNG(msg) do { fprintf(stderr, "%s - %s - %s() - line %d - %s!\n", DEBUG_WARNG_STR, __FILE__, __FUNCTION_NAME__, __LINE__, #msg); } while (0);
 #define FPRINTF_ERR(...) do { fprintf(stderr, __VA_ARGS__); } while (0);
+#define MODULE_LOAD() __attribute__((constructor)) static void print_skid_load(void) { fprintf(stderr, "%s Module loaded: %s\n", DEBUG_INFO_STR, __FILE__); }
+#define MODULE_UNLOAD() __attribute__((destructor)) static void print_skid_unload(void) { fprintf(stderr, "%s Module unloaded: %s\n", DEBUG_INFO_STR, __FILE__); }
 #else
 #define DEBUG_ERROR_STR ""
 #define DEBUG_INFO_STR ""
@@ -32,6 +34,8 @@
 #define PRINT_ERROR(msg) ;;;
 #define PRINT_WARNG(msg) ;;;
 #define FPRINTF_ERR(...) ;;;
+#define MODULE_LOAD() ;;;
+#define MODULE_UNLOAD() ;;;
 #endif  /* SKID_DEBUG */
 
 #endif  /* __SKID_DEBUG_H__ */
