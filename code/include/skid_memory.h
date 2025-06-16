@@ -30,7 +30,7 @@
 #define SKID_AUTO_FREE_VOID __attribute__((cleanup(free_skid_mem)))     // void *-use only
 #else
 // Let the compiler inform the user that these macros are unresolved.
-//  Otherwise, defining these macros as "empty" (which is pretty standard) will likely result in
+//  Otherwise, defining these macros as "empty" (which is normally standard) will likely result in
 //  a memory leak and that BUG shouldn't pass quietly.
 // An alternative was to use #error to invoke a pre-processor phase error message but I didn't
 //  want to penalize the user for utilizing a different compiler.
