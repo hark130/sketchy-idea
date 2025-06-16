@@ -10,6 +10,9 @@
 # 5. Misc. (e.g., executing bespoke manual test code highlighting features/functionality)
 # 5.A. Setup
 # 5.A.i     Install the shared object
+# 5.B. Showcase the constructor attribute
+# 5.C. Showcase the constructor attribute
+# 5.B/C.i   Execute code
 # 5.E. Showcase the visibility attribute
 # 5.E.i     Prove the manual test code works when statically compiled against source
 # 5.E.ii    Prove the linker fails when utilizing the shared object
@@ -161,6 +164,10 @@ then
 else
 # 5.B. Showcase the constructor attribute
 # 5.C. Showcase the destructor attribute
+# 5.B/C.i   Execute code
+print_banner "GCC ATTRIBUTES: constructor -and- destructor"
+print_title "Added basic runtime diagnostics to legacy manual test code"
+run_manual_test_command "./code/dist/test_sa_read_cpu_tsc.bin"
 # 5.D. Showcase the packed attribute
 # 5.E. Showcase the visibility attribute
 print_banner "GCC ATTRIBUTE: visibility"
