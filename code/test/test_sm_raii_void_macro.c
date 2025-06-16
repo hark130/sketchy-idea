@@ -4,8 +4,8 @@
  *
  *  Copy/paste the following...
 
-./code/dist/test_sm_raii_void_macro.bin 90
-CK_FORK=no valgrind --leak-check=full --show-leak-kinds=all ./code/dist/test_sm_raii_void_macro.bin 90
+./code/dist/test_sm_raii_void_macro.bin 0090
+CK_FORK=no valgrind --leak-check=full --show-leak-kinds=all ./code/dist/test_sm_raii_void_macro.bin 0090
 
  *
  */
