@@ -2,7 +2,7 @@
  *  This library defines functionality to read, parse, and report on Linux file metadata.
  */
 
-#define SKID_DEBUG                          // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include "skid_debug.h"                     // PRINT_ERRNO()
 #include "skid_file_metadata_read.h"

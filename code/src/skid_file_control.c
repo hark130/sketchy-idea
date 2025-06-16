@@ -2,7 +2,7 @@
  *      This library defines functionality to read and control file descriptors.
  */
 
-#define SKID_DEBUG                          // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // errno
 #include <fcntl.h>                          // fcntl(), FD_CLOEXEC
