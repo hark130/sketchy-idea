@@ -9,10 +9,10 @@
  *      accept(sockfd)/read(sockfd)/write(sockfd)/etc.
  */
 
-#include <netdb.h>            // struct addrinfo
-#include <stdbool.h>        // bool, false, true
-#include <sys/socket.h>        // socklen_t
-#include "skid_macros.h"    // SKID_BAD_FD
+#include <netdb.h>                          // struct addrinfo
+#include <stdbool.h>                        // bool, false, true
+#include <sys/socket.h>                     // socklen_t
+#include "skid_macros.h"                    // SKID_BAD_FD
 
 /*
  *  Description:
