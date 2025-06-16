@@ -7,7 +7,7 @@
 
 make && \
 make install && \
-./code/dist/test_sa_read_cpu_tsc.bin
+./code/dist/test_libskid_sa_read_cpu_tsc.bin
 
  *
  */
