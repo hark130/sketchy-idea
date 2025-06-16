@@ -9,9 +9,7 @@
  *
  */
 
-#ifndef SKID_DEBUG
 #define SKID_DEBUG                  // Enable DEBUG logging
-#endif  /* SKID_DEBUG */
 #define WAIT_SLEEP 1                // Number of seconds to wait
 #define NUM_LOOPS 10                // Number of times to loop
 
@@ -21,7 +19,11 @@
 #include <stdlib.h>                 // exit()
 #include <unistd.h>                 // sleep()
 #include "skid_assembly.h"          // read_cpu_tsc()
+#include "skid_debug.h"             // MODULE_LOAD(), MODULE_UNLOAD()
 #include "skid_macros.h"            // ENOERR
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
 /*
  *  Single point of truth for this manual test code's usage.
