@@ -2,7 +2,7 @@
  *  This library defines functionality to create, remove, and parse Linux directories.
  */
 
-// #define SKID_DEBUG                      // Enable DEBUG logging
+#define SKID_DEBUG                      // Enable DEBUG logging
 
 #include "skid_debug.h"                 // PRINT_ERRNO()
 #include "skid_dir_operations.h"        // _DEFAULT_SOURCE, delete_dir()
@@ -23,6 +23,9 @@
 #ifndef SKID_MAX_RETRIES
 #define SKID_MAX_RETRIES 10             // Maximum number of maximum failure loops for store_dent()
 #endif  /* SKID_MAX_RETRIES */
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
 
 /**************************************************************************************************/

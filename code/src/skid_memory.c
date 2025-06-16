@@ -2,7 +2,7 @@
  *  This library defines functionality to allocate and free memory on behalf of SKID.
  */
 
-// #define SKID_DEBUG                          // Enable DEBUG logging
+#define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // errno
 #include <stdbool.h>                        // false
@@ -12,6 +12,9 @@
 #include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
 #include "skid_memory.h"                    // free_skid_string()
 #include "skid_validation.h"                // validate_skid_err(), validate_skid_pathname()
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
 
 /**************************************************************************************************/

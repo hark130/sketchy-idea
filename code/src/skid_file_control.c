@@ -2,25 +2,26 @@
  *      This library defines functionality to read and control file descriptors.
  */
 
-#ifndef SKID_DEBUG
-// #define SKID_DEBUG                      // Enable DEBUG logging
-#endif  /* SKID_DEBUG */
+#define SKID_DEBUG                          // Enable DEBUG logging
 
-#include <errno.h>                      // errno
-#include <fcntl.h>                      // fcntl(), FD_CLOEXEC
-#include <stdarg.h>                     // va_end(), va_list, va_start()
-#include <stdint.h>                     // uint64_t
-#include "skid_debug.h"                 // PRINT_ERRNO(), PRINT_ERROR()
-#include "skid_file_control.h"          // get_read_lock(), get_write_lock()
-#include "skid_file_descriptors.h"      // read_fd(), write_fd()
-#include "skid_macros.h"                // ENOERR, NULL, SKID_INTERNAL
-#include "skid_validation.h"            // validate_skid_fd(), validate_skid_err()
+#include <errno.h>                          // errno
+#include <fcntl.h>                          // fcntl(), FD_CLOEXEC
+#include <stdarg.h>                         // va_end(), va_list, va_start()
+#include <stdint.h>                         // uint64_t
+#include "skid_debug.h"                     // PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_file_control.h"              // get_read_lock(), get_write_lock()
+#include "skid_file_descriptors.h"          // read_fd(), write_fd()
+#include "skid_macros.h"                    // ENOERR, NULL, SKID_INTERNAL
+#include "skid_validation.h"                // validate_skid_fd(), validate_skid_err()
 
 /*
  *  Description:
  *      Used to communicate the data type of fcntl()'s optional third argument.
  */
 typedef enum { Void = 0, Integer = 1, FlockPtr = 2, FOwnerEx = 3, Uint64tPtr = 4 } FcntlOptArg_t;
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
 /**************************************************************************************************/
 /********************************* PRIVATE FUNCTION DECLARATIONS **********************************/

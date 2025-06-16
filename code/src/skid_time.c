@@ -1,3 +1,8 @@
+/*
+ *  This library defines time-related functionality.
+ */
+
+#define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // errno
 #include <stdio.h>                          // sprintf()
@@ -7,6 +12,9 @@
 #include "skid_memory.h"                    // alloc_skid_mem(), free_skid_mem()
 #include "skid_time.h"                      // SKID_BAD_TIME_T, time.h
 #include "skid_validation.h"                // validate_skid_err()
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
 
 /**************************************************************************************************/

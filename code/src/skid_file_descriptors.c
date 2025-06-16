@@ -2,6 +2,8 @@
  *    This library defines functionality to manage Linux file descriptors.
  */
 
+#define SKID_DEBUG                          // Enable DEBUG logging
+
 #include <errno.h>                      // EINVAL
 #include <fcntl.h>                      // open()
 #include <stddef.h>                     // size_t
@@ -14,6 +16,9 @@
 #include "skid_validation.h"            // validate_skid_fd(), validate_skid_string()
 
 #define SKID_FD_BUFF_SIZE 1024  // Starting buffer size to read into
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
 
 /**************************************************************************************************/

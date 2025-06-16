@@ -2,7 +2,7 @@
  *  This library defines functionality to help manager server/clients.
  */
 
-// #define SKID_DEBUG                          // Enable DEBUG logging
+#define SKID_DEBUG                          // Enable DEBUG logging
 
 #include "skid_file_descriptors.h"          // close_fd()
 #include "skid_debug.h"                     // PRINT_ERRNO(), PRINT_ERROR()
@@ -26,6 +26,9 @@
 #endif  /* SKID_DEBUG */
 
 #define SKID_NET_BUFF_SIZE 1024  // Starting buffer size to read into
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
 
 /**************************************************************************************************/

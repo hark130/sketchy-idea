@@ -2,7 +2,7 @@
  *  This library defines functionality to read, parse, and report on Linux file metadata.
  */
 
-// #define SKID_DEBUG  // Enable DEBUG logging
+#define SKID_DEBUG                          // Enable DEBUG logging
 
 #include "skid_debug.h"                     // PRINT_ERRNO()
 #include "skid_file_metadata_read.h"
@@ -10,6 +10,9 @@
 #include "skid_validation.h"                // validate_skid_err(), validate_skid_pathname()
 #include <string.h>                         // memset()
 #include <time.h>                           // localtime(), strftime()
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
 
 /**************************************************************************************************/

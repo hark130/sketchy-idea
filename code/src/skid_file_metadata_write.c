@@ -3,7 +3,7 @@
  */
 
 #define _POSIX_C_SOURCE 200809L             // Expose utimensat()
-// #define SKID_DEBUG                          // Enable DEBUG logging
+#define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <fcntl.h>                          // AT_FDCWD
 #include <stdbool.h>                        // false
@@ -16,6 +16,9 @@
 #define SFMW_ATIME_INDEX 0  // Index of the atime timespec struct
 #define SFMW_MTIME_INDEX 1  // Index of the mtime timespec struct
 #define SFMW_IGNORE_ID -1   // When using the chown-family funcs, if an ID is -1 it is not changed.
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
 
 /**************************************************************************************************/

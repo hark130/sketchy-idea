@@ -9,7 +9,7 @@
 #define _XOPEN_SOURCE_EXTENDED              // Expose the TRAP_* signal code macros
 #endif  /* _XOPEN_SOURCE_EXTENDED */
 
-// #define SKID_DEBUG                          // Enable DEBUG logging
+#define SKID_DEBUG                          // Enable DEBUG logging
 
 #include "skid_debug.h"                     // PRINT_ERRNO(), PRINT_ERROR()
 #include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
@@ -20,6 +20,9 @@
 #include <string.h>                         // memset()
 #include <sys/types.h>                      // pid_t
 #include <sys/wait.h>                       // waitpid()
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
 
 /**************************************************************************************************/
