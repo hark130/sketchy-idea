@@ -13,6 +13,8 @@
 # 5.B. Showcase the constructor attribute
 # 5.C. Showcase the constructor attribute
 # 5.B/C.i   Execute code
+# 5.D. Showcaes the packed attribute
+# 5.D.i     NOT IMPLEMENTED IN THE INTEREST OF TIME
 # 5.E. Showcase the visibility attribute
 # 5.E.i     Prove the manual test code works when statically compiled against source
 # 5.E.ii    Prove the linker fails when utilizing the shared object
@@ -168,7 +170,10 @@ else
 print_banner "GCC ATTRIBUTES: constructor -and- destructor"
 print_title "Added basic runtime diagnostics to legacy manual test code"
 run_manual_test_command "./code/dist/test_sa_read_cpu_tsc.bin"
-# 5.D. Showcase the packed attribute
+# 5.D. Showcaes the packed attribute
+# 5.D.i     NOT IMPLEMENTED IN THE INTEREST OF TIME
+print_banner "GCC ATTRIBUTES: packed"
+print_title "DEMONSTRATION NOT IMPLEMENTED IN THE INTEREST OF TIME"
 # 5.E. Showcase the visibility attribute
 print_banner "GCC ATTRIBUTE: visibility"
 # 5.E.i     Prove the manual test code works when statically compiled against source
