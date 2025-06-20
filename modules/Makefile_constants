@@ -1,0 +1,34 @@
+##########################
+###### INSTRUCTIONS ######
+##########################
+#
+# 1. Stop reading this
+# 2. Read Makefile instead
+# 3. Take care to avoid circular inclusion and redundancies
+#
+
+
+##########################
+### MAKEFILE VARIABLES ###
+##########################
+
+### OS-DEPENDENT INCLUSION ###
+ifeq ($(OS),Windows_NT)
+$(error Wrong operating system.  This is $(OS).)
+else
+SHELL = /bin/bash
+endif
+
+### FILE EXTENSIONS ###
+HDR_FILE_EXT = .h
+LIB_FILE_EXT = .lib
+OBJ_FILE_EXT = .o
+SRC_FILE_EXT = .c
+
+### DIRECTORIES ###
+# Relative path to the directory holding the kernel module directories
+CODE_DIR = ./modules/
+
+### MAKEFILE ARGUMENTS ###
+MF_ARGS = --no-print-directory
+CALL_MAKE = $(MAKE) $(MF_ARGS)
