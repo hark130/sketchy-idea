@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 {
     // LOCAL VARIABLES
     int retval = ENOERR;  // Errno values from execution
-    char *bmp_file = NULL;  // BMP File
+    // char *bmp_file = NULL;  // BMP File
 
     // INPUT VALIDATION
     if (argc != 2)
@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
     if (ENOERR == retval)
     {
         // TD: DDN...
+        retval = ENOSYS;  // ...implement this functionality in SKID-23
     }
 
     // DONE
