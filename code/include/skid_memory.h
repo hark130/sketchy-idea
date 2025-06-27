@@ -37,6 +37,7 @@
 #endif  /* SKID_AUTO_FREE_CHAR, SKID_AUTO_FREE_VOID */
 
 #include <stddef.h>                         // size_t
+#include <sys/mman.h>                       // mmap() prot and flag macros
 #include "skid_macros.h"                    // ENOERR
 
 // This struct communicates details about mapped memory to map_skid_mem() and unmap_skid_mem().
