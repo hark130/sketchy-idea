@@ -8,7 +8,7 @@
 #include <stdbool.h>                        // false
 #include <stdlib.h>                         // calloc()
 #include <string.h>                         // strlen()
-#include "skid_debug.h"                     // PRINT_ERRNO()
+#include "skid_debug.h"                     // PRINT_ERROR(), PRINT_ERRNO()
 #include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
 #include "skid_memory.h"                    // public functions, skidMemMapRegion*
 #include "skid_validation.h"                // validate_skid_err(), validate_skid_pathname()
@@ -204,7 +204,7 @@ int unmap_skid_mem(skidMemMapRegion_ptr old_map)
     int result = validate_sm_struct(old_map);  // Store errno value
 
     // UNMAP IT
-    if (ENOERR == result)
+    if (ENOERR == result && NULL != old_map->addr)
     {
         errno = ENOERR;  // Initialize errno... for safety
         if (0 == munmap(old_map->addr, old_map->length))
@@ -263,18 +263,10 @@ SKID_INTERNAL int validate_sm_struct(skidMemMapRegion_ptr map_mem)
         result = EINVAL;
         PRINT_ERROR(Received an invalid pointer in map_mem);
     }
-    else
+    else if (NULL != map_mem->addr && 0 == map_mem->length)
     {
-        if (NULL == map_mem->addr && map_mem->length > 0)
-        {
-            result = EINVAL;
-            PRINT_ERROR(An empty pointer may not have a non-zero length);
-        }
-        else if (NULL != map_mem->addr && 0 == map_mem->length)
-        {
-            result = EINVAL;
-            PRINT_ERROR(A valid pointer may not have a zero length);
-        }
+        result = EINVAL;
+        PRINT_ERROR(A valid pointer may not have a zero length);
     }
 
     // DONE
