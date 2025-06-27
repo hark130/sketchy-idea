@@ -182,7 +182,7 @@ int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags)
     if (ENOERR == result)
     {
         errno = ENOERR;  // Initialize errno... for safety
-        new_map->addr = mmap(new_map->addr, new_map->length, prot, new_flags);
+        new_map->addr = mmap(new_map->addr, new_map->length, prot, new_flags, -1, 0);
         if (MAP_FAILED == new_map->addr)
         {
             result = errno;  // Something failed
@@ -201,7 +201,7 @@ int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags)
 int unmap_skid_mem(skidMemMapRegion_ptr old_map)
 {
     // LOCAL VARIABLES
-    int result = validate_sm_struct(new_map);  // Store errno value
+    int result = validate_sm_struct(old_map);  // Store errno value
 
     // UNMAP IT
     if (ENOERR == result)
