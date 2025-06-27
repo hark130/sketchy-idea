@@ -1,5 +1,5 @@
 /*
- *    This library defines functionality to allocate and free memory on behalf of SKID.
+ *  This library defines functionality to allocate and free memory on behalf of SKID.
  */
 
 // #define SKID_DEBUG                          // Enable DEBUG logging
@@ -9,9 +9,12 @@
 #include <stdlib.h>                         // calloc()
 #include <string.h>                         // strlen()
 #include "skid_debug.h"                     // PRINT_ERRNO()
-#include "skid_macros.h"                    // ENOERR
+#include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
 #include "skid_memory.h"                    // free_skid_string()
 #include "skid_validation.h"                // validate_skid_err(), validate_skid_pathname()
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
 
 /**************************************************************************************************/
@@ -19,29 +22,29 @@
 /**************************************************************************************************/
 
 /*
- *    Description:
- *        Validate common arguments on behalf of skid_memory.
+ *  Description:
+ *      Validate common arguments on behalf of skid_memory.
  *
- *    Args:
- *        pathname: A non-NULL, non-empty, pathname.
- *        err: A non-NULL integer pointer.
+ *  Args:
+ *      pathname: A non-NULL, non-empty, pathname.
+ *      err: A non-NULL integer pointer.
  *
- *    Returns:
- *        0 for good input, errno for failed validation.
+ *  Returns:
+ *      0 for good input, errno for failed validation.
  */
-int validate_sm_standard_args(const char *pathname, int *err);
+SKID_INTERNAL int validate_sm_standard_args(const char *pathname, int *err);
 
 /*
- *    Description:
- *        Validate pathnames on behalf of skid_memory.
+ *  Description:
+ *      Validate pathnames on behalf of skid_memory.
  *
- *    Args:
- *        pathname: A non-NULL, non-empty, pathname.
+ *  Args:
+ *      pathname: A non-NULL, non-empty, pathname.
  *
- *    Returns:
- *        0 for good input, errno for failed validation.
+ *  Returns:
+ *      0 for good input, errno for failed validation.
  */
-int validate_sm_pathname(const char *pathname);
+SKID_INTERNAL int validate_sm_pathname(const char *pathname);
 
 
 /**************************************************************************************************/
@@ -162,7 +165,7 @@ int free_skid_string(char **old_string)
 /**************************************************************************************************/
 
 
-int validate_sm_standard_args(const char *pathname, int *err)
+SKID_INTERNAL int validate_sm_standard_args(const char *pathname, int *err)
 {
     // LOCAL VARIABLES
     int result = validate_sm_pathname(pathname);  // Store errno value
@@ -178,7 +181,7 @@ int validate_sm_standard_args(const char *pathname, int *err)
 }
 
 
-int validate_sm_pathname(const char *pathname)
+SKID_INTERNAL int validate_sm_pathname(const char *pathname)
 {
     return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
 }

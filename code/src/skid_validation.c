@@ -1,5 +1,5 @@
 /*
- *    This library defines functionality to help automate validation.
+ *  This library defines functionality to help automate validation.
  */
 
 // #define SKID_DEBUG                        // Enable DEBUG logging
@@ -9,6 +9,9 @@
 #include <errno.h>                          // EINVAL
 #include <stddef.h>                         // NULL
 #include <sys/stat.h>                       // lstat(), struct stat
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
 
 /**************************************************************************************************/
@@ -55,7 +58,6 @@ int validate_skid_fd(int fd)
     // DONE
     return result;
 }
-
 
 
 int validate_skid_pathname(const char *pathname, bool must_exist)

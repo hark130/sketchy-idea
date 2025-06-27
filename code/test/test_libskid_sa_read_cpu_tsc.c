@@ -5,16 +5,14 @@
  *
  *  Copy/paste the following...
 
-make
-make install
-./code/dist/test_sa_read_cpu_tsc.bin
+make && \
+make install && \
+./code/dist/test_libskid_sa_read_cpu_tsc.bin
 
  *
  */
 
-#ifndef SKID_DEBUG
 #define SKID_DEBUG                  // Enable DEBUG logging
-#endif  /* SKID_DEBUG */
 #define WAIT_SLEEP 1                // Number of seconds to wait
 #define NUM_LOOPS 10                // Number of times to loop
 
@@ -24,6 +22,7 @@ make install
 #include <stdlib.h>                 // exit()
 #include <unistd.h>                 // sleep()
 #include "skid_assembly.h"          // read_cpu_tsc()
+#include "skid_debug.h"             // Library DEBUGGING
 #include "skid_macros.h"            // ENOERR
 
 /*

@@ -10,11 +10,15 @@
 #include "skid_debug.h"                     // PRINT_ERRNO()
 #include "skid_file_metadata_read.h"        // get_file_perms()
 #include "skid_file_metadata_write.h"       // ENOERR, set_mode()
+#include "skid_macros.h"                    // SKID_INTERNAL
 #include "skid_validation.h"                // validate_skid_err()
 
 #define SFMW_ATIME_INDEX 0  // Index of the atime timespec struct
 #define SFMW_MTIME_INDEX 1  // Index of the mtime timespec struct
 #define SFMW_IGNORE_ID -1   // When using the chown-family funcs, if an ID is -1 it is not changed.
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
 
 /**************************************************************************************************/
@@ -33,7 +37,8 @@
  *  Returns:
  *      0 on success.  Errno value on failure.
  */
-int call_a_chown(const char *pathname, uid_t new_owner, gid_t new_group, bool follow_sym);
+SKID_INTERNAL int call_a_chown(const char *pathname, uid_t new_owner, gid_t new_group,
+                               bool follow_sym);
 
 /*
  *  Description:
@@ -45,7 +50,7 @@ int call_a_chown(const char *pathname, uid_t new_owner, gid_t new_group, bool fo
  *  Returns:
  *      0 on success.  Errno value on failure.
  */
-int call_chown(const char *pathname, uid_t new_owner, gid_t new_group);
+SKID_INTERNAL int call_chown(const char *pathname, uid_t new_owner, gid_t new_group);
 
 /*
  *  Description:
@@ -57,7 +62,7 @@ int call_chown(const char *pathname, uid_t new_owner, gid_t new_group);
  *  Returns:
  *      0 on success.  Errno value on failure.
  */
-int call_lchown(const char *pathname, uid_t new_owner, gid_t new_group);
+SKID_INTERNAL int call_lchown(const char *pathname, uid_t new_owner, gid_t new_group);
 
 /*
  *  Description:
@@ -78,7 +83,8 @@ int call_lchown(const char *pathname, uid_t new_owner, gid_t new_group);
  *  Returns:
  *      0 on success.  An errno value on failure.
  */
-int call_utnsat(const char *pathname, const struct timespec times[2], bool follow_sym);
+SKID_INTERNAL int call_utnsat(const char *pathname, const struct timespec times[2],
+                              bool follow_sym);
 
 /*
  *  Description:
@@ -89,7 +95,7 @@ int call_utnsat(const char *pathname, const struct timespec times[2], bool follo
  *  Returns:
  *      True if absolute, false if not.  On error, returns false and sets errnum.
  */
-bool is_abs_path(const char *pathname, int *errnum);
+SKID_INTERNAL bool is_abs_path(const char *pathname, int *errnum);
 
 /*
  *  Description:
@@ -101,7 +107,7 @@ bool is_abs_path(const char *pathname, int *errnum);
  *  Returns:
  *      0 on success.  An errno value on failure.
  */
-int set_timespec(struct timespec *time, time_t seconds, long nseconds);
+SKID_INTERNAL int set_timespec(struct timespec *time, time_t seconds, long nseconds);
 
 /*
  *  Description:
@@ -111,7 +117,7 @@ int set_timespec(struct timespec *time, time_t seconds, long nseconds);
  *  Returns:
  *      0 on success.  An errno value on failure.
  */
-int set_timespec_now(struct timespec *time);
+SKID_INTERNAL int set_timespec_now(struct timespec *time);
 
 /*
  *  Description:
@@ -121,7 +127,7 @@ int set_timespec_now(struct timespec *time);
  *  Returns:
  *      0 on success.  An errno value on failure.
  */
-int set_timespec_omit(struct timespec *time);
+SKID_INTERNAL int set_timespec_omit(struct timespec *time);
 
 /*
  *  Description:
@@ -133,7 +139,7 @@ int set_timespec_omit(struct timespec *time);
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
-int validate_sfmw_input(const char *pathname, int *errnum);
+SKID_INTERNAL int validate_sfmw_input(const char *pathname, int *errnum);
 
 /*
  *  Description:
@@ -143,7 +149,7 @@ int validate_sfmw_input(const char *pathname, int *errnum);
  *  Returns:
  *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
-int validate_sfmw_pathname(const char *pathname);
+SKID_INTERNAL int validate_sfmw_pathname(const char *pathname);
 
 /*
  *  Description:
@@ -153,7 +159,7 @@ int validate_sfmw_pathname(const char *pathname);
  *  Returns:
  *      An errno value indicating the results of validation.  0 on successful validation.
  */
-int validate_timespec(struct timespec *time);
+SKID_INTERNAL int validate_timespec(struct timespec *time);
 
 
 /**************************************************************************************************/
@@ -488,7 +494,8 @@ int set_times_now(const char *pathname, bool follow_sym)
 /**************************************************************************************************/
 
 
-int call_a_chown(const char *pathname, uid_t new_owner, gid_t new_group, bool follow_sym)
+SKID_INTERNAL int call_a_chown(const char *pathname, uid_t new_owner, gid_t new_group,
+                               bool follow_sym)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // The results of execution
@@ -521,7 +528,7 @@ int call_a_chown(const char *pathname, uid_t new_owner, gid_t new_group, bool fo
 }
 
 
-int call_chown(const char *pathname, uid_t new_owner, gid_t new_group)
+SKID_INTERNAL int call_chown(const char *pathname, uid_t new_owner, gid_t new_group)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // The results of execution
@@ -545,7 +552,7 @@ int call_chown(const char *pathname, uid_t new_owner, gid_t new_group)
 }
 
 
-int call_lchown(const char *pathname, uid_t new_owner, gid_t new_group)
+SKID_INTERNAL int call_lchown(const char *pathname, uid_t new_owner, gid_t new_group)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // The results of execution
@@ -569,7 +576,7 @@ int call_lchown(const char *pathname, uid_t new_owner, gid_t new_group)
 }
 
 
-int call_utnsat(const char *pathname, const struct timespec times[2], bool follow_sym)
+SKID_INTERNAL int call_utnsat(const char *pathname, const struct timespec times[2], bool follow_sym)
 {
     // LOCAL VARIABLES
     int retval = ENOERR;  // The results of validation
@@ -613,7 +620,7 @@ int call_utnsat(const char *pathname, const struct timespec times[2], bool follo
 }
 
 
-bool is_abs_path(const char *pathname, int *errnum)
+SKID_INTERNAL bool is_abs_path(const char *pathname, int *errnum)
 {
     // LOCAL VARIABLES
     bool is_abs = false;   // Is pathname absolute? 
@@ -640,7 +647,7 @@ bool is_abs_path(const char *pathname, int *errnum)
 }
 
 
-int set_timespec(struct timespec *time, time_t seconds, long nseconds)
+SKID_INTERNAL int set_timespec(struct timespec *time, time_t seconds, long nseconds)
 {
     // LOCAL VARIABLES
     int retval = ENOERR;  // The results of validation
@@ -660,7 +667,7 @@ int set_timespec(struct timespec *time, time_t seconds, long nseconds)
 }
 
 
-int set_timespec_now(struct timespec *time)
+SKID_INTERNAL int set_timespec_now(struct timespec *time)
 {
     // LOCAL VARIABLES
     int retval = ENOERR;  // The results of validation
@@ -680,7 +687,7 @@ int set_timespec_now(struct timespec *time)
 }
 
 
-int set_timespec_omit(struct timespec *time)
+SKID_INTERNAL int set_timespec_omit(struct timespec *time)
 {
     // LOCAL VARIABLES
     int retval = ENOERR;  // The results of validation
@@ -700,7 +707,7 @@ int set_timespec_omit(struct timespec *time)
 }
 
 
-int validate_sfmw_input(const char *pathname, int *errnum)
+SKID_INTERNAL int validate_sfmw_input(const char *pathname, int *errnum)
 {
     // LOCAL VARIABLES
     int retval = ENOERR;  // The results of validation
@@ -723,13 +730,13 @@ int validate_sfmw_input(const char *pathname, int *errnum)
 }
 
 
-int validate_sfmw_pathname(const char *pathname)
+SKID_INTERNAL int validate_sfmw_pathname(const char *pathname)
 {
     return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
 }
 
 
-int validate_timespec(struct timespec *time)
+SKID_INTERNAL int validate_timespec(struct timespec *time)
 {
     // LOCAL VARIABLES
     int retval = ENOERR;  // The results of validation

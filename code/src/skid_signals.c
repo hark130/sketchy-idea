@@ -1,25 +1,28 @@
 /*
- *    This library defines functionality to help automate signal handling.
+ *  This library defines functionality to help automate signal handling.
  */
 
 #ifndef _XOPEN_SOURCE
-#define _XOPEN_SOURCE                    // Expose the TRAP_* signal code macros
+#define _XOPEN_SOURCE                       // Expose the TRAP_* signal code macros
 #endif  /* _XOPEN_SOURCE */
 #ifndef _XOPEN_SOURCE_EXTENDED
-#define _XOPEN_SOURCE_EXTENDED            // Expose the TRAP_* signal code macros
+#define _XOPEN_SOURCE_EXTENDED              // Expose the TRAP_* signal code macros
 #endif  /* _XOPEN_SOURCE_EXTENDED */
 
-// #define SKID_DEBUG                        // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
-#include "skid_debug.h"                      // PRINT_ERRNO(), PRINT_ERROR()
-#include "skid_macros.h"                // NOERR
-#include "skid_memory.h"                // copy_skid_string()
-#include "skid_signals.h"                // Signal MACROs, SignalHandler
-#include "skid_validation.h"            // validate_skid_err()
-#include <errno.h>                        // EINVAL
-#include <string.h>                        // memset()
-#include <sys/types.h>                    // pid_t
-#include <sys/wait.h>                    // waitpid()
+#include "skid_debug.h"                     // PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
+#include "skid_memory.h"                    // copy_skid_string()
+#include "skid_signals.h"                   // Signal MACROs, SignalHandler
+#include "skid_validation.h"                // validate_skid_err()
+#include <errno.h>                          // EINVAL
+#include <string.h>                         // memset()
+#include <sys/types.h>                      // pid_t
+#include <sys/wait.h>                       // waitpid()
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
 
 /**************************************************************************************************/
@@ -27,180 +30,180 @@
 /**************************************************************************************************/
 
 /*
- *    Description:
- *        Call sigaction() and handle errors in a standardized way.  Input is not validated.
+ *  Description:
+ *      Call sigaction() and handle errors in a standardized way.  Input is not validated.
  *
- *    Args:
- *        signum: The signal number.
- *        newact: Pointer to a new sigaction struct.
- *        oldact: [Optional] Pointer to a storage location for the old sigaction struct.
+ *  Args:
+ *      signum: The signal number.
+ *      newact: Pointer to a new sigaction struct.
+ *      oldact: [Optional] Pointer to a storage location for the old sigaction struct.
  *
- *    Returns:
- *        On success, ENOERR is returned.  On error, errno is returned.
+ *  Returns:
+ *      On success, ENOERR is returned.  On error, errno is returned.
  */
-int call_sigaction(int signum, struct sigaction *newact, struct sigaction *oldact);
+SKID_INTERNAL int call_sigaction(int signum, struct sigaction *newact, struct sigaction *oldact);
 
 /*
- *    Description:
- *        Call sigprocmas() and handle errors in a standardized way.  Input is not validated.
+ *  Description:
+ *      Call sigprocmas() and handle errors in a standardized way.  Input is not validated.
  *
- *    Args:
- *        how: Controls the behavior of sigprocmask() (see: signprocmask(2)).
- *        set: Pointer to a new signal set.
- *        oldset: [Optional] Pointer to a storage location for the previous set.
+ *  Args:
+ *      how: Controls the behavior of sigprocmask() (see: signprocmask(2)).
+ *      set: Pointer to a new signal set.
+ *      oldset: [Optional] Pointer to a storage location for the previous set.
  *
- *    Returns:
- *        On success, ENOERR is returned.  On error, errno is returned.
+ *  Returns:
+ *      On success, ENOERR is returned.  On error, errno is returned.
  */
-int call_sigprocmask(int how, sigset_t *set, sigset_t *oldset);
+SKID_INTERNAL int call_sigprocmask(int how, sigset_t *set, sigset_t *oldset);
 
 /*
- *    Description:
- *        Initialize action's memory and empty the signal set.
+ *  Description:
+ *      Initialize action's memory and empty the signal set.
  *
- *    Args:
- *        action: The signal set to initialize.
+ *  Args:
+ *      action: The signal set to initialize.
  *
- *    Returns:
- *        On success, ENOERR is returned.  On error, errno is returned.
+ *  Returns:
+ *      On success, ENOERR is returned.  On error, errno is returned.
  */
-int initialize_sigaction_struct(struct sigaction *action);
+SKID_INTERNAL int initialize_sigaction_struct(struct sigaction *action);
 
 /*
- *    Description:
- *        Empty this signal set and add signum to it.
+ *  Description:
+ *      Empty this signal set and add signum to it.
  *
- *    Notes:
- *        Use sigemptyset() (see: sigsetops(3)) to initialize a signal set without adding a signal.
+ *  Notes:
+ *      Use sigemptyset() (see: sigsetops(3)) to initialize a signal set without adding a signal.
  *
- *    Args:
- *        set: The signal set to initialize.
- *        signum: The signal number to add.
+ *  Args:
+ *      set: The signal set to initialize.
+ *      signum: The signal number to add.
  *
- *    Returns:
- *        On success, ENOERR is returned.  On error, errno is returned.
+ *  Returns:
+ *      On success, ENOERR is returned.  On error, errno is returned.
  */
-int initialize_signal_set(sigset_t *set, int signum);
+SKID_INTERNAL int initialize_signal_set(sigset_t *set, int signum);
 
 /*
- *    Description:
- *        Translate signal codes for generic signals into a human-readable, heap-allocated string.
+ *  Description:
+ *      Translate signal codes for generic signals into a human-readable, heap-allocated string.
  *
- *    Args:
- *        signum: The signal number.
- *        sigcode: The signal code.
- *        errnum: [Out] Storage location for errno values encountered.
+ *  Args:
+ *      signum: The signal number.
+ *      sigcode: The signal code.
+ *      errnum: [Out] Storage location for errno values encountered.
  *
- *    Returns:
- *        Heap-allocated string describing the signal code with relation to the signal number.
- *        NULL on error (check errnum for details).
+ *  Returns:
+ *      Heap-allocated string describing the signal code with relation to the signal number.
+ *      NULL on error (check errnum for details).
  */
-char *translate_signal_generic(int signum, int sigcode, int *errnum);
+SKID_INTERNAL char *translate_signal_generic(int signum, int sigcode, int *errnum);
 
 /*
- *    Description:
- *        Translate SIGBUS signal codes into a human-readable, heap-allocated string.
+ *  Description:
+ *      Translate SIGBUS signal codes into a human-readable, heap-allocated string.
  *
- *    Args:
- *        signum: The signal number.
- *        sigcode: The signal code.
- *        errnum: [Out] Storage location for errno values encountered.
+ *  Args:
+ *      signum: The signal number.
+ *      sigcode: The signal code.
+ *      errnum: [Out] Storage location for errno values encountered.
  *
- *    Returns:
- *        Heap-allocated string describing the signal code with relation to the signal number.
- *        NULL on error (check errnum for details).
+ *  Returns:
+ *      Heap-allocated string describing the signal code with relation to the signal number.
+ *      NULL on error (check errnum for details).
  */
-char *translate_signal_sigbus(int signum, int sigcode, int *errnum);
+SKID_INTERNAL char *translate_signal_sigbus(int signum, int sigcode, int *errnum);
 
 /*
- *    Description:
- *        Translate SIGCHLD signal codes into a human-readable, heap-allocated string.
+ *  Description:
+ *      Translate SIGCHLD signal codes into a human-readable, heap-allocated string.
  *
- *    Args:
- *        signum: The signal number.
- *        sigcode: The signal code.
- *        errnum: [Out] Storage location for errno values encountered.
+ *  Args:
+ *      signum: The signal number.
+ *      sigcode: The signal code.
+ *      errnum: [Out] Storage location for errno values encountered.
  *
- *    Returns:
- *        Heap-allocated string describing the signal code with relation to the signal number.
- *        NULL on error (check errnum for details).
+ *  Returns:
+ *      Heap-allocated string describing the signal code with relation to the signal number.
+ *      NULL on error (check errnum for details).
  */
-char *translate_signal_sigchld(int signum, int sigcode, int *errnum);
+SKID_INTERNAL char *translate_signal_sigchld(int signum, int sigcode, int *errnum);
 
 /*
- *    Description:
- *        Translate SIGSEGV signal codes into a human-readable, heap-allocated string.
+ *  Description:
+ *      Translate SIGSEGV signal codes into a human-readable, heap-allocated string.
  *
- *    Args:
- *        signum: The signal number.
- *        sigcode: The signal code.
- *        errnum: [Out] Storage location for errno values encountered.
+ *  Args:
+ *      signum: The signal number.
+ *      sigcode: The signal code.
+ *      errnum: [Out] Storage location for errno values encountered.
  *
- *    Returns:
- *        Heap-allocated string describing the signal code with relation to the signal number.
- *        NULL on error (check errnum for details).
+ *  Returns:
+ *      Heap-allocated string describing the signal code with relation to the signal number.
+ *      NULL on error (check errnum for details).
  */
-char *translate_signal_sigsegv(int signum, int sigcode, int *errnum);
+SKID_INTERNAL char *translate_signal_sigsegv(int signum, int sigcode, int *errnum);
 
 /*
- *    Description:
- *        Translate SIGFPE signal codes into a human-readable, heap-allocated string.
+ *  Description:
+ *      Translate SIGFPE signal codes into a human-readable, heap-allocated string.
  *
- *    Args:
- *        signum: The signal number.
- *        sigcode: The signal code.
- *        errnum: [Out] Storage location for errno values encountered.
+ *  Args:
+ *      signum: The signal number.
+ *      sigcode: The signal code.
+ *      errnum: [Out] Storage location for errno values encountered.
  *
- *    Returns:
- *        Heap-allocated string describing the signal code with relation to the signal number.
- *        NULL on error (check errnum for details).
+ *  Returns:
+ *      Heap-allocated string describing the signal code with relation to the signal number.
+ *      NULL on error (check errnum for details).
  */
-char *translate_signal_sigfpe(int signum, int sigcode, int *errnum);
+SKID_INTERNAL char *translate_signal_sigfpe(int signum, int sigcode, int *errnum);
 
 /*
- *    Description:
- *        Translate SIGILL signal codes into a human-readable, heap-allocated string.
+ *  Description:
+ *      Translate SIGILL signal codes into a human-readable, heap-allocated string.
  *
- *    Args:
- *        signum: The signal number.
- *        sigcode: The signal code.
- *        errnum: [Out] Storage location for errno values encountered.
+ *  Args:
+ *      signum: The signal number.
+ *      sigcode: The signal code.
+ *      errnum: [Out] Storage location for errno values encountered.
  *
- *    Returns:
- *        Heap-allocated string describing the signal code with relation to the signal number.
- *        NULL on error (check errnum for details).
+ *  Returns:
+ *      Heap-allocated string describing the signal code with relation to the signal number.
+ *      NULL on error (check errnum for details).
  */
-char *translate_signal_sigill(int signum, int sigcode, int *errnum);
+SKID_INTERNAL char *translate_signal_sigill(int signum, int sigcode, int *errnum);
 
 /*
- *    Description:
- *        Translate SIGIO signal codes into a human-readable, heap-allocated string.
+ *  Description:
+ *      Translate SIGIO signal codes into a human-readable, heap-allocated string.
  *
- *    Args:
- *        signum: The signal number.
- *        sigcode: The signal code.
- *        errnum: [Out] Storage location for errno values encountered.
+ *  Args:
+ *      signum: The signal number.
+ *      sigcode: The signal code.
+ *      errnum: [Out] Storage location for errno values encountered.
  *
- *    Returns:
- *        Heap-allocated string describing the signal code with relation to the signal number.
- *        NULL on error (check errnum for details).
+ *  Returns:
+ *      Heap-allocated string describing the signal code with relation to the signal number.
+ *      NULL on error (check errnum for details).
  */
-char *translate_signal_sigio(int signum, int sigcode, int *errnum);
+SKID_INTERNAL char *translate_signal_sigio(int signum, int sigcode, int *errnum);
 
 /*
- *    Description:
- *        Translate SIGTRAP signal codes into a human-readable, heap-allocated string.
+ *  Description:
+ *      Translate SIGTRAP signal codes into a human-readable, heap-allocated string.
  *
- *    Args:
- *        signum: The signal number.
- *        sigcode: The signal code.
- *        errnum: [Out] Storage location for errno values encountered.
+ *  Args:
+ *      signum: The signal number.
+ *      sigcode: The signal code.
+ *      errnum: [Out] Storage location for errno values encountered.
  *
- *    Returns:
- *        Heap-allocated string describing the signal code with relation to the signal number.
- *        NULL on error (check errnum for details).
+ *  Returns:
+ *      Heap-allocated string describing the signal code with relation to the signal number.
+ *      NULL on error (check errnum for details).
  */
-char *translate_signal_sigtrap(int signum, int sigcode, int *errnum);
+SKID_INTERNAL char *translate_signal_sigtrap(int signum, int sigcode, int *errnum);
 
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
@@ -371,7 +374,7 @@ int unblock_signal(int signum, sigset_t *oldset)
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
 
-int call_sigaction(int signum, struct sigaction *newact, struct sigaction *oldact)
+SKID_INTERNAL int call_sigaction(int signum, struct sigaction *newact, struct sigaction *oldact)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // Errno value
@@ -389,7 +392,7 @@ int call_sigaction(int signum, struct sigaction *newact, struct sigaction *oldac
 }
 
 
-int call_sigaddset(sigset_t *set, int signum)
+SKID_INTERNAL int call_sigaddset(sigset_t *set, int signum)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // Errno value
@@ -416,7 +419,7 @@ int call_sigaddset(sigset_t *set, int signum)
 }
 
 
-int call_sigemptyset(sigset_t *set)
+SKID_INTERNAL int call_sigemptyset(sigset_t *set)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // Errno value
@@ -434,7 +437,7 @@ int call_sigemptyset(sigset_t *set)
 }
 
 
-int call_sigprocmask(int how, sigset_t *set, sigset_t *oldset)
+SKID_INTERNAL int call_sigprocmask(int how, sigset_t *set, sigset_t *oldset)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // Errno value
@@ -452,7 +455,7 @@ int call_sigprocmask(int how, sigset_t *set, sigset_t *oldset)
 }
 
 
-int initialize_sigaction_struct(struct sigaction *action)
+SKID_INTERNAL int initialize_sigaction_struct(struct sigaction *action)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // Errno value
@@ -481,7 +484,7 @@ int initialize_sigaction_struct(struct sigaction *action)
     return result;
 }
 
-int initialize_signal_set(sigset_t *set, int signum)
+SKID_INTERNAL int initialize_signal_set(sigset_t *set, int signum)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // Errno value
@@ -509,7 +512,7 @@ int initialize_signal_set(sigset_t *set, int signum)
 }
 
 
-char *translate_signal_generic(int signum, int sigcode, int *errnum)
+SKID_INTERNAL char *translate_signal_generic(int signum, int sigcode, int *errnum)
 {
     // LOCAL VARIABLES
     int result = ENOERR;       // Errno value
@@ -567,7 +570,7 @@ char *translate_signal_generic(int signum, int sigcode, int *errnum)
 }
 
 
-char *translate_signal_sigbus(int signum, int sigcode, int *errnum)
+SKID_INTERNAL char *translate_signal_sigbus(int signum, int sigcode, int *errnum)
 {
     // LOCAL VARIABLES
     int result = ENOERR;       // Errno value
@@ -631,7 +634,7 @@ char *translate_signal_sigbus(int signum, int sigcode, int *errnum)
 }
 
 
-char *translate_signal_sigchld(int signum, int sigcode, int *errnum)
+SKID_INTERNAL char *translate_signal_sigchld(int signum, int sigcode, int *errnum)
 {
     // LOCAL VARIABLES
     int result = ENOERR;       // Errno value
@@ -696,7 +699,7 @@ char *translate_signal_sigchld(int signum, int sigcode, int *errnum)
 }
 
 
-char *translate_signal_sigsegv(int signum, int sigcode, int *errnum)
+SKID_INTERNAL char *translate_signal_sigsegv(int signum, int sigcode, int *errnum)
 {
     // LOCAL VARIABLES
     int result = ENOERR;       // Errno value
@@ -749,7 +752,7 @@ char *translate_signal_sigsegv(int signum, int sigcode, int *errnum)
 }
 
 
-char *translate_signal_sigfpe(int signum, int sigcode, int *errnum)
+SKID_INTERNAL char *translate_signal_sigfpe(int signum, int sigcode, int *errnum)
 {
     // LOCAL VARIABLES
     int result = ENOERR;       // Errno value
@@ -820,7 +823,7 @@ char *translate_signal_sigfpe(int signum, int sigcode, int *errnum)
 }
 
 
-char *translate_signal_sigill(int signum, int sigcode, int *errnum)
+SKID_INTERNAL char *translate_signal_sigill(int signum, int sigcode, int *errnum)
 {
     // LOCAL VARIABLES
     int result = ENOERR;       // Errno value
@@ -891,7 +894,7 @@ char *translate_signal_sigill(int signum, int sigcode, int *errnum)
 }
 
 
-char *translate_signal_sigio(int signum, int sigcode, int *errnum)
+SKID_INTERNAL char *translate_signal_sigio(int signum, int sigcode, int *errnum)
 {
     // LOCAL VARIABLES
     int result = ENOERR;       // Errno value
@@ -956,7 +959,7 @@ char *translate_signal_sigio(int signum, int sigcode, int *errnum)
 }
 
 
-char *translate_signal_sigtrap(int signum, int sigcode, int *errnum)
+SKID_INTERNAL char *translate_signal_sigtrap(int signum, int sigcode, int *errnum)
 {
     // LOCAL VARIABLES
     int result = ENOERR;       // Errno value

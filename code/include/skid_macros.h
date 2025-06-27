@@ -6,14 +6,17 @@
 #define __SKID_MACROS__
 
 /* GENERAL MACROS */
+// ENOERR
 #ifndef ENOERR
     #define ENOERR ((int)0)  // Success value for errno
 #endif  /* ENOERR */
+// NULL
 #ifndef NULL
     #define NULL ((void *)0)  // Just in case it's not already defined
 #endif  /* NULL */
+// SKID_MAX_SZ
 #define SKID_MAX_SZ (~(size_t)0)    // Library's value for the maximum size_t value
-
+// ENV*BIT
 #ifdef __GNUC__
     #if defined(__x86_64__) || defined(__ppc64__)
         #define ENV64BIT
@@ -21,6 +24,12 @@
         #define ENV32BIT
     #endif
 #endif  /* __GNUC__ */
+// SKID_INTERNAL
+#if (defined(__GNUC__) || defined(__clang__)) && defined(SKID_RELEASE)
+#define SKID_INTERNAL __attribute__((visibility("internal")))
+#else
+#define SKID_INTERNAL
+#endif  /* SKID_INTERNAL */
 
 /* FILE MACROS */
 #if defined(PATH_MAX)
