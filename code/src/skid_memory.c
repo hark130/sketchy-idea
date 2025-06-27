@@ -186,7 +186,7 @@ int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags)
         if (MAP_FAILED == new_map->addr)
         {
             result = errno;  // Something failed
-            PRINT_ERROR(The call to mmap failed);
+            PRINT_ERROR(The call to mmap() failed);
             PRINT_ERRNO(result);
             new_map->addr = NULL;  // Zeroize the pointer
             new_map->length = 0;  // Reset the length
@@ -215,7 +215,7 @@ int unmap_skid_mem(skidMemMapRegion_ptr old_map)
         else
         {
             result = errno;  // Something failed
-            PRINT_ERROR(The call to munmap failed);
+            PRINT_ERROR(The call to munmap() failed);
             PRINT_ERRNO(result);
         }
     }
