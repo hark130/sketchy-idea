@@ -39,6 +39,13 @@
 #include <stddef.h>                         // size_t
 #include "skid_macros.h"                    // ENOERR
 
+// This struct communicates details about mapped memory to map_skid_mem() and unmap_skid_mem().
+typedef struct _skidMemMapRegion
+{
+    char *addr;     // [In/Out] Pointer to the virtual address space mapping
+    size_t length;  // [Out] The length of the mapping
+} skidMemMapRegion, *skidMemMapRegion_ptr;
+
 /*
  *  Description:
  *      Allocate a zeroized array in heap memory.
@@ -93,5 +100,38 @@ int free_skid_mem(void **old_mem);
  *      0 on success, errno on error.
  */
 int free_skid_string(char **old_string);
+
+/*
+ *  Description:
+ *      Map zeroized virtual memory by utilizing mmap().
+ *
+ *  Args:
+ *      new_map: [In/Out] skidMemMapRegion pointer for a new mapping.  The mapping.addr value will
+ *          be passed to mmap() as a hint about where to place the mapping.  If NULL, the kernel
+ *          chooses the address.  Regardless, this value will be overwritten by this function with
+ *          the return value from mmap().
+ *      prot: The desired memory protection of the mapping (see: mmap(2)).
+ *      flags: Determines, among other things, whether updates to the mapping are visible to
+ *          other processes mapping the same region.  This value will be ORed with MAP_ANONYMOUS to
+ *          ensure the memory region its contents are intialized to zero.  (see: mmap(2) for
+ *          additional flags)
+ *
+ *  Returns:
+ *      ENOERR on success, errno value on error.
+ */
+int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags);
+
+/*
+ *  Description:
+ *      Delete the mapping for the specified address range by utilizing munmap().
+ *
+ *  Args:
+ *      old_map: [In/Out] skidMemMapRegion pointer for a mapping  to delete.  On success, these
+ *          values will be zeroized.
+ *
+ *  Returns:
+ *      ENOERR on success, errno value on error.
+ */
+int unmap_skid_mem(skidMemMapRegion_ptr old_map);
 
 #endif  /* __SKID_MEMORY__ */
