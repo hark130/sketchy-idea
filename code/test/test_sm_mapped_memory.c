@@ -21,20 +21,22 @@
  */
 
 // Standard includes
-#include <errno.h>                  // EINVAL
-#include <semaphore.h>              // sem_init(), sem_post()
-#include <stdbool.h>                // false
-#include <stdint.h>                 // SIZE_MAX
-#include <stdio.h>                  // fprintf()
+#include <errno.h>                          // EINVAL
+#include <semaphore.h>                      // sem_init(), sem_post(), sem_trywait()
+#include <stdbool.h>                        // false
+#include <stdint.h>                         // SIZE_MAX
+#include <stdio.h>                          // fprintf()
 // #include <stdlib.h>                 // exit()
-// #include <sys/wait.h>               // waitpid()
-// #include <unistd.h>                 // fork()
+#include <sys/wait.h>                       // waitpid()
+#include <unistd.h>                         // fork()
 // Local includes
-#define SKID_DEBUG                  // The DEBUG output is doing double duty as test output
+#define SKID_DEBUG                          // The DEBUG output is doing double duty as test output
 // #include "devops_code.h"            // call_sigqueue()
-// #include "skid_debug.h"             // DEBUG_INFO_STR, DEBUG_WARNG_STR, PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_debug.h"                     // PRINT_ERROR()
 // #include "skid_macros.h"            // ENOERR
-#include "skid_memory.h"            // map_skid_mem(), skidMemMapRegion, unmap_skid_mem()
+#include "skid_memory.h"                    // map_skid_mem(), skidMemMapRegion, unmap_skid_mem()
+#include "skid_file_metadata_read.h"        // is_regular_file()
+#include "skid_file_operations.h"           // read_file()
 // #include "skid_signal_handlers.h"   // handle_ext_read_queue_int()
 // #include "skid_signals.h"           // set_signal_handler_ext(), translate_signal_code()
 
@@ -61,14 +63,15 @@ int main(int argc, char *argv[])
 {
     // LOCAL VARIABLES
     int results = ENOERR;               // Store errno and/or results here
-    int prot = PROT_READ | PROT_WRITE;  // mmap() prot value
-    int flags = MAP_SHARED;             // mmap() flags value
+    int prot = PROT_READ | PROT_WRITE;  // mmap() protections
+    int flags = MAP_SHARED;             // mmap() flags
     pid_t my_pid = 0;                   // My PID
     pid_t wait_ret = 0;                 // Return value from the call to waitpid()
     int child_status = 0;               // Status information about the child process
-    sem_t sem;                          // Semaphore to manage the virtual memory region
+    // sem_t *sem = NULL;               // Semaphore to manage the virtual memory region
     int pshared = 1;                    // Sempahore pshared value: 1 means process-shared
     unsigned int sem_val = 0;           // Initial value of the semaphore: locked by the parent
+    skidMemMapRegion map_sem;           // Sempahore to manage the virtual memory region
     skidMemMapRegion map_file;          // argv[1] mapped into shared memory
 
     // INPUT VALIDATION
@@ -86,11 +89,20 @@ int main(int argc, char *argv[])
             results = EINVAL;
         }
     }
+
     // SETUP
-    else
+    // Map a semaphore
+    if (ENOERR == results)
+    {
+        map_sem.addr = NULL;
+        map_sem.length = sizeof(sem_t);
+        results = map_skid_mem(&map_sem, prot, flags);
+    }
+    // Initialize the semaphore
+    if (ENOERR == results)
     {
         errno = ENOERR;  // Just in case
-        if (0 != sem_init(&sem, pshared, sem_val))
+        if (0 != sem_init((sem_t *)(map_sem.addr), pshared, sem_val))
         {
             results = errno;
             if (ENOERR == results)
@@ -128,11 +140,17 @@ int main(int argc, char *argv[])
             {
                 errno = ENOERR;  // Just in case
                 // Release the semaphore
-                if (0 != sem_post(&sem))
+                if (0 != sem_post((sem_t *)(map_sem.addr)))
                 {
                     results = errno;
                     PRINT_ERROR(PARENT - The call to sem_post() failed);
                     PRINT_ERRNO(results);
+                }
+                else
+                {
+                    PRINT_ERROR(ABOUT TO RELEASE);  // DEBUGGING
+                    FPRINTF_ERR("%s\n", map_file.addr);  // DEBUGGING
+                    FPRINTF_ERR("%s PARENT - Semaphore released\n", DEBUG_INFO_STR);
                 }
             }
             else
@@ -140,6 +158,45 @@ int main(int argc, char *argv[])
                 PRINT_ERROR(PARENT - The call to run_parent() failed);
                 PRINT_ERRNO(results);
             }
+            // Wait for the child
+            while (ENOERR == results)
+            {
+                // Check the child process
+                wait_ret = waitpid(my_pid, &child_status, WNOHANG);  // Is the child alive?
+                if (my_pid == wait_ret)
+                {
+                    // The child's state has changed
+                    if (WIFEXITED(child_status) || WIFSIGNALED(child_status) \
+                        || WIFSTOPPED(child_status))
+                    {
+                        printf("%s PARENT - The child has exited\n",
+                               DEBUG_INFO_STR);
+                        break;
+                    }
+                }
+                else if (0 == wait_ret)
+                {
+                    // The child didn't change state yet... be patient
+                    // FPRINTF_ERR("%s The child did not change state yet\n", DEBUG_INFO_STR);
+                }
+                else if (-1 == wait_ret)
+                {
+                    // FPRINTF_ERR("%s Wait for any child process\n", DEBUG_INFO_STR);
+                }
+                else
+                {
+                    PRINT_ERROR(PARENT - The call to waitpid() reported an unknown PID);
+                    FPRINTF_ERR("PARENT - The call to waitpid() reported an unknown PID: %d\n",
+                                wait_ret);
+                    break;
+                }
+            }
+            // Clean up
+            // Destroy the semaphore
+            sem_destroy((sem_t *)map_sem.addr);  // Best effort
+            // Unmap the semaphore memory
+            PRINT_ERROR(HERE);  // DEBUGGING
+            unmap_skid_mem(&map_sem);  // Best effort
         }
     }
     // Child
@@ -148,22 +205,29 @@ int main(int argc, char *argv[])
         if (0 == my_pid)
         {
             // Obtain the lock
-            while (-1 == sem_trywait(&sem))
+            while (-1 == sem_trywait((sem_t *)map_sem.addr))
             {
                 results = errno;
                 if (EAGAIN == results)
                 {
                     FPRINTF_ERR("%s CHILD - Still waiting on the semaphore.\n", DEBUG_INFO_STR);
                     results = ENOERR;  // Reset and keep waiting
+                    sleep(1);  // Avoid the thrash
                 }
                 else
                 {
                     break;  // Something went truly wrong
                 }
+                PRINT_ERROR(RESULTS);  // DEBUGGING
+                FPRINTF_ERR("RESULTS %d\n", results);  // DEBUGGING
             }
+            PRINT_ERROR(RESULTS);  // DEBUGGING
+            FPRINTF_ERR("RESULTS %d\n", results);  // DEBUGGING
             // Print the resource
             if (ENOERR == results)
             {
+                PRINT_ERROR(ABOUT TO PRINT);  // DEBUGGING
+                FPRINTF_ERR("%s\n", map_file.addr);  // DEBUGGING
                 for (size_t i = 0; i < map_file.length; i++)
                 {
                     if (EOF == putchar((*(map_file.addr + i))))
