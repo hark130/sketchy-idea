@@ -64,9 +64,14 @@ size_t convert_offset(off_t offset, int *errnum);
 size_t get_file_size(const char *filename, int *errnum);
 
 /*
- *  Size the file, map memory, and read the file into mapped memory.
+ *  Read the file into mapped memory.
  */
 int map_filename(const char *filename, skidMemMapRegion_ptr file_map);
+
+/*
+ *  Size the file and map the memory.
+ */
+int prepare_mapping(const char *filename, skidMemMapRegion_ptr file_map);
 
 /*
  *  Single point of truth for this manual test code's usage.
@@ -152,6 +157,11 @@ int main(int argc, char *argv[])
         {
             printf("%s %s now temporarily blocking signal %d.\n", DEBUG_INFO_STR, argv[0], signum);
         }
+    }
+    // Prepare mapped memory
+    if (ENOERR == exit_code)
+    {
+        exit_code = prepare_mapping(filename, &file_map);
     }
     // 1. Setup Signal Handler
     if (ENOERR == exit_code)
@@ -264,6 +274,10 @@ int main(int argc, char *argv[])
                 {
                     exit_code = ENOERR;  // Ignore a lack of data
                 }
+                else
+                {
+                    break;  // Either we read it or there was an error
+                }
             }
         }
     }
@@ -365,9 +379,43 @@ size_t get_file_size(const char *filename, int *errnum)
 int map_filename(const char *filename, skidMemMapRegion_ptr file_map)
 {
     // LOCAL VARIABLES
+    int result = ENOERR;     // Results of execution
+    char *file_cont = NULL;  // Filename contents
+
+    // INPUT VALIDATION
+    if (NULL == filename || NULL == file_map)
+    {
+        result = EINVAL;  // NULL pointers
+    }
+
+    // MAP IT
+    // Read the file
+    if (ENOERR == result)
+    {
+        file_cont = read_file(filename, &result);
+    }
+    // Copy file contents into mapped memory
+    if (ENOERR == result)
+    {
+        memcpy(file_map->addr, file_cont, file_map->length - 1);
+    }
+
+    // CLEAN UP
+    if (NULL != file_cont)
+    {
+        free_skid_string(&file_cont);  // Best effort
+    }
+
+    // DONE
+    return result;
+}
+
+
+int prepare_mapping(const char *filename, skidMemMapRegion_ptr file_map)
+{
+    // LOCAL VARIABLES
     int result = ENOERR;                // Results of execution
     size_t file_size = 0;               // Size of filename
-    char *file_cont = NULL;             // Filename contents
     int prot = PROT_READ | PROT_WRITE;  // mmap() protections
     int flags = MAP_SHARED;             // mmap() flags
 
@@ -383,28 +431,12 @@ int map_filename(const char *filename, skidMemMapRegion_ptr file_map)
     {
         file_size = get_file_size(filename, &result);
     }
-    // Read the file
-    if (ENOERR == result)
-    {
-        file_cont = read_file(filename, &result);
-    }
     // Map memory
     if (ENOERR == result)
     {
         file_map->addr = NULL;
         file_map->length = file_size + 1;  // Nul-terminate this memory space
         result = map_skid_mem(file_map, prot, flags);
-    }
-    // Copy file contents into mapped memory
-    if (ENOERR == result)
-    {
-        memcpy(file_map->addr, file_cont, file_size);
-    }
-
-    // CLEAN UP
-    if (NULL != file_cont)
-    {
-        free_skid_string(&file_cont);  // Best effort
     }
 
     // DONE
@@ -454,7 +486,7 @@ int process_queue_read(void)
 {
     // LOCAL VARIABLE
     int result = ENOERR;                          // Results of execution
-    void *data = (void *)skid_sig_hand_data_ptr;  // Pointer from the queue
+    char *data = (char *)skid_sig_hand_data_ptr;  // Pointer from the queue
     int pid = skid_sig_hand_pid;                  // PID of the sending process
     int code = skid_sig_hand_sigcode;             // Signal code
     int signal = skid_sig_hand_signum;            // Signal number
@@ -479,7 +511,7 @@ int process_queue_read(void)
                 "%d (%s) from UID %d at PID %d\n", DEBUG_INFO_STR, data, signal, strsignal(signal),
                 code, sig_code_str, uid, pid);
         fprintf(stderr, "%s CHILD - The contents of the mapped memory:\n\n%s\n",
-                DEBUG_INFO_STR, (char *)data);
+                DEBUG_INFO_STR, data);
     }
 
     // CLEANUP
