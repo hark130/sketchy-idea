@@ -50,7 +50,7 @@ size_t convert_offset(off_t offset, int *errnum);
  *  Size filename, map a memory region into map_file, and then read filename into it.
  *  Does not validate input.  Returns ENOERR on success, errno value of failure.
  */
-int run_parent(const char *filename, skidMemMapRegion_ptr *map_file);
+int run_parent(const char *filename, skidMemMapRegion_ptr map_file);
 
 
 /*
@@ -65,6 +65,8 @@ int main(int argc, char *argv[])
     int results = ENOERR;                  // Store errno and/or results here
     int prot = PROT_READ | PROT_WRITE;     // mmap() protections
     int flags = MAP_SHARED;                // mmap() flags
+    off_t file_size = 0;                   // Size of filename
+    size_t conv_file_size = 0;             // file_size converted to size_t
     pid_t my_pid = 0;                      // My PID
     pid_t wait_ret = 0;                    // Return value from the call to waitpid()
     int child_status = 0;                  // Status information about the child process
@@ -111,6 +113,24 @@ int main(int argc, char *argv[])
             PRINT_ERRNO(results);
         }
     }
+    // Prepare file mapping struct
+    if (ENOERR == results)
+    {
+        file_size = get_size(argv[1], &results);  // Size filename
+    }
+    if (ENOERR == results)
+    {
+        conv_file_size = convert_offset(file_size, &results);  // Convert the value
+    }
+    if (ENOERR == results)
+    {
+        results = map_skid_struct(&map_file, prot, flags, conv_file_size);  // Map a struct
+        if (ENOERR != results)
+        {
+            PRINT_ERROR(The call to map_skid_struct() failed);
+            PRINT_ERRNO(results);
+        }
+    }
 
     // DO IT
     // Fork
@@ -133,7 +153,7 @@ int main(int argc, char *argv[])
     {
         if (my_pid > 0)
         {
-            results = run_parent(argv[1], &map_file);
+            results = run_parent(argv[1], map_file);
             if (ENOERR == results)
             {
                 errno = ENOERR;  // Just in case
@@ -146,8 +166,8 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    PRINT_ERROR(ABOUT TO RELEASE);  // DEBUGGING
-                    FPRINTF_ERR("%s\n", (char *)map_file->addr);  // DEBUGGING
+                    // PRINT_ERROR(ABOUT TO RELEASE);  // DEBUGGING
+                    // FPRINTF_ERR("%s\n", (char *)map_file->addr);  // DEBUGGING
                     FPRINTF_ERR("%s PARENT - Semaphore released\n", DEBUG_INFO_STR);
                 }
             }
@@ -175,11 +195,12 @@ int main(int argc, char *argv[])
                 else if (0 == wait_ret)
                 {
                     // The child didn't change state yet... be patient
-                    // FPRINTF_ERR("%s The child did not change state yet\n", DEBUG_INFO_STR);
+                    FPRINTF_ERR("%s PARENT - The child did not change state yet\n", DEBUG_INFO_STR);
+                    sleep(1);
                 }
                 else if (-1 == wait_ret)
                 {
-                    // FPRINTF_ERR("%s Wait for any child process\n", DEBUG_INFO_STR);
+                    FPRINTF_ERR("%s PARENT - Wait for any child process\n", DEBUG_INFO_STR);
                 }
                 else
                 {
@@ -193,7 +214,7 @@ int main(int argc, char *argv[])
             // Destroy the semaphore
             sem_destroy((sem_t *)map_sem->addr);  // Best effort
             // Unmap the semaphore memory
-            PRINT_ERROR(HERE);  // DEBUGGING
+            // PRINT_ERROR(HERE);  // DEBUGGING
             unmap_skid_struct(&map_sem);  // Best effort
         }
     }
@@ -216,16 +237,18 @@ int main(int argc, char *argv[])
                 {
                     break;  // Something went truly wrong
                 }
-                PRINT_ERROR(RESULTS);  // DEBUGGING
-                FPRINTF_ERR("RESULTS %d\n", results);  // DEBUGGING
+                // PRINT_ERROR(RESULTS);  // DEBUGGING
+                // FPRINTF_ERR("RESULTS %d\n", results);  // DEBUGGING
             }
-            PRINT_ERROR(RESULTS);  // DEBUGGING
-            FPRINTF_ERR("RESULTS %d\n", results);  // DEBUGGING
+            // PRINT_ERROR(HERE);  // DEBUGGING
+            // FPRINTF_ERR("RESULTS %d\n", results);  // DEBUGGING
             // Print the resource
             if (ENOERR == results)
             {
-                PRINT_ERROR(ABOUT TO PRINT);  // DEBUGGING
-                FPRINTF_ERR("%s\n", (char *)map_file->addr);  // DEBUGGING
+                // PRINT_ERROR(ABOUT TO PRINT);  // DEBUGGING
+                // FPRINTF_ERR("STRUCT POINTER %p\n", map_file);  // DEBUGGING
+                // FPRINTF_ERR("POINTER %p\n", (char *)map_file->addr);  // DEBUGGING
+                // FPRINTF_ERR("CONTENT %s\n", (char *)map_file->addr);  // DEBUGGING
                 for (size_t i = 0; i < map_file->length; i++)
                 {
                     if (EOF == putchar((*(((char *)map_file->addr) + i))))
@@ -282,40 +305,41 @@ void print_usage(const char *prog_name)
 }
 
 
-int run_parent(const char *filename, skidMemMapRegion_ptr *map_file)
+int run_parent(const char *filename, skidMemMapRegion_ptr map_file)
 {
     // LOCAL VARIABLES
     int result = ENOERR;                // Errno values
-    off_t file_size = 0;                // Size of filename
-    size_t conv_file_size = 0;          // file_size converted to size_t
-    int prot = PROT_READ | PROT_WRITE;  // mmap() protections
-    int flags = MAP_SHARED;             // mmap() flags
+    // off_t file_size = 0;                // Size of filename
+    // size_t conv_file_size = 0;          // file_size converted to size_t
+    // int prot = PROT_READ | PROT_WRITE;  // mmap() protections
+    // int flags = MAP_SHARED;             // mmap() flags
     char *file_cont = NULL;             // Temporary heap pointer with file contents
 
-    // RUN IT
-    // Size filename
-    file_size = get_size(filename, &result);
-    if (ENOERR == result)
-    {
-        conv_file_size = convert_offset(file_size, &result);
-    }
-    // Map a memory region
-    if (ENOERR == result)
-    {
-        result = map_skid_struct(map_file, prot, flags, conv_file_size);
-        if (ENOERR != result)
-        {
-            PRINT_ERROR(The call to map_skid_struct() failed);
-            PRINT_ERRNO(result);
-        }
-    }
+    // // RUN IT
+    // // Size filename
+    // file_size = get_size(filename, &result);
+    // if (ENOERR == result)
+    // {
+    //     conv_file_size = convert_offset(file_size, &result);
+    // }
+    // // Map a memory region
+    // if (ENOERR == result)
+    // {
+    //     result = map_skid_struct(map_file, prot, flags, conv_file_size);
+    //     if (ENOERR != result)
+    //     {
+    //         PRINT_ERROR(The call to map_skid_struct() failed);
+    //         PRINT_ERRNO(result);
+    //     }
+    // }
+    // READ IT
     // Read filename into it
     if (ENOERR == result)
     {
         file_cont = read_file(filename, &result);
         if (ENOERR == result)
         {
-            memcpy((*map_file)->addr, file_cont, conv_file_size);
+            memcpy(map_file->addr, file_cont, map_file->length);
         }
     }
 
