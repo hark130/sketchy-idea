@@ -4,7 +4,8 @@
  *
  *  This manual test code performs the following actions:
  *  1. Install the handle_ext_read_queue_ptr() extended signal handler for SIGUSR2
- *  2. Fork
+ *  2. Map shared memory to be used between parent and child
+ *  3. Fork
  *  3.a. Parent
  *      3.a.i.      Read filename into mapped memory
  *      3.a.ii.     Send a signal to the child process with the mapped memory address
@@ -196,16 +197,16 @@ int main(int argc, char *argv[])
     }
 
     // 3. Execute
-    // 3.a. Parent
+    // Parent
     if (ENOERR == exit_code)
     {
         if (the_pid > 0)
         {
-            // 3.a.i.  Read filename into mapped memory
+            // Read filename into mapped memory
             exit_code = map_filename(filename, &file_map);
             if (ENOERR == exit_code)
             {
-                // 3.a.ii.  Send a signal to the child process with the mapped memory address
+                // Send a signal to the child process with the mapped memory address
                 exit_code = call_sigqueue_ptr(the_pid, signum, file_map.addr);
                 if (ENOERR != exit_code)
                 {
@@ -218,7 +219,7 @@ int main(int argc, char *argv[])
                 PRINT_ERROR(PARENT - The call to map_filename() failed);
                 PRINT_ERRNO(exit_code);
             }
-            // 3.a.iii.    Wait for the child to finish
+            // Wait for the child to finish
             while (ENOERR == exit_code)
             {
                 // Check the child process
@@ -260,7 +261,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    // 3.b. Child
+    // Child
     if (ENOERR == exit_code)
     {
         if (0 == the_pid)
@@ -546,7 +547,7 @@ int process_queue_verify(int signum)
 {
     // LOCAL VARIABLES
     int result = ENOERR;            // Results of execution
-    QueueData_t ptr_val = Pointer;  // Only accepting integer values in the queue
+    QueueData_t ptr_val = Pointer;  // Only accepting pointer values in the queue
 
     // VERIFY VARIABLES
     if (ptr_val != skid_sig_hand_queue)
