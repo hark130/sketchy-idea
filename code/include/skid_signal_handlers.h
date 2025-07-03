@@ -48,7 +48,7 @@ typedef enum { Integer = 1, Pointer = 2 } QueueData_t;
 
 extern volatile sig_atomic_t skid_sig_hand_interrupted;  // Non-zero values indicate SIGINT handled
 extern volatile sig_atomic_t skid_sig_hand_data_int;     // Data (int)
-extern volatile sig_atomic_t skid_sig_hand_data_ptr;     // Data (void*)
+extern volatile void *skid_sig_hand_data_ptr;            // Data (void*)
 extern volatile sig_atomic_t skid_sig_hand_ext;          // Non-zero values indicate ext reporting
 extern volatile sig_atomic_t skid_sig_hand_pid;          // PID of a sending process
 extern volatile sig_atomic_t skid_sig_hand_queue;        // QueueData_t indicates queue data
@@ -100,6 +100,24 @@ void handle_signal_number(int signum);
  *        the data before the next signal is handled.  The user must unblock signum after processing.
  */
 void handle_ext_read_queue_int(int signum, siginfo_t *info, void *context);
+
+/*
+ *    Description:
+ *        This extended signal handler will read a pointer sent for signum via sigqueue().
+ *        It sets the skid_sig_hand_queue atomic variable when it is ready to report.  The value
+ *        indicates the type of data to be read.  Interpret that value as type QueueData_t.
+ *        If skid_sig_hand_queue is QueueData_t.Pointer, retrieve values from:
+ *            - skid_sig_hand_data_ptr
+ *            - skid_sig_hand_pid
+ *            - skid_sig_hand_sigcode (SI_QUEUE)
+ *            - skid_sig_hand_signum
+ *            - skid_sig_hand_uid
+ *        This signal handler will not clear its own flags, merely overwrite them.  The user
+ *        should clear the flags if execution is to continue.  Also, this extended signal handler
+ *        will block further signum signals in an attempt to give the user a chance to process
+ *        the data before the next signal is handled.  The user must unblock signum after processing.
+ */
+void handle_ext_read_queue_ptr(int signum, siginfo_t *info, void *context);
 
 /*
  *    Description:
