@@ -203,9 +203,9 @@ int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags)
 int map_skid_struct(skidMemMapRegion_ptr *new_struct, int prot, int flags, size_t length)
 {
     // LOCAL VARIABLES
-    int result = ENOERR;                                  // Store errno value
-    size_t total_len = length + sizeof(skidMemMapRegion)  // Total size of the mapping
-    skidMemMapRegion local_map;                           // Local struct
+    int result = ENOERR;                                   // Store errno value
+    size_t total_len = length + sizeof(skidMemMapRegion);  // Total size of the mapping
+    skidMemMapRegion local_map;                            // Local struct
 
     // INPUT VALIDATION
     if (NULL == new_struct)
@@ -235,7 +235,8 @@ int map_skid_struct(skidMemMapRegion_ptr *new_struct, int prot, int flags, size_
     // Update the out parameter
     if (ENOERR == result)
     {
-        *new_struct = local_map.addr;  // The beginning of the mapping holds the struct
+        // The beginning of the mapping holds the struct
+        *new_struct = (skidMemMapRegion_ptr)local_map.addr;
         // The remainder of the mapping is for the addr portion of size length
         (*new_struct)->addr = local_map.addr + sizeof(skidMemMapRegion);
         (*new_struct)->length = length;  // The mapping is larger than this, but not addr
