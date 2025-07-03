@@ -22,7 +22,7 @@ MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destruct
 
 volatile sig_atomic_t skid_sig_hand_interrupted = 0;
 volatile sig_atomic_t skid_sig_hand_data_int = 0;
-volatile sig_atomic_t skid_sig_hand_data_ptr = 0;
+volatile void *skid_sig_hand_data_ptr = NULL;
 volatile sig_atomic_t skid_sig_hand_ext = 0;
 volatile sig_atomic_t skid_sig_hand_pid = 0;
 volatile sig_atomic_t skid_sig_hand_queue = 0;
@@ -125,6 +125,34 @@ void handle_ext_read_queue_int(int signum, siginfo_t *info, void *context)
                 skid_sig_hand_uid = info->si_uid;
                 skid_sig_hand_data_int = data.sival_int;
                 skid_sig_hand_queue = integer;
+            }
+        }
+    }
+}
+
+
+void handle_ext_read_queue_ptr(int signum, siginfo_t *info, void *context)
+{
+    // LOCAL VARIABLES
+    union sigval data;              // Store the info->si_value here
+    QueueData_t ptr_val = Pointer;  // skid_sig_hand_queue value
+
+    // HANDLE IT
+    if (NULL != info)
+    {
+        if (SI_QUEUE == info->si_code)
+        {
+            // Block further signals
+            if (ENOERR == block_signal_safe(signum))
+            {
+                // Process the data
+                data = info->si_value;
+                skid_sig_hand_signum = info->si_signo;
+                skid_sig_hand_sigcode = info->si_code;
+                skid_sig_hand_pid = info->si_pid;
+                skid_sig_hand_uid = info->si_uid;
+                skid_sig_hand_data_ptr = data.sival_ptr;
+                skid_sig_hand_queue = ptr_val;
             }
         }
     }

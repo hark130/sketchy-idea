@@ -8,9 +8,9 @@
 #include <stdbool.h>                        // false
 #include <stdlib.h>                         // calloc()
 #include <string.h>                         // strlen()
-#include "skid_debug.h"                     // PRINT_ERRNO()
+#include "skid_debug.h"                     // PRINT_ERROR(), PRINT_ERRNO()
 #include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
-#include "skid_memory.h"                    // free_skid_string()
+#include "skid_memory.h"                    // public functions, skidMemMapRegion*
 #include "skid_validation.h"                // validate_skid_err(), validate_skid_pathname()
 
 MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
@@ -45,6 +45,20 @@ SKID_INTERNAL int validate_sm_standard_args(const char *pathname, int *err);
  *      0 for good input, errno for failed validation.
  */
 SKID_INTERNAL int validate_sm_pathname(const char *pathname);
+
+/*
+ *  Description:
+ *      Validate skidMemMapRegion struct pointers on behalf of skid_memory.
+ *
+ *  Args:
+ *      map_mem: A non-NULL, well-formed, struct.
+ *      mapping: If True, relaxes map_mem validation with the consideration that the struct
+ *          is being used to map memory.
+ *
+ *  Returns:
+ *      ENOERR for good input, errno for failed validation.
+ */
+SKID_INTERNAL int validate_sm_struct(skidMemMapRegion_ptr map_mem, bool mapping);
 
 
 /**************************************************************************************************/
@@ -160,6 +174,140 @@ int free_skid_string(char **old_string)
 }
 
 
+int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags)
+{
+    // LOCAL VARIABLES
+    int result = validate_sm_struct(new_map, true);  // Store errno value
+    int new_flags = flags | MAP_ANONYMOUS;           // New flags to pass to mmap()
+
+    // MAP IT
+    if (ENOERR == result)
+    {
+        errno = ENOERR;  // Initialize errno... for safety
+        new_map->addr = mmap(new_map->addr, new_map->length, prot, new_flags, -1, 0);
+        if (MAP_FAILED == new_map->addr)
+        {
+            result = errno;  // Something failed
+            PRINT_ERROR(The call to mmap() failed);
+            PRINT_ERRNO(result);
+            new_map->addr = NULL;  // Zeroize the pointer
+            new_map->length = 0;  // Reset the length
+        }
+    }
+
+    // DONE
+    return result;
+}
+
+
+int map_skid_struct(skidMemMapRegion_ptr *new_struct, int prot, int flags, size_t length)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;                                   // Store errno value
+    size_t total_len = length + sizeof(skidMemMapRegion);  // Total size of the mapping
+    skidMemMapRegion local_map;                            // Local struct
+
+    // INPUT VALIDATION
+    if (NULL == new_struct)
+    {
+        result = EINVAL;
+        PRINT_ERROR(The new_stuct pointer may not be NULL);
+    }
+    else if (NULL != *new_struct)
+    {
+        result = EINVAL;
+        PRINT_ERROR(The new_stuct pointer value is not empty);
+    }
+    else if (length < 1)
+    {
+        result = EINVAL;
+        PRINT_ERROR(Invalid length of a mapping);
+    }
+
+    // MAP IT
+    // Map everything
+    if (ENOERR == result)
+    {
+        local_map.addr = NULL;
+        local_map.length = sizeof(total_len);
+        result = map_skid_mem(&local_map, prot, flags);
+    }
+    // Update the out parameter
+    if (ENOERR == result)
+    {
+        // The beginning of the mapping holds the struct
+        *new_struct = (skidMemMapRegion_ptr)local_map.addr;
+        // The remainder of the mapping is for the addr portion of size length
+        (*new_struct)->addr = local_map.addr + sizeof(skidMemMapRegion);
+        (*new_struct)->length = length;  // The mapping is larger than this, but not addr
+    }
+
+    // DONE
+    return result;
+}
+
+
+int unmap_skid_mem(skidMemMapRegion_ptr old_map)
+{
+    // LOCAL VARIABLES
+    int result = validate_sm_struct(old_map, false);  // Store errno value
+
+    // UNMAP IT
+    if (ENOERR == result && NULL != old_map->addr)
+    {
+        errno = ENOERR;  // Initialize errno... for safety
+        if (0 == munmap(old_map->addr, old_map->length))
+        {
+            old_map->addr = NULL;  // Zeroize the pointer
+            old_map->length = 0;  // Reset the length
+        }
+        else
+        {
+            result = errno;  // Something failed
+            PRINT_ERROR(The call to munmap() failed);
+            PRINT_ERRNO(result);
+        }
+    }
+
+    // DONE
+    return result;
+}
+
+
+int unmap_skid_struct(skidMemMapRegion_ptr *old_struct)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;         // Store errno value
+    skidMemMapRegion local_map;  // Local struct
+
+    // INPUT VALIDATION
+    if (NULL == old_struct)
+    {
+        result = EINVAL;
+        PRINT_ERROR(The old_struct pointer may not be NULL);
+    }
+    else
+    {
+        result = validate_sm_struct(*old_struct, false);
+    }
+
+    // UNMAP IT
+    if (ENOERR == result)
+    {
+        local_map.addr = *old_struct;
+        local_map.length = (*old_struct)->length + sizeof(skidMemMapRegion);
+        result = unmap_skid_mem(&local_map);
+    }
+    if (ENOERR == result)
+    {
+        *old_struct = NULL;
+    }
+
+    // DONE
+    return result;
+}
+
+
 /**************************************************************************************************/
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
@@ -184,4 +332,31 @@ SKID_INTERNAL int validate_sm_standard_args(const char *pathname, int *err)
 SKID_INTERNAL int validate_sm_pathname(const char *pathname)
 {
     return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
+}
+
+
+SKID_INTERNAL int validate_sm_struct(skidMemMapRegion_ptr map_mem, bool mapping)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;  // Store errno values
+
+    // INPUT VALIDATION
+    if (NULL == map_mem)
+    {
+        result = EINVAL;
+        PRINT_ERROR(Received an invalid pointer in map_mem);
+    }
+    else if (NULL != map_mem->addr && 0 == map_mem->length)
+    {
+        result = EINVAL;
+        PRINT_ERROR(A valid pointer may not have a zero length);
+    }
+    else if (false == mapping && NULL == map_mem->addr && map_mem->length > 0)
+    {
+        result = EINVAL;
+        PRINT_ERROR(An empty pointer may not have a non-zero length outside of mapping);
+    }
+
+    // DONE
+    return result;
 }
