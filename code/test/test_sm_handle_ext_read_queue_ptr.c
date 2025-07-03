@@ -23,10 +23,10 @@
  */
 
 // Standard includes
-// #include <errno.h>                  // EINVAL, EINTR, EIO
+#include <errno.h>                    // EINVAL, ENODATA
 #include <stdbool.h>                  // bool, false, true
 #include <stdint.h>                   // SIZE_MAX
-// #include <stdio.h>                  // fprintf()
+#include <stdio.h>                    // fprintf(), printf()
 #include <stdlib.h>                   // exit()
 #include <sys/wait.h>                 // waitpid()
 #include <unistd.h>                   // fork()
