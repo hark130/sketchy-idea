@@ -50,7 +50,7 @@ size_t convert_offset(off_t offset, int *errnum);
  *  Size filename, map a memory region into map_file, and then read filename into it.
  *  Does not validate input.  Returns ENOERR on success, errno value of failure.
  */
-int run_parent(const char *filename, skidMemMapRegion_ptr map_file);
+int run_parent(const char *filename, skidMemMapRegion_ptr *map_file);
 
 
 /*
@@ -62,17 +62,17 @@ void print_usage(const char *prog_name);
 int main(int argc, char *argv[])
 {
     // LOCAL VARIABLES
-    int results = ENOERR;               // Store errno and/or results here
-    int prot = PROT_READ | PROT_WRITE;  // mmap() protections
-    int flags = MAP_SHARED;             // mmap() flags
-    pid_t my_pid = 0;                   // My PID
-    pid_t wait_ret = 0;                 // Return value from the call to waitpid()
-    int child_status = 0;               // Status information about the child process
-    // sem_t *sem = NULL;               // Semaphore to manage the virtual memory region
-    int pshared = 1;                    // Sempahore pshared value: 1 means process-shared
-    unsigned int sem_val = 0;           // Initial value of the semaphore: locked by the parent
-    skidMemMapRegion map_sem;           // Sempahore to manage the virtual memory region
-    skidMemMapRegion map_file;          // argv[1] mapped into shared memory
+    int results = ENOERR;                  // Store errno and/or results here
+    int prot = PROT_READ | PROT_WRITE;     // mmap() protections
+    int flags = MAP_SHARED;                // mmap() flags
+    pid_t my_pid = 0;                      // My PID
+    pid_t wait_ret = 0;                    // Return value from the call to waitpid()
+    int child_status = 0;                  // Status information about the child process
+    // sem_t *sem = NULL;                  // Semaphore to manage the virtual memory region
+    int pshared = 1;                       // Sempahore pshared value: 1 means process-shared
+    unsigned int sem_val = 0;              // Initial value of the semaphore: locked by the parent
+    skidMemMapRegion_ptr map_sem = NULL;   // Sempahore to manage the virtual memory region
+    skidMemMapRegion_ptr map_file = NULL;  // argv[1] mapped into shared memory
 
     // INPUT VALIDATION
     if (argc != 2)
@@ -94,15 +94,13 @@ int main(int argc, char *argv[])
     // Map a semaphore
     if (ENOERR == results)
     {
-        map_sem.addr = NULL;
-        map_sem.length = sizeof(sem_t);
-        results = map_skid_mem(&map_sem, prot, flags);
+        results = map_skid_struct(&map_sem, prot, flags, sizeof(sem_t));
     }
     // Initialize the semaphore
     if (ENOERR == results)
     {
         errno = ENOERR;  // Just in case
-        if (0 != sem_init((sem_t *)(map_sem.addr), pshared, sem_val))
+        if (0 != sem_init((sem_t *)(map_sem->addr), pshared, sem_val))
         {
             results = errno;
             if (ENOERR == results)
@@ -140,7 +138,7 @@ int main(int argc, char *argv[])
             {
                 errno = ENOERR;  // Just in case
                 // Release the semaphore
-                if (0 != sem_post((sem_t *)(map_sem.addr)))
+                if (0 != sem_post((sem_t *)(map_sem->addr)))
                 {
                     results = errno;
                     PRINT_ERROR(PARENT - The call to sem_post() failed);
@@ -149,7 +147,7 @@ int main(int argc, char *argv[])
                 else
                 {
                     PRINT_ERROR(ABOUT TO RELEASE);  // DEBUGGING
-                    FPRINTF_ERR("%s\n", (char *)map_file.addr);  // DEBUGGING
+                    FPRINTF_ERR("%s\n", (char *)map_file->addr);  // DEBUGGING
                     FPRINTF_ERR("%s PARENT - Semaphore released\n", DEBUG_INFO_STR);
                 }
             }
@@ -193,10 +191,10 @@ int main(int argc, char *argv[])
             }
             // Clean up
             // Destroy the semaphore
-            sem_destroy((sem_t *)map_sem.addr);  // Best effort
+            sem_destroy((sem_t *)map_sem->addr);  // Best effort
             // Unmap the semaphore memory
             PRINT_ERROR(HERE);  // DEBUGGING
-            unmap_skid_mem(&map_sem);  // Best effort
+            unmap_skid_struct(&map_sem);  // Best effort
         }
     }
     // Child
@@ -205,7 +203,7 @@ int main(int argc, char *argv[])
         if (0 == my_pid)
         {
             // Obtain the lock
-            while (-1 == sem_trywait((sem_t *)map_sem.addr))
+            while (-1 == sem_trywait((sem_t *)map_sem->addr))
             {
                 results = errno;
                 if (EAGAIN == results)
@@ -227,10 +225,10 @@ int main(int argc, char *argv[])
             if (ENOERR == results)
             {
                 PRINT_ERROR(ABOUT TO PRINT);  // DEBUGGING
-                FPRINTF_ERR("%s\n", (char *)map_file.addr);  // DEBUGGING
-                for (size_t i = 0; i < map_file.length; i++)
+                FPRINTF_ERR("%s\n", (char *)map_file->addr);  // DEBUGGING
+                for (size_t i = 0; i < map_file->length; i++)
                 {
-                    if (EOF == putchar((*(((char *)map_file.addr) + i))))
+                    if (EOF == putchar((*(((char *)map_file->addr) + i))))
                     {
                         results = EIO;  // As good an errno value as any
                         PRINT_ERROR(CHILD - The call to putchar() failed);
@@ -240,7 +238,7 @@ int main(int argc, char *argv[])
                 putchar('\n');
             }
             // Clean up
-            unmap_skid_mem(&map_file);  // Best effort
+            unmap_skid_struct(&map_file);  // Best effort
         }
     }
 
@@ -284,7 +282,7 @@ void print_usage(const char *prog_name)
 }
 
 
-int run_parent(const char *filename, skidMemMapRegion_ptr map_file)
+int run_parent(const char *filename, skidMemMapRegion_ptr *map_file)
 {
     // LOCAL VARIABLES
     int result = ENOERR;                // Errno values
@@ -304,12 +302,10 @@ int run_parent(const char *filename, skidMemMapRegion_ptr map_file)
     // Map a memory region
     if (ENOERR == result)
     {
-        map_file->addr = NULL;
-        map_file->length = conv_file_size;
-        result = map_skid_mem(map_file, prot, flags);
+        result = map_skid_struct(map_file, prot, flags, conv_file_size);
         if (ENOERR != result)
         {
-            PRINT_ERROR(The call to map_skid_mem() failed);
+            PRINT_ERROR(The call to map_skid_struct() failed);
             PRINT_ERRNO(result);
         }
     }
@@ -319,7 +315,7 @@ int run_parent(const char *filename, skidMemMapRegion_ptr map_file)
         file_cont = read_file(filename, &result);
         if (ENOERR == result)
         {
-            memcpy(map_file->addr, file_cont, conv_file_size);
+            memcpy((*map_file)->addr, file_cont, conv_file_size);
         }
     }
 
