@@ -2,7 +2,7 @@
  *  This library defines functionality to allocate and free memory on behalf of SKID.
  */
 
-#define SKID_DEBUG                          // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // errno
 #include <stdbool.h>                        // false
