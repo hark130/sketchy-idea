@@ -166,8 +166,6 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    // PRINT_ERROR(ABOUT TO RELEASE);  // DEBUGGING
-                    // FPRINTF_ERR("%s\n", (char *)map_file->addr);  // DEBUGGING
                     FPRINTF_ERR("%s PARENT - Semaphore released\n", DEBUG_INFO_STR);
                 }
             }
@@ -214,7 +212,6 @@ int main(int argc, char *argv[])
             // Destroy the semaphore
             sem_destroy((sem_t *)map_sem->addr);  // Best effort
             // Unmap the semaphore memory
-            // PRINT_ERROR(HERE);  // DEBUGGING
             unmap_skid_struct(&map_sem);  // Best effort
         }
     }
@@ -237,18 +234,10 @@ int main(int argc, char *argv[])
                 {
                     break;  // Something went truly wrong
                 }
-                // PRINT_ERROR(RESULTS);  // DEBUGGING
-                // FPRINTF_ERR("RESULTS %d\n", results);  // DEBUGGING
             }
-            // PRINT_ERROR(HERE);  // DEBUGGING
-            // FPRINTF_ERR("RESULTS %d\n", results);  // DEBUGGING
             // Print the resource
             if (ENOERR == results)
             {
-                // PRINT_ERROR(ABOUT TO PRINT);  // DEBUGGING
-                // FPRINTF_ERR("STRUCT POINTER %p\n", map_file);  // DEBUGGING
-                // FPRINTF_ERR("POINTER %p\n", (char *)map_file->addr);  // DEBUGGING
-                // FPRINTF_ERR("CONTENT %s\n", (char *)map_file->addr);  // DEBUGGING
                 for (size_t i = 0; i < map_file->length; i++)
                 {
                     if (EOF == putchar((*(((char *)map_file->addr) + i))))
