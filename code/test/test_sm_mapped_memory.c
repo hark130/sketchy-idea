@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
                 else
                 {
                     PRINT_ERROR(ABOUT TO RELEASE);  // DEBUGGING
-                    FPRINTF_ERR("%s\n", map_file.addr);  // DEBUGGING
+                    FPRINTF_ERR("%s\n", (char *)map_file.addr);  // DEBUGGING
                     FPRINTF_ERR("%s PARENT - Semaphore released\n", DEBUG_INFO_STR);
                 }
             }
@@ -227,10 +227,10 @@ int main(int argc, char *argv[])
             if (ENOERR == results)
             {
                 PRINT_ERROR(ABOUT TO PRINT);  // DEBUGGING
-                FPRINTF_ERR("%s\n", map_file.addr);  // DEBUGGING
+                FPRINTF_ERR("%s\n", (char *)map_file.addr);  // DEBUGGING
                 for (size_t i = 0; i < map_file.length; i++)
                 {
-                    if (EOF == putchar((*(map_file.addr + i))))
+                    if (EOF == putchar((*(((char *)map_file.addr) + i))))
                     {
                         results = EIO;  // As good an errno value as any
                         PRINT_ERROR(CHILD - The call to putchar() failed);
