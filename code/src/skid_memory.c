@@ -200,6 +200,52 @@ int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags)
 }
 
 
+int map_skid_struct(skidMemMapRegion_ptr *new_struct, int prot, int flags, size_t length)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;                                  // Store errno value
+    size_t total_len = length + sizeof(skidMemMapRegion)  // Total size of the mapping
+    skidMemMapRegion local_map;                           // Local struct
+
+    // INPUT VALIDATION
+    if (NULL == new_struct)
+    {
+        result = EINVAL;
+        PRINT_ERROR(The new_stuct pointer may not be NULL);
+    }
+    else if (NULL != *new_struct)
+    {
+        result = EINVAL;
+        PRINT_ERROR(The new_stuct pointer value is not empty);
+    }
+    else if (length < 1)
+    {
+        result = EINVAL;
+        PRINT_ERROR(Invalid length of a mapping);
+    }
+
+    // MAP IT
+    // Map everything
+    if (ENOERR == result)
+    {
+        local_map.addr = NULL;
+        local_map.length = sizeof(total_len);
+        result = map_skid_mem(&local_map, prot, flags);
+    }
+    // Update the out parameter
+    if (ENOERR == result)
+    {
+        *new_struct = local_map.addr;  // The beginning of the mapping holds the struct
+        // The remainder of the mapping is for the addr portion of size length
+        (*new_struct)->addr = local_map.addr + sizeof(skidMemMapRegion);
+        (*new_struct)->length = length;  // The mapping is larger than this, but not addr
+    }
+
+    // DONE
+    return result;
+}
+
+
 int unmap_skid_mem(skidMemMapRegion_ptr old_map)
 {
     // LOCAL VARIABLES
@@ -220,6 +266,40 @@ int unmap_skid_mem(skidMemMapRegion_ptr old_map)
             PRINT_ERROR(The call to munmap() failed);
             PRINT_ERRNO(result);
         }
+    }
+
+    // DONE
+    return result;
+}
+
+
+int unmap_skid_struct(skidMemMapRegion_ptr *old_struct)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;         // Store errno value
+    skidMemMapRegion local_map;  // Local struct
+
+    // INPUT VALIDATION
+    if (NULL == old_struct)
+    {
+        result = EINVAL;
+        PRINT_ERROR(The old_struct pointer may not be NULL);
+    }
+    else
+    {
+        result = validate_sm_struct(*old_struct, false);
+    }
+
+    // UNMAP IT
+    if (ENOERR == result)
+    {
+        local_map.addr = *old_struct;
+        local_map.length = (*old_struct)->length + sizeof(skidMemMapRegion);
+        result = unmap_skid_mem(&local_map);
+    }
+    if (ENOERR == result)
+    {
+        *old_struct = NULL;
     }
 
     // DONE

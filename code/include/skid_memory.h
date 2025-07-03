@@ -124,6 +124,27 @@ int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags);
 
 /*
  *  Description:
+ *      Map zeroized virtual memory to contain the struct and an addr pointer of size length.
+ *      The same mapping contains the addr region and the struct so utilize unmap_skid_struct()
+ *      to delete the mapping: struct, addr, and all.
+ *
+ *  Args:
+ *      new_struct: [Out] skidMemMapRegion_ptr pointer to hold a newly mapped struct.  The struct's
+ *          addr pointer will be of length bytes that has been initialized to zero.
+ *      prot: The desired memory protection of the mapping (see: mmap(2)).
+ *      flags: Determines, among other things, whether updates to the mapping are visible to
+ *          other processes mapping the same region.  This value will be ORed with MAP_ANONYMOUS to
+ *          ensure the memory region its contents are intialized to zero.  (see: mmap(2) for
+ *          additional flags)
+ *      length: The size of the addr mapping in bytes.
+ *
+ *  Returns:
+ *      ENOERR on success, errno value on error.
+ */
+int map_skid_struct(skidMemMapRegion_ptr *new_struct, int prot, int flags, size_t length);
+
+/*
+ *  Description:
  *      Delete the mapping for the specified address range by utilizing munmap().
  *
  *  Args:
@@ -134,5 +155,19 @@ int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags);
  *      ENOERR on success, errno value on error.
  */
 int unmap_skid_mem(skidMemMapRegion_ptr old_map);
+
+/*
+ *  Description:
+ *      Delete the complete mapping of a struct that was mapped with map_skid_struct().
+ *      Unmaps both the struct and the memory region pointed to by the addr member.
+ *
+ *  Args:
+ *      old_struct: [In/Out] skidMemMapRegion_ptr pointer for a struct to delete.  On success, the
+ *          old_struct pointer will be set to NULL.
+ *
+ *  Returns:
+ *      ENOERR on success, errno value on error.
+ */
+int unmap_skid_struct(skidMemMapRegion_ptr *old_struct);
 
 #endif  /* __SKID_MEMORY__ */
