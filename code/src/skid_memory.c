@@ -52,11 +52,13 @@ SKID_INTERNAL int validate_sm_pathname(const char *pathname);
  *
  *  Args:
  *      map_mem: A non-NULL, well-formed, struct.
+ *      mapping: If True, relaxes map_mem validation with the consideration that the struct
+ *          is being used to map memory.
  *
  *  Returns:
  *      ENOERR for good input, errno for failed validation.
  */
-SKID_INTERNAL int validate_sm_struct(skidMemMapRegion_ptr map_mem);
+SKID_INTERNAL int validate_sm_struct(skidMemMapRegion_ptr map_mem, bool mapping);
 
 
 /**************************************************************************************************/
@@ -175,8 +177,8 @@ int free_skid_string(char **old_string)
 int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags)
 {
     // LOCAL VARIABLES
-    int result = validate_sm_struct(new_map);  // Store errno value
-    int new_flags = flags | MAP_ANONYMOUS;     // New flags to pass to mmap()
+    int result = validate_sm_struct(new_map, true);  // Store errno value
+    int new_flags = flags | MAP_ANONYMOUS;           // New flags to pass to mmap()
 
     // MAP IT
     if (ENOERR == result)
@@ -201,7 +203,7 @@ int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags)
 int unmap_skid_mem(skidMemMapRegion_ptr old_map)
 {
     // LOCAL VARIABLES
-    int result = validate_sm_struct(old_map);  // Store errno value
+    int result = validate_sm_struct(old_map, false);  // Store errno value
 
     // UNMAP IT
     if (ENOERR == result && NULL != old_map->addr)
@@ -252,7 +254,7 @@ SKID_INTERNAL int validate_sm_pathname(const char *pathname)
 }
 
 
-SKID_INTERNAL int validate_sm_struct(skidMemMapRegion_ptr map_mem)
+SKID_INTERNAL int validate_sm_struct(skidMemMapRegion_ptr map_mem, bool mapping)
 {
     // LOCAL VARIABLES
     int result = ENOERR;  // Store errno values
@@ -267,6 +269,11 @@ SKID_INTERNAL int validate_sm_struct(skidMemMapRegion_ptr map_mem)
     {
         result = EINVAL;
         PRINT_ERROR(A valid pointer may not have a zero length);
+    }
+    else if (false == mapping && NULL == map_mem->addr && map_mem->length > 0)
+    {
+        result = EINVAL;
+        PRINT_ERROR(An empty pointer may not have a non-zero length outside of mapping);
     }
 
     // DONE
