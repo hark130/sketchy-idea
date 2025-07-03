@@ -43,7 +43,7 @@
 // This struct communicates details about mapped memory to map_skid_mem() and unmap_skid_mem().
 typedef struct _skidMemMapRegion
 {
-    char *addr;     // [In/Out] Pointer to the virtual address space mapping
+    void *addr;     // [In/Out] Pointer to the virtual address space mapping
     size_t length;  // [Out] The length of the mapping
 } skidMemMapRegion, *skidMemMapRegion_ptr;
 
