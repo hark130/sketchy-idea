@@ -7,9 +7,12 @@
 #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // EINVAL, errno
+#include <linux/sched.h>                    // struct clone_args
+#include <sys/syscall.h>                    // SYS_clone3
+#include <unistd.h>                         // syscall()
 #include "skid_clone.h"                     // call_clone3_args()
 #include "skid_debug.h"                     // MODULE_*LOAD(), *PRINT_*()
-#include "skid_macros.h"                    // ENOERR, SKID_BAD_PID
+#include "skid_macros.h"                    // ENOERR, NULL64, SKID_BAD_PID
 #include "skid_validation.h"                // validate_skid_err()
 
 MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
@@ -44,11 +47,11 @@ pid_t call_clone3(uint64_t flags, uint64_t stack, uint64_t stack_size, int *errn
     if (ENOERR == result)
     {
         // Either both should be defined or neither should be defined
-        if (NULL == stack && 0 != stack_size)
+        if (NULL64 == stack && 0 != stack_size)
         {
             result = EINVAL;
         }
-        else if (NULL != stack && 0 == stack_size)
+        else if (NULL64 != stack && 0 == stack_size)
         {
             result = EINVAL;
         }
