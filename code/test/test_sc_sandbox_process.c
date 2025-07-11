@@ -12,17 +12,31 @@
 
 // Standard includes
 #include <errno.h>                          // EINVAL
-// #include <stdbool.h>                  // bool, false, true
+#include <limits.h>                         // HOST_NAME_MAX
+#include <stdbool.h>                        // bool, false, true
 #include <stdint.h>                         // uint64_t
-// #include <stdio.h>                    // fprintf(), printf()
+#include <stdio.h>                          // fprintf(), printf()
+#include <string.h>                         // strncmp()
 #include <stdlib.h>                         // exit()
 #include <sys/wait.h>                       // waitpid()
-#include <unistd.h>                         // sleep()
+#include <unistd.h>                         // gethostname(), sethostname(), sleep()
 // Local includes
 #define SKID_DEBUG                          // The DEBUG output is doing double duty as test output
 #include "skid_clone.h"                     // call_clone3()
 #include "skid_debug.h"                     // DEBUG_* macros, PRINT_*()
 #include "skid_macros.h"                    // ENOERR
+
+#define CLI_ARG "--sandbox"                 // Command line argument to invoke a sandbox
+#define MY_HOSTNAME "LDP-CDE-v0"            // Manual testing has seen this get changed
+#define NEW_HOSTNAME "sandbox"              // New hostname
+#define MAIN_NAME "MAIN()"                  // Allow the main() function to identify itself
+#define PARENT_NAME "PARENT"                // Allow the parent process to identify itself
+#define CHILD_NAME "CHILD"                  // Allow the child process to identify itself
+
+/*
+ *  Call gethostname(), prints the results to stdout, and respond to errors.
+ */
+int print_hostname(const char *whoami);
 
 /*
  *  Single point of truth for this manual test code's usage.
@@ -39,20 +53,49 @@ int run_the_child(void);
  */
 int run_the_parent(pid_t child_pid);
 
+/*
+ *  Call sethostname() and respond to errors.
+ */
+int set_hostname(const char *whoami, const char *name, size_t len);
+
 
 int main(int argc, char *argv[])
 {
     // LOCAL VARIABLES
-    int result = ENOERR;  // Store errno and/or results here
-    pid_t the_pid = 0;    // Return value from call_clone3()
-    // Flags to pass to clone3
-    int flags = CLONE_NEWPID | CLONE_NEWNS | CLONE_NEWUSER | CLONE_NEWUTS;  // New everything!
+    int result = ENOERR;                   // Store errno and/or results here
+    pid_t the_pid = 0;                     // Return value from call_clone3()
+    int flags = 0;                         // Flags to pass to clone3
+    char cli_arg[] = { CLI_ARG };          // Watch for this CLI argument
+    size_t cli_arg_len = strlen(cli_arg);  // Length of the CLI argument
+    // Pass these sandbox flags to clone3 *if* --sandbox was passed
+    int sand_flags = CLONE_NEWPID | CLONE_NEWNS | CLONE_NEWUSER | CLONE_NEWUTS;  // New everything!
 
     // INPUT VALIDATION
-    if (argc != 1)
+    if (argc == 2)
+    {
+        if (strlen(argv[1]) != cli_arg_len \
+            || 0 != strncmp(argv[1], cli_arg, cli_arg_len * sizeof(char)))
+        {
+            fprintf(stderr, "Invalid command line argument: %s", argv[1]);
+            print_usage(argv[0]);
+            result = EINVAL;
+        }
+        else
+        {
+            printf("%s %s - Using sandbox flags with clone3\n", DEBUG_INFO_STR, MAIN_NAME);
+            flags = sand_flags;
+        }
+    }
+    else if (argc != 1)
     {
         print_usage(argv[0]);
         result = EINVAL;
+    }
+
+    // SETUP
+    if (ENOERR == result)
+    {
+        result = set_hostname(MAIN_NAME, "LDP-CDE-v0", 10);  // Reset the hostname
     }
 
     // SANDBOX IT
@@ -91,19 +134,53 @@ int main(int argc, char *argv[])
 }
 
 
+int print_hostname(const char *whoami)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;                          // Store errno and/or results here
+    char hostname[HOST_NAME_MAX + 1] = { "\0" };  // Store the hostname here
+
+    // PRINT IT
+    if (-1 == gethostname(hostname, HOST_NAME_MAX * sizeof(hostname[0])))
+    {
+        result = errno;
+        FPRINTF_ERR("%s %s - The gethostname() call failed", DEBUG_ERROR_STR, whoami);
+        PRINT_ERRNO(result);
+    }
+    else
+    {
+        printf("%s I am the %s and my hostname is %s\n", DEBUG_INFO_STR, whoami, hostname);
+    }
+
+    // DONE
+    return result;
+}
+
+
 void print_usage(const char *prog_name)
 {
-    fprintf(stderr, "Usage: %s\n", prog_name);
+    fprintf(stderr, "Usage: %s [%s]\n", prog_name, CLI_ARG);
 }
 
 
 int run_the_child(void)
 {
     // LOCAL VARIABLES
-    int result = ENOERR;   // Store errno and/or results here
+    int result = ENOERR;                     // Store errno and/or results here
+    char new_hostname[] = { NEW_HOSTNAME };  // New hostname
 
     // RUN IT
-    printf("%s CHILD - I'm also here\n", DEBUG_INFO_STR);  // DEBUGGING
+    // Change the hostname
+    if (ENOERR == result)
+    {
+        result = set_hostname(CHILD_NAME, new_hostname,
+                              sizeof(new_hostname) / sizeof(new_hostname[0]));
+    }
+    // Print the hostname
+    if (ENOERR == result)
+    {
+        result = print_hostname(CHILD_NAME);
+    }
 
     // DONE
     return result;
@@ -124,8 +201,6 @@ int run_the_parent(pid_t child_pid)
     }
 
     // RUN IT
-    printf("%s PARENT - I'm here\n", DEBUG_INFO_STR);  // DEBUGGING
-
     // Wait for the child to finish
     while (ENOERR == result)
     {
@@ -163,6 +238,34 @@ int run_the_parent(pid_t child_pid)
                         wait_ret);
             break;
         }
+    }
+    // Print the hostname
+    if (ENOERR == result)
+    {
+        result = print_hostname(PARENT_NAME);
+    }
+
+    // DONE
+    return result;
+}
+
+
+int set_hostname(const char *whoami, const char *name, size_t len)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;  // Store errno and/or results here
+
+    // SET IT
+    if (-1 == sethostname(name, len))
+    {
+        result = errno;
+        FPRINTF_ERR("%s %s - The sethostname() call failed", DEBUG_ERROR_STR, whoami);
+        PRINT_ERRNO(result);
+    }
+    else
+    {
+        printf("%s I am the %s and I have changed my hostname to %s\n",
+               DEBUG_INFO_STR, whoami, name);
     }
 
     // DONE
