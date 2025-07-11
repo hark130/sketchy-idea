@@ -15,9 +15,9 @@
 // #include <stdbool.h>                  // bool, false, true
 #include <stdint.h>                         // uint64_t
 // #include <stdio.h>                    // fprintf(), printf()
-// #include <stdlib.h>                   // exit()
+#include <stdlib.h>                         // exit()
 #include <sys/wait.h>                       // waitpid()
-// #include <unistd.h>                   // fork()
+#include <unistd.h>                         // sleep()
 // Local includes
 #define SKID_DEBUG                          // The DEBUG output is doing double duty as test output
 #include "skid_clone.h"                     // call_clone3()
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     int result = ENOERR;  // Store errno and/or results here
     pid_t the_pid = 0;    // Return value from call_clone3()
     // Flags to pass to clone3
-    int flags = CLONE_NEWPID | CLONE_NEWUTS | CLONE_NEWNS | CLONE_SIGHAND | CLONE_THREAD;
+    int flags = CLONE_NEWPID | CLONE_NEWNS | CLONE_NEWUSER | CLONE_NEWUTS;  // New everything!
 
     // INPUT VALIDATION
     if (argc != 1)
@@ -147,8 +147,12 @@ int run_the_parent(pid_t child_pid)
         }
         else if (-1 == wait_ret)
         {
+            result = errno;
             PRINT_ERROR(PARENT - The waitpid() call failed);
-            result = child_status;
+            if (ENOERR == result)
+            {
+                result = child_status;
+            }
             PRINT_ERRNO(result);
             break;
         }
