@@ -1,11 +1,12 @@
 /*
  *  Manually test skid_clone.h's clone3 functionality.
  *
- *  This manual test code utilizes clone3 to sandbox a child process.
+ *  This manual test code utilizes clone3 flags to sandbox a child process.
  *
  *  Copy/paste the following...
 
-./code/dist/test_sc_sandbox_process.bin
+sudo ./code/dist/test_sc_sandbox_process.bin            # Free to wreck havoc
+sudo ./code/dist/test_sc_sandbox_process.bin --sandbox  # Sandbox!
 
  *
  */
@@ -13,6 +14,7 @@
 // Standard includes
 #include <errno.h>                          // EINVAL
 #include <limits.h>                         // HOST_NAME_MAX
+#include <inttypes.h>                       // PRIdMAX
 #include <stdbool.h>                        // bool, false, true
 #include <stdint.h>                         // uint64_t
 #include <stdio.h>                          // fprintf(), printf()
@@ -33,10 +35,21 @@
 #define PARENT_NAME "PARENT"                // Allow the parent process to identify itself
 #define CHILD_NAME "CHILD"                  // Allow the child process to identify itself
 
+
 /*
  *  Call gethostname(), prints the results to stdout, and respond to errors.
  */
 int print_hostname(const char *whoami);
+
+/*
+ *  Print the PID of the process' parent.
+ */
+void print_parent_pid(const char *whoami);
+
+/*
+ *  Print the process' PID.
+ */
+void print_pid(const char *whoami);
 
 /*
  *  Single point of truth for this manual test code's usage.
@@ -68,6 +81,8 @@ int main(int argc, char *argv[])
     char cli_arg[] = { CLI_ARG };          // Watch for this CLI argument
     size_t cli_arg_len = strlen(cli_arg);  // Length of the CLI argument
     // Pass these sandbox flags to clone3 *if* --sandbox was passed
+    // CLONE_NEWPID masks original PIDs by creating the process in a new PID namespace
+    // CLONE_NEWUTS protects the hostname (among other thigs) by using a new UTS namespace
     int sand_flags = CLONE_NEWPID | CLONE_NEWNS | CLONE_NEWUSER | CLONE_NEWUTS;  // New everything!
 
     // INPUT VALIDATION
@@ -95,6 +110,7 @@ int main(int argc, char *argv[])
     // SETUP
     if (ENOERR == result)
     {
+        print_pid(MAIN_NAME);  // Print main()'s PID
         result = set_hostname(MAIN_NAME, "LDP-CDE-v0", 10);  // Reset the hostname
     }
 
@@ -157,6 +173,20 @@ int print_hostname(const char *whoami)
 }
 
 
+void print_parent_pid(const char *whoami)
+{
+    printf("%s I am the %s and I think my parent's PID is %" PRIdMAX "\n", DEBUG_INFO_STR, whoami,
+           (intmax_t)getppid());
+}
+
+
+void print_pid(const char *whoami)
+{
+    printf("%s I am the %s and I think my PID is %" PRIdMAX "\n", DEBUG_INFO_STR, whoami,
+           (intmax_t)getpid());
+}
+
+
 void print_usage(const char *prog_name)
 {
     fprintf(stderr, "Usage: %s [%s]\n", prog_name, CLI_ARG);
@@ -170,9 +200,11 @@ int run_the_child(void)
     char new_hostname[] = { NEW_HOSTNAME };  // New hostname
 
     // RUN IT
-    // Change the hostname
+    // Do some things
     if (ENOERR == result)
     {
+        print_pid(CHILD_NAME);
+        print_parent_pid(CHILD_NAME);
         result = set_hostname(CHILD_NAME, new_hostname,
                               sizeof(new_hostname) / sizeof(new_hostname[0]));
     }
@@ -198,6 +230,11 @@ int run_the_parent(pid_t child_pid)
     if (SKID_BAD_PID == child_pid)
     {
         result = EINVAL;  // Bad PID
+    }
+    else
+    {
+        printf("%s I am the %s and I have cloned a child process with PID %" PRIdMAX "\n",
+               DEBUG_INFO_STR, PARENT_NAME, (intmax_t)child_pid);
     }
 
     // RUN IT
