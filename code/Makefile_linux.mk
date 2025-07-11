@@ -14,7 +14,7 @@
 
 ### CONSTANT VARIABLES ###
 # This was made to avoid circular dependencies and redundancies
-include Makefile_constants
+include Makefile_constants.mk
 BIN_FILE_EXT = .bin
 # Defined this to aid in the proper exeuction of a list of commands
 define execute-command
