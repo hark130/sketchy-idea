@@ -35,6 +35,7 @@
 
 /* CLONE MACROS */
 #define SKID_STACK_SIZE (8 * 1024)  // Default stack size for a cloned child
+#define NULL64 ((uint64_t)0)  // Used to validate uint64_t stack as NULL
 
 /* FILE MACROS */
 #if defined(PATH_MAX)
