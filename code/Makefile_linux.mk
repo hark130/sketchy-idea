@@ -103,6 +103,8 @@ MAN_TEST_DEVOPS_PREFIX = $(MAN_TEST_PREFIX)devops_code_
 MAN_TEST_LIB_PREFIX = $(MAN_TEST_PREFIX)libskid_
 # Prefix for all skid_assembly library manual tests
 MAN_TEST_SA_PREFIX = $(MAN_TEST_PREFIX)sa_
+# Prefix for all skid_clone library manual tests
+MAN_TEST_SC_PREFIX = $(MAN_TEST_PREFIX)sc_
 # Prefix for all skid_dir_operations library manual tests
 MAN_TEST_SDO_PREFIX = $(MAN_TEST_PREFIX)sdo_
 # Prefix for all skid_file_link library manual tests
@@ -300,6 +302,11 @@ $(DIST_DIR)$(MAN_TEST_LIB_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_LIB_PRE
 
 # MANUAL TEST: Linking skid_assembly library manual test binaries
 $(DIST_DIR)$(MAN_TEST_SA_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SA_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_assembly$(OBJ_FILE_EXT)
+	@echo "    Linking manual test binary: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# MANUAL TEST: Linking skid_clone library manual test binaries
+$(DIST_DIR)$(MAN_TEST_SC_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SC_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_clone$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
