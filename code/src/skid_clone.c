@@ -8,6 +8,7 @@
 
 #include <errno.h>                          // EINVAL, errno
 #include <linux/sched.h>                    // struct clone_args
+#include <signal.h>                         // SIGCHLD
 #include <sys/syscall.h>                    // SYS_clone3
 #include <unistd.h>                         // syscall()
 #include "skid_clone.h"                     // call_clone3_args()
@@ -62,6 +63,7 @@ pid_t call_clone3(uint64_t flags, uint64_t stack, uint64_t stack_size, int *errn
     {
         memset(&cl_args, 0x0, cl_size);  // Zeroize the struct
         cl_args.flags = flags;
+        cl_args.exit_signal = SIGCHLD;  // Signal to deliver to parent on child termination
         cl_args.stack = stack;
         cl_args.stack_size = stack_size;
         pid = call_clone3_args(&cl_args, cl_size, &result);

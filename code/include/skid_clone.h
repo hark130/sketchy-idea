@@ -14,7 +14,7 @@
 /*
  *  Description:
  *      Call clone3(), by way of call_clone3_args(), after preparing the clone_args struct
- *      internally.
+ *      internally.  Automatically sets the exit_signal to SIGCHLD.
  *
  *  Args:
  *      flags: A bit-wise OR of zero or more flags (see: clone(2)).  Passed directly to
