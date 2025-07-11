@@ -7,6 +7,7 @@
 #ifndef __SKID_CLONE__
 #define __SKID_CLONE__
 
+#include <linux/sched.h>                    // struct clone_args
 #include <stdint.h>                         // uint64_t
 #include "skid_macros.h"                    // ENOERR
 
