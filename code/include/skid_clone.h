@@ -18,8 +18,8 @@
  *  Args:
  *      flags: A bit-wise OR of zero or more flags (see: clone(2)).  Passed directly to
  *          clone3(), by way of clone_args.flags, without any real validation.
- *      stack: [Optional] Pointer to lowest byte of stack.  Set this to NULL to use the same
- *          stack area as the parent (in the child's own virtual address space).
+ *      stack: [Optional] Pointer to lowest byte of stack.  Set this to NULL64 (see: skid_macros.h)
+ *          to use the same stack area as the parent (in the child's own virtual address space).
  *          If the CLONE_VM flag is used, this argument must be specified.
  *      stack_size: [Optional] Size of stack.  Set this to 0 to use the same stack area as the
  *          parent (in the child's own virtual address space).  If the CLONE_VM flag is used,
