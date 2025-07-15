@@ -1017,15 +1017,13 @@ LDP-CDE-v0
 The default behavior of the test_sc_sandbox_process.bin binary...
 The full command is 'sudo ./code/dist/test_sc_sandbox_process.bin  # PIDs ID'd and hostname changed'
 Command output:
-[INFO] I am the MAIN() and I think my PID is 69541
+[INFO] I am the MAIN() and I think my PID is 78267
 [INFO] I am the MAIN() and I have changed my hostname to LDP-CDE-v0
-[INFO] I am the CHILD and I think my PID is 69542
-[INFO] I am the CHILD and I think my parent's PID is 69541
+[INFO] I am the PARENT and I have cloned a child process with PID 78268
+[INFO] I am the CHILD and I think my PID is 78268
+[INFO] I am the CHILD and I think my parent's PID is 78267
 [INFO] I am the CHILD and I have changed my hostname to sandbox
 [INFO] I am the CHILD and my hostname is sandbox
-[INFO] I am the MAIN() and I think my PID is 69541
-[INFO] I am the MAIN() and I have changed my hostname to LDP-CDE-v0
-[INFO] I am the PARENT and I have cloned a child process with PID 69542
 [INFO] PARENT - The child has finished
 [INFO] I am the PARENT and my hostname is sandbox
 
@@ -1039,16 +1037,13 @@ The --sandbox argument will clone() some namespaces...
 The full command is 'sudo ./code/dist/test_sc_sandbox_process.bin --sandbox  # Running in new namespaces'
 Command output:
 [INFO] MAIN() - Using sandbox flags with clone3
-[INFO] I am the MAIN() and I think my PID is 69546
+[INFO] I am the MAIN() and I think my PID is 78272
 [INFO] I am the MAIN() and I have changed my hostname to LDP-CDE-v0
+[INFO] I am the PARENT and I have cloned a child process with PID 78273
 [INFO] I am the CHILD and I think my PID is 1
 [INFO] I am the CHILD and I think my parent's PID is 0
 [INFO] I am the CHILD and I have changed my hostname to sandbox
 [INFO] I am the CHILD and my hostname is sandbox
-[INFO] MAIN() - Using sandbox flags with clone3
-[INFO] I am the MAIN() and I think my PID is 69546
-[INFO] I am the MAIN() and I have changed my hostname to LDP-CDE-v0
-[INFO] I am the PARENT and I have cloned a child process with PID 69547
 [INFO] PARENT - The child has finished
 [INFO] I am the PARENT and my hostname is LDP-CDE-v0
 
@@ -1056,5 +1051,4 @@ Command output:
 The full command is 'hostname  # The hostname change did not escape the clone()d UTS namespace'
 Command output:
 LDP-CDE-v0
-
 
