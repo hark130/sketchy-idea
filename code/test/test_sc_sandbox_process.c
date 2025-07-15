@@ -296,7 +296,7 @@ int set_hostname(const char *whoami, const char *name, size_t len)
     if (-1 == sethostname(name, len))
     {
         result = errno;
-        FPRINTF_ERR("%s %s - The sethostname() call failed", DEBUG_ERROR_STR, whoami);
+        FPRINTF_ERR("%s %s - The sethostname() call failed\n", DEBUG_ERROR_STR, whoami);
         PRINT_ERRNO(result);
     }
     else
