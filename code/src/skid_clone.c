@@ -9,6 +9,7 @@
 #include <errno.h>                          // EINVAL, errno
 #include <linux/sched.h>                    // struct clone_args
 #include <signal.h>                         // SIGCHLD
+#include <string.h>                         // memset()
 #include <sys/syscall.h>                    // SYS_clone3
 #include <unistd.h>                         // syscall()
 #include "skid_clone.h"                     // call_clone3_args()
