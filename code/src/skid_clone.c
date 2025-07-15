@@ -4,7 +4,7 @@
 
 #define _GNU_SOURCE
 
-#define SKID_DEBUG                          // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // EINVAL, errno
 #include <linux/sched.h>                    // struct clone_args
