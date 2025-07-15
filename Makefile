@@ -23,7 +23,7 @@
 CODE_DIR = ./code/
 
 # This was made to avoid circular dependencies and redundancies
-include $(CODE_DIR)Makefile_constants
+include $(CODE_DIR)Makefile_constants.mk
 
 ### MAKEFILE ARGUMENTS ###
 SKID_MF_ARGS = --directory=$(CODE_DIR)

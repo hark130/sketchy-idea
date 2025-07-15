@@ -4,7 +4,7 @@
 
 // #define SKID_DEBUG                        // Enable DEBUG logging
 
-#include "skid_debug.h"                     // PRINT_ERRNO(), PRINT_ERROR()
+#include "skid_debug.h"                     // MODULE_*LOAD(), *PRINT_*()
 #include "skid_validation.h"                // ENOERR
 #include <errno.h>                          // EINVAL
 #include <stddef.h>                         // NULL

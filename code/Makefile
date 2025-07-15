@@ -8,7 +8,7 @@
 # 4. Check code/$(DIST_DIR) for your binaries
 # 5. Modifiy Makefile_linux with special rules
 #
-# Global "constants" are defined in Makefile_constants
+# Global "constants" are defined in Makefile_constants.mk
 #
 
 
@@ -20,7 +20,7 @@
 ifeq ($(OS),Windows_NT)
 $(error Wrong operating system.  This is $(OS).)
 else
-include Makefile_linux
+include Makefile_linux.mk
 endif
 
 .PHONY: all compile clean test validate

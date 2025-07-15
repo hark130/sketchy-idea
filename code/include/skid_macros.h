@@ -5,6 +5,8 @@
 #ifndef __SKID_MACROS__
 #define __SKID_MACROS__
 
+#include <sys/types.h>                      // pid_t
+
 /* GENERAL MACROS */
 // ENOERR
 #ifndef ENOERR
@@ -30,6 +32,10 @@
 #else
 #define SKID_INTERNAL
 #endif  /* SKID_INTERNAL */
+
+/* CLONE MACROS */
+#define SKID_STACK_SIZE (8 * 1024)  // Default stack size for a cloned child
+#define NULL64 ((uint64_t)0)  // Used to validate uint64_t stack as NULL
 
 /* FILE MACROS */
 #if defined(PATH_MAX)
@@ -104,5 +110,8 @@
 #define SKID_CHUNK_SIZE 508  // The default chunk size for any network send func w/ chunking
 // This literal is used to translate the IPPROTO_RAW protocol number into an alias
 #define SKID_RAW_SOCK_ALIAS "RAW"  // Use this alias to check for a raw socket protocol
+
+/* PID MACROS */
+#define SKID_BAD_PID (pid_t)-1  // Use this to standardize "invalid" PIDs
 
 #endif  /* __SKID_MACROS__ */
