@@ -26,6 +26,8 @@
 MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
 MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
+#define MESSAGE "Hello from test_sa_call_write\n"
+
 /*
  *  Single point of truth for this manual test code's usage.
  */
@@ -35,9 +37,9 @@ void print_usage(const char *prog_name);
 int main(int argc, char *argv[])
 {
     // LOCAL VARIABLES
-    int exit_code = ENOERR;                            // Errno values
-    ssize_t num_bytes = -1;                            // Number of bytes written
-    char buf[] = { "Hello from test_sa_call_write" };  // String to write
+    int exit_code = ENOERR;    // Errno values
+    ssize_t num_bytes = -1;    // Number of bytes written
+    char buf[] = { MESSAGE };  // String to write
 
     // INPUT VALIDATION
     if (argc != 1)
