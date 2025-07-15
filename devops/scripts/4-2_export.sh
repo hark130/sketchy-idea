@@ -164,10 +164,16 @@ print_title "...to sandbox a child process with a new PID namespace and..."
 print_title "...a new UTS namespace."
 run_manual_test_command "hostname  # Current hostname"
 printf "The default behavior of the test_sc_sandbox_process.bin binary...\n"
-run_manual_test_command "sudo ./code/dist/test_sc_sandbox_process.bin  # PIDs ID'd and hostname changed"
+printf "The full command is 'sudo ./code/dist/test_sc_sandbox_process.bin'\n"
+sudo ./code/dist/test_sc_sandbox_process.bin
+# NOTE: run_manual_test_command was causing some odd duplication
+# run_manual_test_command "sudo ./code/dist/test_sc_sandbox_process.bin  # PIDs ID'd and hostname changed"
 run_manual_test_command "hostname  # The hostname was modified"
 printf "The --sandbox argument will clone() some namespaces...\n"
-run_manual_test_command "sudo ./code/dist/test_sc_sandbox_process.bin --sandbox  # Running in new namespaces"
+printf "The full command is 'sudo ./code/dist/test_sc_sandbox_process.bin --sandbox'\n"
+sudo ./code/dist/test_sc_sandbox_process.bin --sandbox
+# NOTE: run_manual_test_command was causing some odd duplication
+# run_manual_test_command "sudo ./code/dist/test_sc_sandbox_process.bin --sandbox  # Running in new namespaces"
 run_manual_test_command "hostname  # The hostname change did not escape the clone()d UTS namespace"
 
 
