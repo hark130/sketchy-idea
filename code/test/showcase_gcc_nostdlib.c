@@ -5,8 +5,8 @@
  *
  *  Copy/paste the following...
 
-gcc -nostdlib -o ./code/dist/showcase_gcc_options.bin ./code/test/showcase_gcc_options.c -static && \
-./code/dist/showcase_gcc_options.bin
+gcc -nostdlib -o ./code/dist/showcase_gcc_nostdlib.bin ./code/test/showcase_gcc_nostdlib.c -static && \
+./code/dist/showcase_gcc_nostdlib.bin
 
  *
  */
@@ -14,7 +14,7 @@ gcc -nostdlib -o ./code/dist/showcase_gcc_options.bin ./code/test/showcase_gcc_o
 #include <stddef.h>                     // size_t
 #include <unistd.h>                     // ssize_t
 
-#define MESSAGE "Hello from test_sa_call_write\n"
+#define MESSAGE "Hello from showcase_gcc_nostdlib.bin\n"
 
 
 ssize_t call_write(int fildes, const void *buf, size_t nbyte)
