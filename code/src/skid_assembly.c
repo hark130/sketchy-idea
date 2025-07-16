@@ -18,7 +18,7 @@ gcc -E -U __x86_64__ -U __i386__ -U __aarch64__ -U __riscv -U __powerpc__ -U __p
  *
  */
 
-#define SKID_DEBUG                          // Turn on DEBUGGING
+// #define SKID_DEBUG                          // Turn on DEBUGGING
 
 #include <errno.h>                          // EBADFD, EINVAL
 #include "skid_assembly.h"                  // uint64_t
@@ -32,6 +32,19 @@ MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destruct
 /**************************************************************************************************/
 /********************************* PRIVATE FUNCTION DEFINITIONS ***********************************/
 /**************************************************************************************************/
+
+/*
+ *  Invokes the x86_64 exit system call.
+ */
+static inline void call_exit_x86_64(int status)
+{
+#if defined(__x86_64__)  // Intel x86-64
+    __asm__ volatile ("mov $60, %%rax\nsyscall\n"
+                      :: "D" (status)
+                      : "%rax");
+#else
+#endif  /* __x86_64__ */
+}
 
 /*
  *  Invokes the x86_64 write system call and returns its return value.
@@ -151,6 +164,23 @@ static inline uint64_t read_cpu_tsc_x86_fam(void)
         `S` RSI
         `d` RDX
  */
+
+
+void call_exit(int status)
+{
+    // SYSTEM VALIDATION
+#ifdef __GNUC__
+#if defined(__x86_64__)  // Intel x86-64
+    FPRINTF_ERR("%s %s supports Intel x86-64\n", DEBUG_INFO_STR, __FUNCTION_NAME__);
+    call_exit_x86_64(status);
+#else
+#error "This function does not support the current architecture."
+#endif  /* Built-in Architecture Macros */
+#else
+#error "This function does not support non-GNU compatible compilers."
+#endif  /* __GNUC__ */
+}
+
 
 ssize_t call_write(int fildes, const void *buf, size_t nbyte)
 {
