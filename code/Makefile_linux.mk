@@ -384,8 +384,14 @@ $(DIST_DIR)redirect_bin_output$(BIN_FILE_EXT): $(TEST_DIR)redirect_bin_output$(S
 	@echo "    Compiling bespoke binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
-# BESPOKE: showcase_gcc_nostdlib.bin
-$(DIST_DIR)showcase_gcc_nostdlib$(BIN_FILE_EXT): $(TEST_DIR)showcase_gcc_nostdlib$(SRC_FILE_EXT)
+# BESPOKE: test_gcc_nostartfiles.bin
+$(DIST_DIR)test_gcc_nostartfiles$(BIN_FILE_EXT): $(TEST_DIR)test_gcc_nostartfiles$(SRC_FILE_EXT) $(DIST_DIR)skid_assembly$(OBJ_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Compiling bespoke binary: $@"
+	@$(CC) $(CFLAGS) -nostartfiles -o $@ $^ -I $(INCLUDE_DIR)
+
+# BESPOKE: test_gcc_nostdlib.bin
+$(DIST_DIR)test_gcc_nostdlib$(BIN_FILE_EXT): $(TEST_DIR)test_gcc_nostdlib$(SRC_FILE_EXT)
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Compiling bespoke binary: $@"
 	@$(CC) $(CFLAGS) -nostdlib -static -o $@ $^
