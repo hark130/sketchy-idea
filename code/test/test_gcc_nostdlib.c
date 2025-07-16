@@ -5,8 +5,8 @@
  *
  *  Copy/paste the following...
 
-gcc -nostdlib -o ./code/dist/showcase_gcc_nostdlib.bin ./code/test/showcase_gcc_nostdlib.c -static && \
-./code/dist/showcase_gcc_nostdlib.bin
+gcc -nostdlib -o ./code/dist/test_gcc_nostdlib.bin ./code/test/test_gcc_nostdlib.c -static && \
+./code/dist/test_gcc_nostdlib.bin
 
  *
  */
@@ -14,9 +14,26 @@ gcc -nostdlib -o ./code/dist/showcase_gcc_nostdlib.bin ./code/test/showcase_gcc_
 #include <stddef.h>                     // size_t
 #include <unistd.h>                     // ssize_t
 
-#define MESSAGE "Hello from showcase_gcc_nostdlib.bin\n"
+#define MESSAGE "Hello from test_gcc_nostdlib.bin\n"
 
 
+/*
+ *  Invokes the x86_64 exit system call.
+ */
+static inline void call_exit(int status)
+{
+#if defined(__x86_64__)  // Intel x86-64
+    __asm__ volatile ("mov $60, %%rax\nsyscall\n"
+                      :: "D" (status)
+                      : "%rax");
+#else
+#endif  /* __x86_64__ */
+}
+
+
+/*
+ *  Invokes the x86_64 write system call and returns its return value.
+ */
 ssize_t call_write(int fildes, const void *buf, size_t nbyte)
 {
     // LOCAL VARIABLES
@@ -39,13 +56,5 @@ void _start()
 {
     char buf[] = { MESSAGE };  // String to write
     call_write(1, buf, sizeof(buf) - 1);  // -1 for the nul character
-
-#if defined(__x86_64__)  // Intel x86-64
-    __asm__ volatile ("mov $60, %%rax\n"
-                      "xor %%rdi, %%rdi\n"
-                      "syscall\n"
-                      ::: "%rax", "%rdi");
-#else
-#error "This function does not support the current architecture."
-#endif  /* Built-in Architecture Macros */
+    call_exit(0);
 }
