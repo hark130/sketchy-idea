@@ -192,7 +192,7 @@ _clean:
 
 _clean_dist:
 	@echo "    Cleaning "$(DIST_DIR)" directory"
-	@rm -f $(DIST_DIR)*.o $(DIST_DIR)*.exe $(DIST_DIR)*.bin $(DIST_DIR)*.lib $(DIST_DIR)*.so $(DIST_DIR)*.egg
+	@rm -f $(DIST_DIR)*.o $(DIST_DIR)*.exe $(DIST_DIR)*.bin $(DIST_DIR)*.lib $(DIST_DIR)*.so* $(DIST_DIR)*.egg
 
 _compile:
 	$(CALL_MAKE) _compilation
@@ -383,6 +383,12 @@ $(DIST_DIR)redirect_bin_output$(BIN_FILE_EXT): $(TEST_DIR)redirect_bin_output$(S
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Compiling bespoke binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# BESPOKE: showcase_gcc_nostdlib.bin
+$(DIST_DIR)showcase_gcc_nostdlib$(BIN_FILE_EXT): $(TEST_DIR)showcase_gcc_nostdlib$(SRC_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Compiling bespoke binary: $@"
+	@$(CC) $(CFLAGS) -nostdlib -static -o $@ $^
 
 # BESPOKE: test_misc_glibc_vs_musl-*.bin
 $(DIST_DIR)test_misc_glibc_vs_musl$(BIN_FILE_EXT): $(DIST_DIR)test_misc_glibc_vs_musl-static_glibc$(BIN_FILE_EXT) $(DIST_DIR)test_misc_glibc_vs_musl-static_musl$(BIN_FILE_EXT)
