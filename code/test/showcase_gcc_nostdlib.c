@@ -38,7 +38,7 @@ ssize_t call_write(int fildes, const void *buf, size_t nbyte)
 void _start()
 {
     char buf[] = { MESSAGE };  // String to write
-    call_write(1, buf, sizeof(buf) - 1);
+    call_write(1, buf, sizeof(buf) - 1);  // -1 for the nul character
 
 #if defined(__x86_64__)  // Intel x86-64
     __asm__ volatile ("mov $60, %%rax\n"
