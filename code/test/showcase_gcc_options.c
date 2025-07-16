@@ -1,10 +1,12 @@
 /*
- *  Manually test skid_assembly's inline assembly functionality.
- *  This binary makes use of call_write() to write to stdout.
+ *  This source file was created for the express purpose of showcasing gcc options.
+ *  It explicitly defines its own custom entry point.  It also uses inline assembly to
+ *  make certain system calls since it's not being linked against a library.
  *
  *  Copy/paste the following...
 
-gcc -nostdlib -o ./code/dist/showcase_gcc_options.bin ./code/test/showcase_gcc_options.c -static
+gcc -nostdlib -o ./code/dist/showcase_gcc_options.bin ./code/test/showcase_gcc_options.c -static && \
+./code/dist/showcase_gcc_options.bin
 
  *
  */
