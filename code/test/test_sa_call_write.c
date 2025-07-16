@@ -10,15 +10,11 @@
  */
 
 #define SKID_DEBUG                  // Enable DEBUG logging
-// #define WAIT_SLEEP 1                // Number of seconds to wait
-// #define NUM_LOOPS 10                // Number of times to loop
 
 #include <errno.h>                  // EINVAL
-// #include <inttypes.h>               // PRIu64
 #include <stdio.h>                  // fprintf()
 #include <stdlib.h>                 // exit()
-// #include <unistd.h>                 // sleep()
-#include "skid_assembly.h"          // read_cpu_tsc()
+#include "skid_assembly.h"          // call_write()
 #include "skid_debug.h"             // MODULE_LOAD(), MODULE_UNLOAD()
 #include "skid_file_descriptors.h"  // write_fd()
 #include "skid_macros.h"            // ENOERR
@@ -37,9 +33,10 @@ void print_usage(const char *prog_name);
 int main(int argc, char *argv[])
 {
     // LOCAL VARIABLES
-    int exit_code = ENOERR;    // Errno values
-    ssize_t num_bytes = -1;    // Number of bytes written
-    char buf[] = { MESSAGE };  // String to write
+    int exit_code = ENOERR;                          // Errno values
+    ssize_t num_bytes = -1;                          // Number of bytes written
+    char buf[] = { MESSAGE };                        // String to write
+    size_t buf_size = strlen(buf) * sizeof(buf[0]);  // Byte size of buf's printable characters
 
     // INPUT VALIDATION
     if (argc != 1)
@@ -51,10 +48,11 @@ int main(int argc, char *argv[])
     // WRITE IT
     if (ENOERR == exit_code)
     {
-        // num_bytes = fprintf(stdout, "%s", buf);                    // 1
-        // exit_code = write_fd(SKID_STDOUT_FD, buf);                 // 2
-        // if (ENOERR == exit_code) { num_bytes = strlen(buf); };     // 2
-        num_bytes = call_write(SKID_STDOUT_FD, buf, strlen(buf));  // 3
+        // num_bytes = fprintf(stdout, "%s", buf);                      // 1
+        // exit_code = write_fd(SKID_STDOUT_FD, buf);                   // 2
+        // if (ENOERR == exit_code) { num_bytes = buf_size; };          // 2
+        num_bytes = call_write(SKID_STDOUT_FD, buf, buf_size);       // 3
+        if (num_bytes != buf_size) { PRINT_WARNG(Partial write); };  // 3
     }
     if (ENOERR == exit_code)
     {
