@@ -1,0 +1,1282 @@
+
+*** This output was created by 8-5_export.sh on Wed Jul 16 16:11:02 UTC 2025 ***
+
+VALIDATING
+    Validating gcc
+        [✓] gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+    Validating glibc
+        [✓] ldd (Ubuntu GLIBC 2.35-0ubuntu3.10) 2.35
+    Validating Check
+        [✓] Check unit test version: (0) (15) (2)
+    Validating musl-gcc
+        [✓] x86_64-linux-gnu-gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+
+CLEANING
+    Cleaning dist/ directory
+
+COMPILING
+    Compiling: src/devops_code.c
+    Compiling: src/skid_assembly.c
+    Compiling: src/skid_clone.c
+    Compiling: src/skid_dir_operations.c
+    Compiling: src/skid_file_control.c
+    Compiling: src/skid_file_descriptors.c
+    Compiling: src/skid_file_link.c
+    Compiling: src/skid_file_metadata_read.c
+    Compiling: src/skid_file_metadata_write.c
+    Compiling: src/skid_file_operations.c
+    Compiling: src/skid_memory.c
+    Compiling: src/skid_network.c
+    Compiling: src/skid_signal_handlers.c
+    Compiling: src/skid_signals.c
+    Compiling: src/skid_time.c
+    Compiling: src/skid_validation.c
+    Compiling: src/unit_test_code.c
+    Compiling manual test object code: dist/test_devops_code_create_path_tree.o
+    Linking manual test binary: dist/test_devops_code_create_path_tree.bin
+    Compiling manual test object code: dist/test_devops_code_get_compatible_gid.o
+    Linking manual test binary: dist/test_devops_code_get_compatible_gid.bin
+    Compiling manual test object code: dist/test_feature_test_macros.o
+    Linking manual test binary: dist/test_feature_test_macros.bin
+    Compiling dist/test_gcc_nostartfiles.bin with: gcc -Wall -Werror -Wfatal-errors -nostartfiles -o dist/test_gcc_nostartfiles.bin test/test_gcc_nostartfiles.c dist/skid_assembly.o -I include/
+    Compiling dist/test_gcc_nostdlib.bin with: gcc -Wall -Werror -Wfatal-errors -nostdlib -static -o dist/test_gcc_nostdlib.bin test/test_gcc_nostdlib.c
+    Compiling manual test object code: dist/test_libskid_sa_read_cpu_tsc.o
+    Linking manual test binary against libsketchyidea: dist/test_libskid_sa_read_cpu_tsc.bin
+    Compiling manual test object code: dist/test_libskid_sdo_read_dir_contents.o
+    Linking manual test binary against libsketchyidea: dist/test_libskid_sdo_read_dir_contents.bin
+    Compiling manual test object code: dist/test_libskid_sfmr_get_file_perms.o
+    Linking manual test binary against libsketchyidea: dist/test_libskid_sfmr_get_file_perms.bin
+    Statically compiling bespoke binary: dist/test_misc_glibc_vs_musl-static_glibc.bin
+    Statically compiling bespoke binary: dist/test_misc_glibc_vs_musl-static_musl.bin
+    Compiling manual test object code: dist/test_misc_packed_macro.o
+    Linking manual test binary: dist/test_misc_packed_macro.bin
+    Compiling manual test object code: dist/test_misc_setjmp_longjmp.o
+    Linking manual test binary: dist/test_misc_setjmp_longjmp.bin
+    Compiling bespoke binary: dist/test_misc_sfmr_call_stat.bin
+    Compiling manual test object code: dist/test_sa_call_write.o
+    Linking manual test binary: dist/test_sa_call_write.bin
+    Compiling manual test object code: dist/test_sa_read_cpu_tsc.o
+    Linking manual test binary: dist/test_sa_read_cpu_tsc.bin
+    Compiling manual test object code: dist/test_sc_sandbox_process.o
+    Linking manual test binary: dist/test_sc_sandbox_process.bin
+    Compiling manual test object code: dist/test_sdo_read_dir_contents.o
+    Linking manual test binary: dist/test_sdo_read_dir_contents.bin
+    Compiling manual test object code: dist/test_sfc_lock_and_write_fd.o
+    Linking manual test binary: dist/test_sfc_lock_and_write_fd.bin
+    Compiling manual test object code: dist/test_sfc_read_locked_fd.o
+    Linking manual test binary: dist/test_sfc_read_locked_fd.bin
+    Compiling manual test object code: dist/test_sfc_write_locked_fd.o
+    Linking manual test binary: dist/test_sfc_write_locked_fd.bin
+    Compiling manual test object code: dist/test_sfl_create_hard_link.o
+    Linking manual test binary: dist/test_sfl_create_hard_link.bin
+    Compiling manual test object code: dist/test_sfl_create_sym_link.o
+    Linking manual test binary: dist/test_sfl_create_sym_link.bin
+    Compiling manual test object code: dist/test_sfmr_file_metadata.o
+    Linking manual test binary: dist/test_sfmr_file_metadata.bin
+    Compiling manual test object code: dist/test_sfmr_get_block_size.o
+    Linking manual test binary: dist/test_sfmr_get_block_size.bin
+    Compiling manual test object code: dist/test_sfmr_get_container_device_id.o
+    Linking manual test binary: dist/test_sfmr_get_container_device_id.bin
+    Compiling manual test object code: dist/test_sfmr_get_file_device_id.o
+    Linking manual test binary: dist/test_sfmr_get_file_device_id.bin
+    Compiling manual test object code: dist/test_sfmr_get_file_perms.o
+    Linking manual test binary: dist/test_sfmr_get_file_perms.bin
+    Compiling manual test object code: dist/test_sfmr_get_file_times.o
+    Linking manual test binary: dist/test_sfmr_get_file_times.bin
+    Compiling manual test object code: dist/test_sfmr_is_block_device.o
+    Linking manual test binary: dist/test_sfmr_is_block_device.bin
+    Compiling manual test object code: dist/test_sfmr_is_character_device.o
+    Linking manual test binary: dist/test_sfmr_is_character_device.bin
+    Compiling manual test object code: dist/test_sfmr_is_named_pipe.o
+    Linking manual test binary: dist/test_sfmr_is_named_pipe.bin
+    Compiling manual test object code: dist/test_sfmr_is_regular_file.o
+    Linking manual test binary: dist/test_sfmr_is_regular_file.bin
+    Compiling manual test object code: dist/test_sfmr_is_symbolic_link.o
+    Linking manual test binary: dist/test_sfmr_is_symbolic_link.bin
+    Compiling manual test object code: dist/test_sfmw_set_atime_now.o
+    Linking manual test binary: dist/test_sfmw_set_atime_now.bin
+    Compiling manual test object code: dist/test_sfmw_set_ownership.o
+    Linking manual test binary: dist/test_sfmw_set_ownership.bin
+    Compiling manual test object code: dist/test_sfmw_set_times.o
+    Linking manual test binary: dist/test_sfmw_set_times.bin
+    Compiling manual test object code: dist/test_sm_handle_ext_read_queue_ptr.o
+    Linking manual test binary: dist/test_sm_handle_ext_read_queue_ptr.bin
+    Compiling manual test object code: dist/test_sm_mapped_memory.o
+    Linking manual test binary: dist/test_sm_mapped_memory.bin
+    Compiling manual test object code: dist/test_sm_raii_string_macro.o
+    Linking manual test binary: dist/test_sm_raii_string_macro.bin
+    Compiling manual test object code: dist/test_sm_raii_void_macro.o
+    Linking manual test binary: dist/test_sm_raii_void_macro.bin
+    Compiling manual test object code: dist/test_sn_multi_sniffer.o
+    Linking manual test binary: dist/test_sn_multi_sniffer.bin
+    Compiling manual test object code: dist/test_sn_simple_dgram_client.o
+    Linking manual test binary: dist/test_sn_simple_dgram_client.bin
+    Compiling manual test object code: dist/test_sn_simple_dgram_server.o
+    Linking manual test binary: dist/test_sn_simple_dgram_server.bin
+    Compiling manual test object code: dist/test_sn_simple_sniffer.o
+    Linking manual test binary: dist/test_sn_simple_sniffer.bin
+    Compiling manual test object code: dist/test_sn_simple_stream_client.o
+    Linking manual test binary: dist/test_sn_simple_stream_client.bin
+    Compiling manual test object code: dist/test_sn_simple_stream_server.o
+    Linking manual test binary: dist/test_sn_simple_stream_server.bin
+    Compiling manual test object code: dist/test_ss_block_unblock.o
+    Linking manual test binary: dist/test_ss_block_unblock.bin
+    Compiling manual test object code: dist/test_ssh_handle_ext_async_client.o
+    Linking manual test binary: dist/test_ssh_handle_ext_async_client.bin
+    Compiling manual test object code: dist/test_ssh_handle_ext_async_server.o
+    Linking manual test binary: dist/test_ssh_handle_ext_async_server.bin
+    Compiling manual test object code: dist/test_ssh_handle_ext_read_queue_int.o
+    Linking manual test binary: dist/test_ssh_handle_ext_read_queue_int.bin
+    Compiling manual test object code: dist/test_ssh_handle_ext_sending_process.o
+    Linking manual test binary: dist/test_ssh_handle_ext_sending_process.bin
+    Compiling manual test object code: dist/test_ssh_handle_ext_signal_code.o
+    Linking manual test binary: dist/test_ssh_handle_ext_signal_code.bin
+    Compiling manual test object code: dist/test_ssh_handle_interruptions.o
+    Linking manual test binary: dist/test_ssh_handle_interruptions.bin
+    Compiling manual test object code: dist/test_ssh_handle_signal_number.o
+    Linking manual test binary: dist/test_ssh_handle_signal_number.bin
+    Compiling bespoke binary: dist/redirect_bin_output.bin
+    Compiling Check unit test code: test/check_sdo_create_dir.c
+    Linking Check unit test binary: dist/check_sdo_create_dir.bin
+    Compiling Check unit test code: test/check_sdo_delete_dir.c
+    Linking Check unit test binary: dist/check_sdo_delete_dir.bin
+    Compiling Check unit test code: test/check_sdo_destroy_dir.c
+    Linking Check unit test binary: dist/check_sdo_destroy_dir.bin
+    Compiling Check unit test code: test/check_sdo_read_dir_contents.c
+    Linking Check unit test binary: dist/check_sdo_read_dir_contents.bin
+    Compiling Check unit test code: test/check_sfc_is_close_on_exec.c
+    Linking Check unit test binary: dist/check_sfc_is_close_on_exec.bin
+    Compiling Check unit test code: test/check_sfl_create_hard_link.c
+    Linking Check unit test binary: dist/check_sfl_create_hard_link.bin
+    Compiling Check unit test code: test/check_sfl_create_sym_link.c
+    Linking Check unit test binary: dist/check_sfl_create_sym_link.bin
+    Compiling Check unit test code: test/check_sfmr_get_access_time.c
+    Linking Check unit test binary: dist/check_sfmr_get_access_time.bin
+    Compiling Check unit test code: test/check_sfmr_get_block_count.c
+    Linking Check unit test binary: dist/check_sfmr_get_block_count.bin
+    Compiling Check unit test code: test/check_sfmr_get_block_size.c
+    Linking Check unit test binary: dist/check_sfmr_get_block_size.bin
+    Compiling Check unit test code: test/check_sfmr_get_change_time.c
+    Linking Check unit test binary: dist/check_sfmr_get_change_time.bin
+    Compiling Check unit test code: test/check_sfmr_get_container_device_id.c
+    Linking Check unit test binary: dist/check_sfmr_get_container_device_id.bin
+    Compiling Check unit test code: test/check_sfmr_get_file_device_id.c
+    Linking Check unit test binary: dist/check_sfmr_get_file_device_id.bin
+    Compiling Check unit test code: test/check_sfmr_get_file_perms.c
+    Linking Check unit test binary: dist/check_sfmr_get_file_perms.bin
+    Compiling Check unit test code: test/check_sfmr_get_file_type.c
+    Linking Check unit test binary: dist/check_sfmr_get_file_type.bin
+    Compiling Check unit test code: test/check_sfmr_get_group.c
+    Linking Check unit test binary: dist/check_sfmr_get_group.bin
+    Compiling Check unit test code: test/check_sfmr_get_hard_link_num.c
+    Linking Check unit test binary: dist/check_sfmr_get_hard_link_num.bin
+    Compiling Check unit test code: test/check_sfmr_get_mod_time.c
+    Linking Check unit test binary: dist/check_sfmr_get_mod_time.bin
+    Compiling Check unit test code: test/check_sfmr_get_owner.c
+    Linking Check unit test binary: dist/check_sfmr_get_owner.bin
+    Compiling Check unit test code: test/check_sfmr_get_serial_num.c
+    Linking Check unit test binary: dist/check_sfmr_get_serial_num.bin
+    Compiling Check unit test code: test/check_sfmr_get_size.c
+    Linking Check unit test binary: dist/check_sfmr_get_size.bin
+    Compiling Check unit test code: test/check_sfmr_is_block_device.c
+    Linking Check unit test binary: dist/check_sfmr_is_block_device.bin
+    Compiling Check unit test code: test/check_sfmr_is_character_device.c
+    Linking Check unit test binary: dist/check_sfmr_is_character_device.bin
+    Compiling Check unit test code: test/check_sfmr_is_directory.c
+    Linking Check unit test binary: dist/check_sfmr_is_directory.bin
+    Compiling Check unit test code: test/check_sfmr_is_named_pipe.c
+    Linking Check unit test binary: dist/check_sfmr_is_named_pipe.bin
+    Compiling Check unit test code: test/check_sfmr_is_regular_file.c
+    Linking Check unit test binary: dist/check_sfmr_is_regular_file.bin
+    Compiling Check unit test code: test/check_sfmr_is_socket.c
+    Linking Check unit test binary: dist/check_sfmr_is_socket.bin
+    Compiling Check unit test code: test/check_sfmr_is_sym_link.c
+    Linking Check unit test binary: dist/check_sfmr_is_sym_link.bin
+    Compiling Check unit test code: test/check_sfmw_add_mode.c
+    Linking Check unit test binary: dist/check_sfmw_add_mode.bin
+    Compiling Check unit test code: test/check_sfmw_remove_mode.c
+    Linking Check unit test binary: dist/check_sfmw_remove_mode.bin
+    Compiling Check unit test code: test/check_sfmw_set_atime.c
+    Linking Check unit test binary: dist/check_sfmw_set_atime.bin
+    Compiling Check unit test code: test/check_sfmw_set_atime_now.c
+    Linking Check unit test binary: dist/check_sfmw_set_atime_now.bin
+    Compiling Check unit test code: test/check_sfmw_set_mode.c
+    Linking Check unit test binary: dist/check_sfmw_set_mode.bin
+    Compiling Check unit test code: test/check_sfmw_set_mtime.c
+    Linking Check unit test binary: dist/check_sfmw_set_mtime.bin
+    Compiling Check unit test code: test/check_sfmw_set_mtime_now.c
+    Linking Check unit test binary: dist/check_sfmw_set_mtime_now.bin
+    Compiling Check unit test code: test/check_sfmw_set_ownership.c
+    Linking Check unit test binary: dist/check_sfmw_set_ownership.bin
+    Compiling Check unit test code: test/check_sfmw_set_times.c
+    Linking Check unit test binary: dist/check_sfmw_set_times.bin
+    Compiling Check unit test code: test/check_sfmw_set_times_now.c
+    Linking Check unit test binary: dist/check_sfmw_set_times_now.bin
+    Compiling Check unit test code: test/check_sv_validate_pathname.c
+    Linking Check unit test binary: dist/check_sv_validate_pathname.bin
+
+RUNNING TEST CASES
+./dist/check_sdo_create_dir.bin
+Running suite(s): SDO_Create_Dir
+100%: Checks: 20, Failures: 0, Errors: 0
+./dist/check_sdo_delete_dir.bin
+Running suite(s): SDO_Delete_Dir
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sdo_destroy_dir.bin
+Running suite(s): SDO_Destroy_Dir
+100%: Checks: 16, Failures: 0, Errors: 0
+./dist/check_sdo_read_dir_contents.bin
+Running suite(s): SDO_Read_Dir_Contents
+100%: Checks: 27, Failures: 0, Errors: 0
+./dist/check_sfc_is_close_on_exec.bin
+Running suite(s): SFC_Is_Close_On_Exec
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfl_create_hard_link.bin
+Running suite(s): SFL_Create_Hard_Link
+100%: Checks: 14, Failures: 0, Errors: 0
+./dist/check_sfl_create_sym_link.bin
+Running suite(s): SFL_Create_Sym_Link
+100%: Checks: 14, Failures: 0, Errors: 0
+./dist/check_sfmr_get_access_time.bin
+Running suite(s): SFMR_Get_Access_Time
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_block_count.bin
+Running suite(s): SFMR_Get_Block_Count
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_block_size.bin
+Running suite(s): SFMR_Get_Block_Size
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_change_time.bin
+Running suite(s): SFMR_Get_Change_Time
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_container_device_id.bin
+Running suite(s): SFMR_Get_Container_Device_ID
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_file_device_id.bin
+Running suite(s): SFMR_Get_File_Device_ID
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_file_perms.bin
+Running suite(s): SFMR_Get_File_Perms
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_file_type.bin
+Running suite(s): SFMR_Get_File_Type
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_group.bin
+Running suite(s): SFMR_Get_Group
+100%: Checks: 12, Failures: 0, Errors: 0
+./dist/check_sfmr_get_hard_link_num.bin
+Running suite(s): SFMR_Get_Hard_Link_Num
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_mod_time.bin
+Running suite(s): SFMR_Get_Mod_Time
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_owner.bin
+Running suite(s): SFMR_Get_Owner
+100%: Checks: 12, Failures: 0, Errors: 0
+./dist/check_sfmr_get_serial_num.bin
+Running suite(s): SFMR_Get_Serial_Num
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_size.bin
+Running suite(s): SFMR_Get_Size
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_is_block_device.bin
+Running suite(s): SFMR_Is_Block_Device
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_is_character_device.bin
+Running suite(s): SFMR_Is_Character_Device
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_is_directory.bin
+Running suite(s): SFMR_Is_Directory
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_is_named_pipe.bin
+Running suite(s): SFMR_Is_Named_Pipe
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_is_regular_file.bin
+Running suite(s): SFMR_Is_Regular_File
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_is_socket.bin
+Running suite(s): SFMR_Is_Socket
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_is_sym_link.bin
+Running suite(s): SFMR_Is_Sym_Link
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmw_add_mode.bin
+Running suite(s): SFMW_Add_Mode
+100%: Checks: 16, Failures: 0, Errors: 0
+./dist/check_sfmw_remove_mode.bin
+Running suite(s): SFMW_Remove_Mode
+100%: Checks: 16, Failures: 0, Errors: 0
+./dist/check_sfmw_set_atime.bin
+Running suite(s): SFMW_Set_Atime
+100%: Checks: 24, Failures: 0, Errors: 0
+./dist/check_sfmw_set_atime_now.bin
+Running suite(s): SFMW_Set_Atime_Now
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmw_set_mode.bin
+Running suite(s): SFMW_Set_Mode
+100%: Checks: 16, Failures: 0, Errors: 0
+./dist/check_sfmw_set_mtime.bin
+Running suite(s): SFMW_Set_Mtime
+100%: Checks: 24, Failures: 0, Errors: 0
+./dist/check_sfmw_set_mtime_now.bin
+Running suite(s): SFMW_Set_Mtime_Now
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmw_set_ownership.bin
+Running suite(s): SFMW_Set_Ownership
+100%: Checks: 20, Failures: 0, Errors: 0
+./dist/check_sfmw_set_times.bin
+Running suite(s): SFMW_Set_Times
+100%: Checks: 24, Failures: 0, Errors: 0
+./dist/check_sfmw_set_times_now.bin
+Running suite(s): SFMW_Set_Times_Now
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sv_validate_pathname.bin
+Running suite(s): SV_Validate_Pathname
+100%: Checks: 11, Failures: 0, Errors: 0
+
+RELEASING
+Releasing libsketchyidea.so.1.0.0
+
+==87213== Memcheck, a memory error detector
+==87213== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87213== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87213== Command: code/dist/check_sdo_create_dir.bin
+==87213== 
+Running suite(s): SDO_Create_Dir
+100%: Checks: 20, Failures: 0, Errors: 0
+==87213== 
+==87213== HEAP SUMMARY:
+==87213==     in use at exit: 0 bytes in 0 blocks
+==87213==   total heap usage: 1,142 allocs, 1,142 frees, 535,512 bytes allocated
+==87213== 
+==87213== All heap blocks were freed -- no leaks are possible
+==87213== 
+==87213== For lists of detected and suppressed errors, rerun with: -s
+==87213== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87300== Memcheck, a memory error detector
+==87300== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87300== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87300== Command: code/dist/check_sdo_delete_dir.bin
+==87300== 
+Running suite(s): SDO_Delete_Dir
+100%: Checks: 11, Failures: 0, Errors: 0
+==87300== 
+==87300== HEAP SUMMARY:
+==87300==     in use at exit: 0 bytes in 0 blocks
+==87300==   total heap usage: 379 allocs, 379 frees, 174,636 bytes allocated
+==87300== 
+==87300== All heap blocks were freed -- no leaks are possible
+==87300== 
+==87300== For lists of detected and suppressed errors, rerun with: -s
+==87300== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87306== Memcheck, a memory error detector
+==87306== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87306== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87306== Command: code/dist/check_sdo_destroy_dir.bin
+==87306== 
+Running suite(s): SDO_Destroy_Dir
+100%: Checks: 16, Failures: 0, Errors: 0
+==87306== 
+==87306== HEAP SUMMARY:
+==87306==     in use at exit: 0 bytes in 0 blocks
+==87306==   total heap usage: 1,100 allocs, 1,100 frees, 1,556,088 bytes allocated
+==87306== 
+==87306== All heap blocks were freed -- no leaks are possible
+==87306== 
+==87306== For lists of detected and suppressed errors, rerun with: -s
+==87306== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87338== Memcheck, a memory error detector
+==87338== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87338== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87338== Command: code/dist/check_sdo_read_dir_contents.bin
+==87338== 
+Running suite(s): SDO_Read_Dir_Contents
+100%: Checks: 27, Failures: 0, Errors: 0
+==87338== 
+==87338== HEAP SUMMARY:
+==87338==     in use at exit: 0 bytes in 0 blocks
+==87338==   total heap usage: 4,188 allocs, 4,188 frees, 2,665,210 bytes allocated
+==87338== 
+==87338== All heap blocks were freed -- no leaks are possible
+==87338== 
+==87338== For lists of detected and suppressed errors, rerun with: -s
+==87338== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87532== Memcheck, a memory error detector
+==87532== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87532== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87532== Command: code/dist/check_sfc_is_close_on_exec.bin
+==87532== 
+Running suite(s): SFC_Is_Close_On_Exec
+100%: Checks: 11, Failures: 0, Errors: 0
+==87532== 
+==87532== HEAP SUMMARY:
+==87532==     in use at exit: 0 bytes in 0 blocks
+==87532==   total heap usage: 1,293 allocs, 1,293 frees, 380,239 bytes allocated
+==87532== 
+==87532== All heap blocks were freed -- no leaks are possible
+==87532== 
+==87532== For lists of detected and suppressed errors, rerun with: -s
+==87532== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87558== Memcheck, a memory error detector
+==87558== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87558== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87558== Command: code/dist/check_sfl_create_hard_link.bin
+==87558== 
+Running suite(s): SFL_Create_Hard_Link
+100%: Checks: 14, Failures: 0, Errors: 0
+==87558== 
+==87558== HEAP SUMMARY:
+==87558==     in use at exit: 0 bytes in 0 blocks
+==87558==   total heap usage: 1,537 allocs, 1,537 frees, 477,742 bytes allocated
+==87558== 
+==87558== All heap blocks were freed -- no leaks are possible
+==87558== 
+==87558== For lists of detected and suppressed errors, rerun with: -s
+==87558== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87589== Memcheck, a memory error detector
+==87589== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87589== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87589== Command: code/dist/check_sfl_create_sym_link.bin
+==87589== 
+Running suite(s): SFL_Create_Sym_Link
+100%: Checks: 14, Failures: 0, Errors: 0
+==87589== 
+==87589== HEAP SUMMARY:
+==87589==     in use at exit: 0 bytes in 0 blocks
+==87589==   total heap usage: 1,513 allocs, 1,513 frees, 476,691 bytes allocated
+==87589== 
+==87589== All heap blocks were freed -- no leaks are possible
+==87589== 
+==87589== For lists of detected and suppressed errors, rerun with: -s
+==87589== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87620== Memcheck, a memory error detector
+==87620== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87620== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87620== Command: code/dist/check_sfmr_get_access_time.bin
+==87620== 
+Running suite(s): SFMR_Get_Access_Time
+100%: Checks: 11, Failures: 0, Errors: 0
+==87620== 
+==87620== HEAP SUMMARY:
+==87620==     in use at exit: 0 bytes in 0 blocks
+==87620==   total heap usage: 1,256 allocs, 1,256 frees, 410,552 bytes allocated
+==87620== 
+==87620== All heap blocks were freed -- no leaks are possible
+==87620== 
+==87620== For lists of detected and suppressed errors, rerun with: -s
+==87620== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87660== Memcheck, a memory error detector
+==87660== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87660== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87660== Command: code/dist/check_sfmr_get_block_count.bin
+==87660== 
+Running suite(s): SFMR_Get_Block_Count
+100%: Checks: 11, Failures: 0, Errors: 0
+==87660== 
+==87660== HEAP SUMMARY:
+==87660==     in use at exit: 0 bytes in 0 blocks
+==87660==   total heap usage: 403 allocs, 403 frees, 195,701 bytes allocated
+==87660== 
+==87660== All heap blocks were freed -- no leaks are possible
+==87660== 
+==87660== For lists of detected and suppressed errors, rerun with: -s
+==87660== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87677== Memcheck, a memory error detector
+==87677== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87677== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87677== Command: code/dist/check_sfmr_get_block_size.bin
+==87677== 
+Running suite(s): SFMR_Get_Block_Size
+100%: Checks: 11, Failures: 0, Errors: 0
+==87677== 
+==87677== HEAP SUMMARY:
+==87677==     in use at exit: 0 bytes in 0 blocks
+==87677==   total heap usage: 395 allocs, 395 frees, 194,992 bytes allocated
+==87677== 
+==87677== All heap blocks were freed -- no leaks are possible
+==87677== 
+==87677== For lists of detected and suppressed errors, rerun with: -s
+==87677== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87694== Memcheck, a memory error detector
+==87694== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87694== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87694== Command: code/dist/check_sfmr_get_change_time.bin
+==87694== 
+Running suite(s): SFMR_Get_Change_Time
+100%: Checks: 11, Failures: 0, Errors: 0
+==87694== 
+==87694== HEAP SUMMARY:
+==87694==     in use at exit: 0 bytes in 0 blocks
+==87694==   total heap usage: 375 allocs, 375 frees, 194,672 bytes allocated
+==87694== 
+==87694== All heap blocks were freed -- no leaks are possible
+==87694== 
+==87694== For lists of detected and suppressed errors, rerun with: -s
+==87694== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87711== Memcheck, a memory error detector
+==87711== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87711== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87711== Command: code/dist/check_sfmr_get_container_device_id.bin
+==87711== 
+Running suite(s): SFMR_Get_Container_Device_ID
+100%: Checks: 11, Failures: 0, Errors: 0
+==87711== 
+==87711== HEAP SUMMARY:
+==87711==     in use at exit: 0 bytes in 0 blocks
+==87711==   total heap usage: 318 allocs, 318 frees, 162,147 bytes allocated
+==87711== 
+==87711== All heap blocks were freed -- no leaks are possible
+==87711== 
+==87711== For lists of detected and suppressed errors, rerun with: -s
+==87711== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87714== Memcheck, a memory error detector
+==87714== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87714== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87714== Command: code/dist/check_sfmr_get_file_device_id.bin
+==87714== 
+Running suite(s): SFMR_Get_File_Device_ID
+100%: Checks: 11, Failures: 0, Errors: 0
+==87714== 
+==87714== HEAP SUMMARY:
+==87714==     in use at exit: 0 bytes in 0 blocks
+==87714==   total heap usage: 403 allocs, 403 frees, 196,340 bytes allocated
+==87714== 
+==87714== All heap blocks were freed -- no leaks are possible
+==87714== 
+==87714== For lists of detected and suppressed errors, rerun with: -s
+==87714== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87730== Memcheck, a memory error detector
+==87730== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87730== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87730== Command: code/dist/check_sfmr_get_file_perms.bin
+==87730== 
+Running suite(s): SFMR_Get_File_Perms
+100%: Checks: 11, Failures: 0, Errors: 0
+==87730== 
+==87730== HEAP SUMMARY:
+==87730==     in use at exit: 0 bytes in 0 blocks
+==87730==   total heap usage: 403 allocs, 403 frees, 195,488 bytes allocated
+==87730== 
+==87730== All heap blocks were freed -- no leaks are possible
+==87730== 
+==87730== For lists of detected and suppressed errors, rerun with: -s
+==87730== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87747== Memcheck, a memory error detector
+==87747== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87747== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87747== Command: code/dist/check_sfmr_get_file_type.bin
+==87747== 
+Running suite(s): SFMR_Get_File_Type
+100%: Checks: 11, Failures: 0, Errors: 0
+==87747== 
+==87747== HEAP SUMMARY:
+==87747==     in use at exit: 0 bytes in 0 blocks
+==87747==   total heap usage: 301 allocs, 301 frees, 154,685 bytes allocated
+==87747== 
+==87747== All heap blocks were freed -- no leaks are possible
+==87747== 
+==87747== For lists of detected and suppressed errors, rerun with: -s
+==87747== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87750== Memcheck, a memory error detector
+==87750== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87750== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87750== Command: code/dist/check_sfmr_get_group.bin
+==87750== 
+Running suite(s): SFMR_Get_Group
+100%: Checks: 12, Failures: 0, Errors: 0
+==87750== 
+==87750== HEAP SUMMARY:
+==87750==     in use at exit: 0 bytes in 0 blocks
+==87750==   total heap usage: 442 allocs, 442 frees, 213,025 bytes allocated
+==87750== 
+==87750== All heap blocks were freed -- no leaks are possible
+==87750== 
+==87750== For lists of detected and suppressed errors, rerun with: -s
+==87750== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87768== Memcheck, a memory error detector
+==87768== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87768== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87768== Command: code/dist/check_sfmr_get_hard_link_num.bin
+==87768== 
+Running suite(s): SFMR_Get_Hard_Link_Num
+100%: Checks: 11, Failures: 0, Errors: 0
+==87768== 
+==87768== HEAP SUMMARY:
+==87768==     in use at exit: 0 bytes in 0 blocks
+==87768==   total heap usage: 403 allocs, 403 frees, 196,127 bytes allocated
+==87768== 
+==87768== All heap blocks were freed -- no leaks are possible
+==87768== 
+==87768== For lists of detected and suppressed errors, rerun with: -s
+==87768== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87786== Memcheck, a memory error detector
+==87786== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87786== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87786== Command: code/dist/check_sfmr_get_mod_time.bin
+==87786== 
+Running suite(s): SFMR_Get_Mod_Time
+100%: Checks: 11, Failures: 0, Errors: 0
+==87786== 
+==87786== HEAP SUMMARY:
+==87786==     in use at exit: 0 bytes in 0 blocks
+==87786==   total heap usage: 375 allocs, 375 frees, 194,117 bytes allocated
+==87786== 
+==87786== All heap blocks were freed -- no leaks are possible
+==87786== 
+==87786== For lists of detected and suppressed errors, rerun with: -s
+==87786== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87802== Memcheck, a memory error detector
+==87802== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87802== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87802== Command: code/dist/check_sfmr_get_owner.bin
+==87802== 
+Running suite(s): SFMR_Get_Owner
+100%: Checks: 12, Failures: 0, Errors: 0
+==87802== 
+==87802== HEAP SUMMARY:
+==87802==     in use at exit: 0 bytes in 0 blocks
+==87802==   total heap usage: 442 allocs, 442 frees, 213,025 bytes allocated
+==87802== 
+==87802== All heap blocks were freed -- no leaks are possible
+==87802== 
+==87802== For lists of detected and suppressed errors, rerun with: -s
+==87802== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87821== Memcheck, a memory error detector
+==87821== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87821== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87821== Command: code/dist/check_sfmr_get_serial_num.bin
+==87821== 
+Running suite(s): SFMR_Get_Serial_Num
+100%: Checks: 11, Failures: 0, Errors: 0
+==87821== 
+==87821== HEAP SUMMARY:
+==87821==     in use at exit: 0 bytes in 0 blocks
+==87821==   total heap usage: 1,284 allocs, 1,284 frees, 411,396 bytes allocated
+==87821== 
+==87821== All heap blocks were freed -- no leaks are possible
+==87821== 
+==87821== For lists of detected and suppressed errors, rerun with: -s
+==87821== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87862== Memcheck, a memory error detector
+==87862== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87862== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87862== Command: code/dist/check_sfmr_get_size.bin
+==87862== 
+Running suite(s): SFMR_Get_Size
+100%: Checks: 11, Failures: 0, Errors: 0
+==87862== 
+==87862== HEAP SUMMARY:
+==87862==     in use at exit: 0 bytes in 0 blocks
+==87862==   total heap usage: 403 allocs, 403 frees, 194,210 bytes allocated
+==87862== 
+==87862== All heap blocks were freed -- no leaks are possible
+==87862== 
+==87862== For lists of detected and suppressed errors, rerun with: -s
+==87862== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87879== Memcheck, a memory error detector
+==87879== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87879== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87879== Command: code/dist/check_sfmr_is_block_device.bin
+==87879== 
+Running suite(s): SFMR_Is_Block_Device
+100%: Checks: 11, Failures: 0, Errors: 0
+==87879== 
+==87879== HEAP SUMMARY:
+==87879==     in use at exit: 0 bytes in 0 blocks
+==87879==   total heap usage: 301 allocs, 301 frees, 154,997 bytes allocated
+==87879== 
+==87879== All heap blocks were freed -- no leaks are possible
+==87879== 
+==87879== For lists of detected and suppressed errors, rerun with: -s
+==87879== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87882== Memcheck, a memory error detector
+==87882== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87882== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87882== Command: code/dist/check_sfmr_is_character_device.bin
+==87882== 
+Running suite(s): SFMR_Is_Character_Device
+100%: Checks: 11, Failures: 0, Errors: 0
+==87882== 
+==87882== HEAP SUMMARY:
+==87882==     in use at exit: 0 bytes in 0 blocks
+==87882==   total heap usage: 301 allocs, 301 frees, 155,621 bytes allocated
+==87882== 
+==87882== All heap blocks were freed -- no leaks are possible
+==87882== 
+==87882== For lists of detected and suppressed errors, rerun with: -s
+==87882== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87884== Memcheck, a memory error detector
+==87884== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87884== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87884== Command: code/dist/check_sfmr_is_directory.bin
+==87884== 
+Running suite(s): SFMR_Is_Directory
+100%: Checks: 11, Failures: 0, Errors: 0
+==87884== 
+==87884== HEAP SUMMARY:
+==87884==     in use at exit: 0 bytes in 0 blocks
+==87884==   total heap usage: 301 allocs, 301 frees, 154,529 bytes allocated
+==87884== 
+==87884== All heap blocks were freed -- no leaks are possible
+==87884== 
+==87884== For lists of detected and suppressed errors, rerun with: -s
+==87884== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87886== Memcheck, a memory error detector
+==87886== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87886== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87886== Command: code/dist/check_sfmr_is_named_pipe.bin
+==87886== 
+Running suite(s): SFMR_Is_Named_Pipe
+100%: Checks: 11, Failures: 0, Errors: 0
+==87886== 
+==87886== HEAP SUMMARY:
+==87886==     in use at exit: 0 bytes in 0 blocks
+==87886==   total heap usage: 301 allocs, 301 frees, 154,685 bytes allocated
+==87886== 
+==87886== All heap blocks were freed -- no leaks are possible
+==87886== 
+==87886== For lists of detected and suppressed errors, rerun with: -s
+==87886== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87888== Memcheck, a memory error detector
+==87888== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87888== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87888== Command: code/dist/check_sfmr_is_regular_file.bin
+==87888== 
+Running suite(s): SFMR_Is_Regular_File
+100%: Checks: 11, Failures: 0, Errors: 0
+==87888== 
+==87888== HEAP SUMMARY:
+==87888==     in use at exit: 0 bytes in 0 blocks
+==87888==   total heap usage: 301 allocs, 301 frees, 154,997 bytes allocated
+==87888== 
+==87888== All heap blocks were freed -- no leaks are possible
+==87888== 
+==87888== For lists of detected and suppressed errors, rerun with: -s
+==87888== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87890== Memcheck, a memory error detector
+==87890== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87890== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87890== Command: code/dist/check_sfmr_is_socket.bin
+==87890== 
+Running suite(s): SFMR_Is_Socket
+100%: Checks: 11, Failures: 0, Errors: 0
+==87890== 
+==87890== HEAP SUMMARY:
+==87890==     in use at exit: 0 bytes in 0 blocks
+==87890==   total heap usage: 301 allocs, 301 frees, 154,061 bytes allocated
+==87890== 
+==87890== All heap blocks were freed -- no leaks are possible
+==87890== 
+==87890== For lists of detected and suppressed errors, rerun with: -s
+==87890== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87892== Memcheck, a memory error detector
+==87892== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87892== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87892== Command: code/dist/check_sfmr_is_sym_link.bin
+==87892== 
+Running suite(s): SFMR_Is_Sym_Link
+100%: Checks: 11, Failures: 0, Errors: 0
+==87892== 
+==87892== HEAP SUMMARY:
+==87892==     in use at exit: 0 bytes in 0 blocks
+==87892==   total heap usage: 301 allocs, 301 frees, 154,373 bytes allocated
+==87892== 
+==87892== All heap blocks were freed -- no leaks are possible
+==87892== 
+==87892== For lists of detected and suppressed errors, rerun with: -s
+==87892== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==87894== Memcheck, a memory error detector
+==87894== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==87894== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==87894== Command: code/dist/check_sfmw_add_mode.bin
+==87894== 
+Running suite(s): SFMW_Add_Mode
+100%: Checks: 16, Failures: 0, Errors: 0
+==87894== 
+==87894== HEAP SUMMARY:
+==87894==     in use at exit: 0 bytes in 0 blocks
+==87894==   total heap usage: 5,321 allocs, 5,321 frees, 1,417,570 bytes allocated
+==87894== 
+==87894== All heap blocks were freed -- no leaks are possible
+==87894== 
+==87894== For lists of detected and suppressed errors, rerun with: -s
+==87894== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==88283== Memcheck, a memory error detector
+==88283== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==88283== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==88283== Command: code/dist/check_sfmw_remove_mode.bin
+==88283== 
+Running suite(s): SFMW_Remove_Mode
+100%: Checks: 16, Failures: 0, Errors: 0
+==88283== 
+==88283== HEAP SUMMARY:
+==88283==     in use at exit: 0 bytes in 0 blocks
+==88283==   total heap usage: 5,321 allocs, 5,321 frees, 1,429,537 bytes allocated
+==88283== 
+==88283== All heap blocks were freed -- no leaks are possible
+==88283== 
+==88283== For lists of detected and suppressed errors, rerun with: -s
+==88283== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==88667== Memcheck, a memory error detector
+==88667== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==88667== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==88667== Command: code/dist/check_sfmw_set_atime.bin
+==88667== 
+Running suite(s): SFMW_Set_Atime
+100%: Checks: 24, Failures: 0, Errors: 0
+==88667== 
+==88667== HEAP SUMMARY:
+==88667==     in use at exit: 0 bytes in 0 blocks
+==88667==   total heap usage: 2,628 allocs, 2,628 frees, 706,269 bytes allocated
+==88667== 
+==88667== All heap blocks were freed -- no leaks are possible
+==88667== 
+==88667== For lists of detected and suppressed errors, rerun with: -s
+==88667== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==88674== Memcheck, a memory error detector
+==88674== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==88674== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==88674== Command: code/dist/check_sfmw_set_atime_now.bin
+==88674== 
+Running suite(s): SFMW_Set_Atime_Now
+100%: Checks: 11, Failures: 0, Errors: 0
+==88674== 
+==88674== HEAP SUMMARY:
+==88674==     in use at exit: 0 bytes in 0 blocks
+==88674==   total heap usage: 738 allocs, 738 frees, 315,349 bytes allocated
+==88674== 
+==88674== All heap blocks were freed -- no leaks are possible
+==88674== 
+==88674== For lists of detected and suppressed errors, rerun with: -s
+==88674== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==88677== Memcheck, a memory error detector
+==88677== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==88677== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==88677== Command: code/dist/check_sfmw_set_mode.bin
+==88677== 
+Running suite(s): SFMW_Set_Mode
+100%: Checks: 16, Failures: 0, Errors: 0
+==88677== 
+==88677== HEAP SUMMARY:
+==88677==     in use at exit: 0 bytes in 0 blocks
+==88677==   total heap usage: 5,225 allocs, 5,225 frees, 1,359,890 bytes allocated
+==88677== 
+==88677== All heap blocks were freed -- no leaks are possible
+==88677== 
+==88677== For lists of detected and suppressed errors, rerun with: -s
+==88677== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==89040== Memcheck, a memory error detector
+==89040== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==89040== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==89040== Command: code/dist/check_sfmw_set_mtime.bin
+==89040== 
+Running suite(s): SFMW_Set_Mtime
+100%: Checks: 24, Failures: 0, Errors: 0
+==89040== 
+==89040== HEAP SUMMARY:
+==89040==     in use at exit: 0 bytes in 0 blocks
+==89040==   total heap usage: 2,628 allocs, 2,628 frees, 706,269 bytes allocated
+==89040== 
+==89040== All heap blocks were freed -- no leaks are possible
+==89040== 
+==89040== For lists of detected and suppressed errors, rerun with: -s
+==89040== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==89050== Memcheck, a memory error detector
+==89050== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==89050== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==89050== Command: code/dist/check_sfmw_set_mtime_now.bin
+==89050== 
+Running suite(s): SFMW_Set_Mtime_Now
+100%: Checks: 11, Failures: 0, Errors: 0
+==89050== 
+==89050== HEAP SUMMARY:
+==89050==     in use at exit: 0 bytes in 0 blocks
+==89050==   total heap usage: 738 allocs, 738 frees, 315,349 bytes allocated
+==89050== 
+==89050== All heap blocks were freed -- no leaks are possible
+==89050== 
+==89050== For lists of detected and suppressed errors, rerun with: -s
+==89050== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==89054== Memcheck, a memory error detector
+==89054== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==89054== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==89054== Command: code/dist/check_sfmw_set_ownership.bin
+==89054== 
+Running suite(s): SFMW_Set_Ownership
+100%: Checks: 20, Failures: 0, Errors: 0
+==89054== 
+==89054== HEAP SUMMARY:
+==89054==     in use at exit: 0 bytes in 0 blocks
+==89054==   total heap usage: 7,287 allocs, 7,287 frees, 1,517,442 bytes allocated
+==89054== 
+==89054== All heap blocks were freed -- no leaks are possible
+==89054== 
+==89054== For lists of detected and suppressed errors, rerun with: -s
+==89054== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==89346== Memcheck, a memory error detector
+==89346== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==89346== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==89346== Command: code/dist/check_sfmw_set_times.bin
+==89346== 
+Running suite(s): SFMW_Set_Times
+100%: Checks: 24, Failures: 0, Errors: 0
+==89346== 
+==89346== HEAP SUMMARY:
+==89346==     in use at exit: 0 bytes in 0 blocks
+==89346==   total heap usage: 2,748 allocs, 2,748 frees, 709,959 bytes allocated
+==89346== 
+==89346== All heap blocks were freed -- no leaks are possible
+==89346== 
+==89346== For lists of detected and suppressed errors, rerun with: -s
+==89346== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==89353== Memcheck, a memory error detector
+==89353== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==89353== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==89353== Command: code/dist/check_sfmw_set_times_now.bin
+==89353== 
+Running suite(s): SFMW_Set_Times_Now
+100%: Checks: 11, Failures: 0, Errors: 0
+==89353== 
+==89353== HEAP SUMMARY:
+==89353==     in use at exit: 0 bytes in 0 blocks
+==89353==   total heap usage: 802 allocs, 802 frees, 317,573 bytes allocated
+==89353== 
+==89353== All heap blocks were freed -- no leaks are possible
+==89353== 
+==89353== For lists of detected and suppressed errors, rerun with: -s
+==89353== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==89356== Memcheck, a memory error detector
+==89356== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==89356== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==89356== Command: code/dist/check_sv_validate_pathname.bin
+==89356== 
+Running suite(s): SV_Validate_Pathname
+100%: Checks: 11, Failures: 0, Errors: 0
+==89356== 
+==89356== HEAP SUMMARY:
+==89356==     in use at exit: 0 bytes in 0 blocks
+==89356==   total heap usage: 1,160 allocs, 1,160 frees, 375,356 bytes allocated
+==89356== 
+==89356== All heap blocks were freed -- no leaks are possible
+==89356== 
+==89356== For lists of detected and suppressed errors, rerun with: -s
+==89356== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
+TOTAL CHECK UNIT TESTS: 530
+
+
+***************************
+*** SHOWCASE GCC BUILDS ***
+***************************
+*** Each of the manual test gcc builds will be evaluated in turn ***
+
+******************************************
+*** ./code/dist/test_sa_call_write.bin ***
+******************************************
+*** Execute the binary ***
+The full command is './code/dist/test_sa_call_write.bin'
+Command output:
+[INFO] Module loaded: test/test_sa_call_write.c
+Hello from test_sa_call_write
+[INFO] Module unloaded: test/test_sa_call_write.c
+
+./code/dist/test_sa_call_write.bin wrote 30-of-30 bytes
+
+
+*** Execute the binary ***
+The full command is 'ls -lh ./code/dist/test_sa_call_write.bin'
+Command output:
+-rwxrwxr-x 1 vagrant vagrant 22K Jul 16 16:11 ./code/dist/test_sa_call_write.bin
+
+
+*** Show the ELF summary ***
+The full command is 'file ./code/dist/test_sa_call_write.bin'
+Command output:
+./code/dist/test_sa_call_write.bin: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=0d7c6a3978311852b3bc12747d63a4fd35e72e96, for GNU/Linux 3.2.0, not stripped
+
+
+*** List the symbols ***
+The full command is 'nm -u ./code/dist/test_sa_call_write.bin'
+Command output:
+                 w _ITM_deregisterTMCloneTable
+                 w _ITM_registerTMCloneTable
+                 w __cxa_finalize@GLIBC_2.2.5
+                 U __errno_location@GLIBC_2.2.5
+                 w __gmon_start__
+                 U __libc_start_main@GLIBC_2.34
+                 U __stack_chk_fail@GLIBC_2.4
+                 U calloc@GLIBC_2.2.5
+                 U close@GLIBC_2.2.5
+                 U dup2@GLIBC_2.2.5
+                 U exit@GLIBC_2.2.5
+                 U fprintf@GLIBC_2.2.5
+                 U free@GLIBC_2.2.5
+                 U lstat@GLIBC_2.33
+                 U memset@GLIBC_2.2.5
+                 U mmap@GLIBC_2.2.5
+                 U munmap@GLIBC_2.2.5
+                 U open@GLIBC_2.2.5
+                 U printf@GLIBC_2.2.5
+                 U read@GLIBC_2.2.5
+                 U strlen@GLIBC_2.2.5
+                 U strncat@GLIBC_2.2.5
+                 U strncpy@GLIBC_2.2.5
+                 U write@GLIBC_2.2.5
+
+
+*** Show the shared object dependencies ***
+The full command is 'ldd ./code/dist/test_sa_call_write.bin'
+Command output:
+	linux-vdso.so.1 (0x00007ffc9ed6d000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fddbf7f4000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007fddbfa34000)
+
+
+*** Display the symbol table ***
+The full command is 'readelf --symbols ./code/dist/test_sa_call_write.bin'
+Command output:
+
+Symbol table '.dynsym' contains 26 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND free@GLIBC_2.2.5 (2)
+     2: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND _[...]@GLIBC_2.34 (3)
+     3: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND [...]@GLIBC_2.2.5 (2)
+     4: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND [...]@GLIBC_2.2.5 (2)
+     5: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND _ITM_deregisterT[...]
+     6: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND write@GLIBC_2.2.5 (2)
+     7: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND [...]@GLIBC_2.2.5 (2)
+     8: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND __[...]@GLIBC_2.4 (4)
+     9: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND mmap@GLIBC_2.2.5 (2)
+    10: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND dup2@GLIBC_2.2.5 (2)
+    11: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND [...]@GLIBC_2.2.5 (2)
+    12: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND [...]@GLIBC_2.2.5 (2)
+    13: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND [...]@GLIBC_2.2.5 (2)
+    14: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND close@GLIBC_2.2.5 (2)
+    15: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND read@GLIBC_2.2.5 (2)
+    16: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND lstat@GLIBC_2.33 (5)
+    17: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND [...]@GLIBC_2.2.5 (2)
+    18: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND [...]@GLIBC_2.2.5 (2)
+    19: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND __gmon_start__
+    20: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND [...]@GLIBC_2.2.5 (2)
+    21: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND open@GLIBC_2.2.5 (2)
+    22: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND exit@GLIBC_2.2.5 (2)
+    23: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND _ITM_registerTMC[...]
+    24: 0000000000000000     0 FUNC    WEAK   DEFAULT  UND [...]@GLIBC_2.2.5 (2)
+    25: 0000000000005020     8 OBJECT  GLOBAL DEFAULT   26 [...]@GLIBC_2.2.5 (2)
+
+Symbol table '.symtab' contains 95 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS Scrt1.o
+     2: 000000000000038c    32 OBJECT  LOCAL  DEFAULT    4 __abi_tag
+     3: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS crtstuff.c
+     4: 00000000000012d0     0 FUNC    LOCAL  DEFAULT   16 deregister_tm_clones
+     5: 0000000000001300     0 FUNC    LOCAL  DEFAULT   16 register_tm_clones
+     6: 0000000000001340     0 FUNC    LOCAL  DEFAULT   16 __do_global_dtors_aux
+     7: 0000000000005028     1 OBJECT  LOCAL  DEFAULT   26 completed.0
+     8: 0000000000004d28     0 OBJECT  LOCAL  DEFAULT   22 __do_global_dtor[...]
+     9: 0000000000001380     0 FUNC    LOCAL  DEFAULT   16 frame_dummy
+    10: 0000000000004d18     0 OBJECT  LOCAL  DEFAULT   21 __frame_dummy_in[...]
+    11: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS test_sa_call_write.c
+    12: 0000000000001389    54 FUNC    LOCAL  DEFAULT   16 print_skid_load
+    13: 00000000000013bf    54 FUNC    LOCAL  DEFAULT   16 print_skid_unload
+    14: 00000000000030bd     5 OBJECT  LOCAL  DEFAULT   18 __func__.0
+    15: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS skid_assembly.c
+    16: 0000000000001575    24 FUNC    LOCAL  DEFAULT   16 call_exit_x86_64
+    17: 000000000000158d    55 FUNC    LOCAL  DEFAULT   16 call_write_x86_64
+    18: 00000000000015c4    63 FUNC    LOCAL  DEFAULT   16 read_cpu_tsc_x86_fam
+    19: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS skid_file_descri[...]
+    20: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS skid_memory.c
+    21: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS skid_validation.c
+    22: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS crtstuff.c
+    23: 0000000000003718     0 OBJECT  LOCAL  DEFAULT   20 __FRAME_END__
+    24: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS 
+    25: 0000000000004d38     0 OBJECT  LOCAL  DEFAULT   23 _DYNAMIC
+    26: 00000000000030c4     0 NOTYPE  LOCAL  DEFAULT   19 __GNU_EH_FRAME_HDR
+    27: 0000000000004f28     0 OBJECT  LOCAL  DEFAULT   24 _GLOBAL_OFFSET_TABLE_
+    28: 000000000000244c   122 FUNC    GLOBAL DEFAULT   16 validate_sm_struct
+    29: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND free@GLIBC_2.2.5
+    30: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND __libc_start_mai[...]
+    31: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND __errno_location[...]
+    32: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND strncpy@GLIBC_2.2.5
+    33: 0000000000001ee8    91 FUNC    GLOBAL DEFAULT   16 validate_sfd_args
+    34: 0000000000001fca   233 FUNC    GLOBAL DEFAULT   16 copy_skid_string
+    35: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND _ITM_deregisterT[...]
+    36: 0000000000005000     0 NOTYPE  WEAK   DEFAULT   25 data_start
+    37: 00000000000018e8   206 FUNC    GLOBAL DEFAULT   16 write_fd
+    38: 0000000000001830   184 FUNC    GLOBAL DEFAULT   16 read_fd
+    39: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND write@GLIBC_2.2.5
+    40: 000000000000169a   110 FUNC    GLOBAL DEFAULT   16 close_fd
+    41: 0000000000005010     0 NOTYPE  GLOBAL DEFAULT   25 _edata
+    42: 0000000000001a9f   762 FUNC    GLOBAL DEFAULT   16 read_fd_dynamic
+    43: 0000000000002654     0 FUNC    GLOBAL HIDDEN    17 _fini
+    44: 000000000000260a    74 FUNC    GLOBAL DEFAULT   16 validate_skid_string
+    45: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND strlen@GLIBC_2.2.5
+    46: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND __stack_chk_fail[...]
+    47: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND mmap@GLIBC_2.2.5
+    48: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND dup2@GLIBC_2.2.5
+    49: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND printf@GLIBC_2.2.5
+    50: 00000000000019b6    62 FUNC    GLOBAL DEFAULT   16 check_for_space
+    51: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND memset@GLIBC_2.2.5
+    52: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND strncat@GLIBC_2.2.5
+    53: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND close@GLIBC_2.2.5
+    54: 00000000000020b3    86 FUNC    GLOBAL DEFAULT   16 free_skid_mem
+    55: 00000000000025e0    42 FUNC    GLOBAL DEFAULT   16 validate_skid_sockfd
+    56: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND read@GLIBC_2.2.5
+    57: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND lstat@GLIBC_2.33
+    58: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND calloc@GLIBC_2.2.5
+    59: 0000000000005000     0 NOTYPE  GLOBAL DEFAULT   25 __data_start
+    60: 0000000000002342   170 FUNC    GLOBAL DEFAULT   16 unmap_skid_struct
+    61: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND fprintf@GLIBC_2.2.5
+    62: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND __gmon_start__
+    63: 0000000000005008     0 OBJECT  GLOBAL HIDDEN    25 __dso_handle
+    64: 0000000000003000     4 OBJECT  GLOBAL DEFAULT   18 _IO_stdin_used
+    65: 0000000000001677    35 FUNC    GLOBAL DEFAULT   16 read_cpu_tsc
+    66: 0000000000005030     0 NOTYPE  GLOBAL DEFAULT   26 _end
+    67: 00000000000023ec    61 FUNC    GLOBAL DEFAULT   16 validate_sm_stan[...]
+    68: 00000000000012a0    38 FUNC    GLOBAL DEFAULT   16 _start
+    69: 000000000000212d   167 FUNC    GLOBAL DEFAULT   16 map_skid_mem
+    70: 0000000000002429    35 FUNC    GLOBAL DEFAULT   16 validate_sm_pathname
+    71: 00000000000024ec    42 FUNC    GLOBAL DEFAULT   16 validate_skid_fd
+    72: 0000000000005010     0 NOTYPE  GLOBAL DEFAULT   26 __bss_start
+    73: 00000000000019f4   171 FUNC    GLOBAL DEFAULT   16 check_for_pre_alloc
+    74: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND munmap@GLIBC_2.2.5
+    75: 00000000000013f5   331 FUNC    GLOBAL DEFAULT   16 main
+    76: 0000000000001603    28 FUNC    GLOBAL DEFAULT   16 call_exit
+    77: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND open@GLIBC_2.2.5
+    78: 00000000000017a5   139 FUNC    GLOBAL DEFAULT   16 open_fd
+    79: 0000000000001708   157 FUNC    GLOBAL DEFAULT   16 call_dup2
+    80: 00000000000024c6    38 FUNC    GLOBAL DEFAULT   16 validate_skid_err
+    81: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND exit@GLIBC_2.2.5
+    82: 0000000000005010     0 OBJECT  GLOBAL HIDDEN    25 __TMC_END__
+    83: 00000000000021d4   231 FUNC    GLOBAL DEFAULT   16 map_skid_struct
+    84: 0000000000001540    53 FUNC    GLOBAL DEFAULT   16 print_usage
+    85: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND _ITM_registerTMC[...]
+    86: 00000000000022bb   135 FUNC    GLOBAL DEFAULT   16 unmap_skid_mem
+    87: 0000000000002516   202 FUNC    GLOBAL DEFAULT   16 validate_skid_pa[...]
+    88: 0000000000001d99   335 FUNC    GLOBAL DEFAULT   16 realloc_fd_dynamic
+    89: 000000000000161f    88 FUNC    GLOBAL DEFAULT   16 call_write
+    90: 0000000000001f43   135 FUNC    GLOBAL DEFAULT   16 alloc_skid_mem
+    91: 0000000000000000     0 FUNC    WEAK   DEFAULT  UND __cxa_finalize@G[...]
+    92: 0000000000001000     0 FUNC    GLOBAL HIDDEN    12 _init
+    93: 0000000000002109    36 FUNC    GLOBAL DEFAULT   16 free_skid_string
+    94: 0000000000005020     8 OBJECT  GLOBAL DEFAULT   26 stderr@GLIBC_2.2.5
+
+
+
+*********************************************
+*** ./code/dist/test_gcc_nostartfiles.bin ***
+*********************************************
+*** Execute the binary ***
+The full command is './code/dist/test_gcc_nostartfiles.bin'
+Command output:
+Hello from test_gcc_nostartfiles.bin
+
+
+*** Execute the binary ***
+The full command is 'ls -lh ./code/dist/test_gcc_nostartfiles.bin'
+Command output:
+-rwxrwxr-x 1 vagrant vagrant 15K Jul 16 16:11 ./code/dist/test_gcc_nostartfiles.bin
+
+
+*** Show the ELF summary ***
+The full command is 'file ./code/dist/test_gcc_nostartfiles.bin'
+Command output:
+./code/dist/test_gcc_nostartfiles.bin: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=35c85a6a6a58afcb831851984a99b76987d5dd54, not stripped
+
+
+*** List the symbols ***
+The full command is 'nm -u ./code/dist/test_gcc_nostartfiles.bin'
+Command output:
+                 U __stack_chk_fail@GLIBC_2.4
+
+
+*** Show the shared object dependencies ***
+The full command is 'ldd ./code/dist/test_gcc_nostartfiles.bin'
+Command output:
+	linux-vdso.so.1 (0x00007ffe950d4000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fb933801000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007fb933a3f000)
+
+
+*** Display the symbol table ***
+The full command is 'readelf --symbols ./code/dist/test_gcc_nostartfiles.bin'
+Command output:
+
+Symbol table '.dynsym' contains 2 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND __[...]@GLIBC_2.4 (2)
+
+Symbol table '.symtab' contains 18 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS test_gcc_nostart[...]
+     2: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS skid_assembly.c
+     3: 00000000000010c7    24 FUNC    LOCAL  DEFAULT   12 call_exit_x86_64
+     4: 00000000000010df    55 FUNC    LOCAL  DEFAULT   12 call_write_x86_64
+     5: 0000000000001116    63 FUNC    LOCAL  DEFAULT   12 read_cpu_tsc_x86_fam
+     6: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS 
+     7: 0000000000003e80     0 OBJECT  LOCAL  DEFAULT   15 _DYNAMIC
+     8: 0000000000002000     0 NOTYPE  LOCAL  DEFAULT   13 __GNU_EH_FRAME_HDR
+     9: 0000000000003fe0     0 OBJECT  LOCAL  DEFAULT   16 _GLOBAL_OFFSET_TABLE_
+    10: 0000000000004000     0 NOTYPE  GLOBAL DEFAULT   16 _edata
+    11: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND __stack_chk_fail[...]
+    12: 00000000000011c9    35 FUNC    GLOBAL DEFAULT   12 read_cpu_tsc
+    13: 0000000000004000     0 NOTYPE  GLOBAL DEFAULT   16 _end
+    14: 0000000000001030   151 FUNC    GLOBAL DEFAULT   12 _start
+    15: 0000000000004000     0 NOTYPE  GLOBAL DEFAULT   16 __bss_start
+    16: 0000000000001155    28 FUNC    GLOBAL DEFAULT   12 call_exit
+    17: 0000000000001171    88 FUNC    GLOBAL DEFAULT   12 call_write
+
+
+
+*****************************************
+*** ./code/dist/test_gcc_nostdlib.bin ***
+*****************************************
+*** Execute the binary ***
+The full command is './code/dist/test_gcc_nostdlib.bin'
+Command output:
+Hello from test_gcc_nostdlib.bin
+
+
+*** Execute the binary ***
+The full command is 'ls -lh ./code/dist/test_gcc_nostdlib.bin'
+Command output:
+-rwxrwxr-x 1 vagrant vagrant 9.1K Jul 16 16:11 ./code/dist/test_gcc_nostdlib.bin
+
+
+*** Show the ELF summary ***
+The full command is 'file ./code/dist/test_gcc_nostdlib.bin'
+Command output:
+./code/dist/test_gcc_nostdlib.bin: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, BuildID[sha1]=d3a806b24a319b75e6b641ff5f0c0ddb4e0b7560, not stripped
+
+
+*** List the symbols ***
+The full command is 'nm -u ./code/dist/test_gcc_nostdlib.bin'
+Command output:
+
+
+*** Show the shared object dependencies ***
+The full command is 'ldd ./code/dist/test_gcc_nostdlib.bin'
+Command output:
+	not a dynamic executable
+
+
+*** Display the symbol table ***
+The full command is 'readelf --symbols ./code/dist/test_gcc_nostdlib.bin'
+Command output:
+
+Symbol table '.symtab' contains 8 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS test_gcc_nostdlib.c
+     2: 0000000000401000    24 FUNC    LOCAL  DEFAULT    3 call_exit
+     3: 0000000000401053   109 FUNC    GLOBAL DEFAULT    3 _start
+     4: 0000000000404000     0 NOTYPE  GLOBAL DEFAULT    4 __bss_start
+     5: 0000000000401018    59 FUNC    GLOBAL DEFAULT    3 call_write
+     6: 0000000000404000     0 NOTYPE  GLOBAL DEFAULT    4 _edata
+     7: 0000000000404000     0 NOTYPE  GLOBAL DEFAULT    4 _end
+
+

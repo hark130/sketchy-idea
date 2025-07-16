@@ -192,7 +192,7 @@ _clean:
 
 _clean_dist:
 	@echo "    Cleaning "$(DIST_DIR)" directory"
-	@rm -f $(DIST_DIR)*.o $(DIST_DIR)*.exe $(DIST_DIR)*.bin $(DIST_DIR)*.lib $(DIST_DIR)*.so $(DIST_DIR)*.egg
+	@rm -f $(DIST_DIR)*.o $(DIST_DIR)*.exe $(DIST_DIR)*.bin $(DIST_DIR)*.lib $(DIST_DIR)*.so* $(DIST_DIR)*.egg
 
 _compile:
 	$(CALL_MAKE) _compilation
@@ -301,7 +301,7 @@ $(DIST_DIR)$(MAN_TEST_LIB_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_LIB_PRE
 	@$(CC) $(CFLAGS) -o $@ $^ -lsketchyidea
 
 # MANUAL TEST: Linking skid_assembly library manual test binaries
-$(DIST_DIR)$(MAN_TEST_SA_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SA_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_assembly$(OBJ_FILE_EXT)
+$(DIST_DIR)$(MAN_TEST_SA_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SA_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_assembly$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
@@ -383,6 +383,18 @@ $(DIST_DIR)redirect_bin_output$(BIN_FILE_EXT): $(TEST_DIR)redirect_bin_output$(S
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Compiling bespoke binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
+
+# BESPOKE: test_gcc_nostartfiles.bin
+$(DIST_DIR)test_gcc_nostartfiles$(BIN_FILE_EXT): $(TEST_DIR)test_gcc_nostartfiles$(SRC_FILE_EXT) $(DIST_DIR)skid_assembly$(OBJ_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Compiling $@ with: $(CC) $(CFLAGS) -nostartfiles -o $@ $^ -I $(INCLUDE_DIR)"
+	@$(CC) $(CFLAGS) -nostartfiles -o $@ $^ -I $(INCLUDE_DIR)
+
+# BESPOKE: test_gcc_nostdlib.bin
+$(DIST_DIR)test_gcc_nostdlib$(BIN_FILE_EXT): $(TEST_DIR)test_gcc_nostdlib$(SRC_FILE_EXT)
+	@#echo "$@ needs $^"  # DEBUGGING
+	@echo "    Compiling $@ with: $(CC) $(CFLAGS) -nostdlib -static -o $@ $^"
+	@$(CC) $(CFLAGS) -nostdlib -static -o $@ $^
 
 # BESPOKE: test_misc_glibc_vs_musl-*.bin
 $(DIST_DIR)test_misc_glibc_vs_musl$(BIN_FILE_EXT): $(DIST_DIR)test_misc_glibc_vs_musl-static_glibc$(BIN_FILE_EXT) $(DIST_DIR)test_misc_glibc_vs_musl-static_musl$(BIN_FILE_EXT)

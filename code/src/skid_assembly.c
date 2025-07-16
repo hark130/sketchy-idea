@@ -20,8 +20,10 @@ gcc -E -U __x86_64__ -U __i386__ -U __aarch64__ -U __riscv -U __powerpc__ -U __p
 
 // #define SKID_DEBUG                          // Turn on DEBUGGING
 
+#include <errno.h>                          // EBADFD, EINVAL
 #include "skid_assembly.h"                  // uint64_t
 #include "skid_debug.h"                     // DEBUG logging
+#include "skid_macros.h"                    // SKID_BAD_FD
 
 MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
 MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
@@ -30,6 +32,39 @@ MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destruct
 /**************************************************************************************************/
 /********************************* PRIVATE FUNCTION DEFINITIONS ***********************************/
 /**************************************************************************************************/
+
+/*
+ *  Invokes the x86_64 exit system call.
+ */
+static inline void call_exit_x86_64(int status)
+{
+#if defined(__x86_64__)  // Intel x86-64
+    __asm__ volatile ("mov $60, %%rax\nsyscall\n"
+                      :: "D" (status)
+                      : "%rax");
+#else
+#endif  /* __x86_64__ */
+}
+
+/*
+ *  Invokes the x86_64 write system call and returns its return value.
+ */
+static inline ssize_t call_write_x86_64(int fildes, const void *buf, size_t nbyte)
+{
+    // LOCAL VARIABLES
+    ssize_t num_bytes = -1;  // Number of bytes written by the call to write
+
+#if defined(__x86_64__) // Intel x86 Family
+    // WRITE IT
+    __asm__ __volatile__ ("movq $1, %%rax\nsyscall"
+                          : "=a" (num_bytes)
+                          : "D" (fildes), "S" (buf), "d" (nbyte)
+                          : "rcx", "r11", "memory");
+#endif  /* __x86_64__ */
+
+    // DONE
+    return num_bytes;
+}
 
 
 /*
@@ -61,6 +96,11 @@ static inline uint64_t read_cpu_tsc_powerpc_fam(void)
 
 /*
  *  Reads and returns the Intel x86-family timestamp counter on success, 0 on error.
+ *
+ *  rdtsc - Reads the current value of the processor’s time-stamp counter (a 64-bit MSR) into the
+ *      EDX:EAX registers. The EDX register is loaded with the high-order 32 bits of the MSR and
+ *      the EAX register is loaded with the low-order 32 bits. (On processors that support the
+ *      Intel 64 architecture, the high-order 32 bits of each of RAX and RDX are cleared.)
  */
 static inline uint64_t read_cpu_tsc_x86_fam(void)
 {
@@ -113,18 +153,76 @@ static inline uint64_t read_cpu_tsc_x86_fam(void)
     6.11.2.3 Output Operands
     [ [asmSymbolicName] ] constraint (cvariablename)
 
-    rdtsc - Reads the current value of the processor’s time-stamp counter (a 64-bit MSR) into the
-        EDX:EAX registers. The EDX register is loaded with the high-order 32 bits of the MSR and
-        the EAX register is loaded with the low-order 32 bits. (On processors that support the
-        Intel 64 architecture, the high-order 32 bits of each of RAX and RDX are cleared.)
-
     6.11.3.3 Constraint Modifier Characters
     ‘=’ Means that this operand is written to by this instruction: the previous value is discarded
         and replaced by new data.
     For x86 family Machine Constraints (config/i386/constraints.md)
         `a` The a register.
         `d` The d register.
+    For x86_64
+        `D` RDI
+        `S` RSI
+        `d` RDX
  */
+
+
+void call_exit(int status)
+{
+    // SYSTEM VALIDATION
+#ifdef __GNUC__
+#if defined(__x86_64__)  // Intel x86-64
+    FPRINTF_ERR("%s %s supports Intel x86-64\n", DEBUG_INFO_STR, __FUNCTION_NAME__);
+    call_exit_x86_64(status);
+#else
+#error "This function does not support the current architecture."
+#endif  /* Built-in Architecture Macros */
+#else
+#error "This function does not support non-GNU compatible compilers."
+#endif  /* __GNUC__ */
+}
+
+
+ssize_t call_write(int fildes, const void *buf, size_t nbyte)
+{
+    // LOCAL VARIABLES
+    ssize_t num_bytes = -1;  // Return value from the write syscall
+
+    // INPUT VALIDATION
+    if (SKID_BAD_FD == fildes || fildes < 0)
+    {
+        PRINT_ERROR(Received a known-bad file descriptor);
+        PRINT_ERRNO(EBADFD);
+    }
+    else if (NULL == buf)
+    {
+        PRINT_ERROR(Received a NULL pointer);
+        PRINT_ERRNO(EINVAL);
+    }
+    else if (0 >= nbyte)
+    {
+        PRINT_ERROR(Received a NULL pointer);
+        PRINT_ERRNO(EINVAL);
+    }
+    else
+    {
+    // SYSTEM VALIDATION
+#ifdef __GNUC__
+#if defined(__x86_64__)  // Intel x86-64
+        FPRINTF_ERR("%s %s supports Intel x86-64\n", DEBUG_INFO_STR, __FUNCTION_NAME__);
+        num_bytes = call_write_x86_64(fildes, buf, nbyte);
+#else
+#error "This function does not support the current architecture."
+#endif  /* Built-in Architecture Macros */
+#else
+#error "This function does not support non-GNU compatible compilers."
+#endif  /* __GNUC__ */
+    }
+
+    // DONE
+    return num_bytes;
+}
+
+
 uint64_t read_cpu_tsc()
 {
     // LOCAL VARIABLES
