@@ -3,12 +3,12 @@
  */
 
 
-#include <check.h>                        // Check assert messages
-#include <string.h>                        // strerror()
-// Local includes
-#include "devops_code.h"                // free_devops_mem(), make_a_pipe(), make_a_socket(),
-                                        // remove_a_file(), resolve_to_repo()
-#include "unit_test_code.h"                // function declarations, globals
+#include <check.h>                          // Check assert messages
+#include <string.h>                         // strerror()
+#include "devops_code.h"                    /* free_devops_mem(), make_a_pipe(), make_a_socket(),
+                                               remove_a_file(), resolve_to_repo() */
+#include "unit_test_code.h"                 // function declarations, globals
+#include <stdio.h>
 
 
 char *test_dir_path;     // Heap array with the absolute directory name resolved to the repo
