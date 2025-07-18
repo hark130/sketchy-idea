@@ -63,13 +63,13 @@ int create_hard_link(const char *source, const char *hard_link)
 }
 
 
-int create_sym_link(const char *source, const char *sym_link)
+int create_sym_link(const char *dest, const char *sym_link)
 {
     // LOCAL VARIABLES
     int errnum = ENOERR;  // Results of the function call
 
     // INPUT VALIDATION
-    errnum = validate_sfl_pathname(source);
+    errnum = validate_sfl_pathname(dest);
     if (ENOERR == errnum)
     {
         errnum = validate_sfl_pathname(sym_link);
@@ -78,7 +78,7 @@ int create_sym_link(const char *source, const char *sym_link)
     // CREATE IT
     if (ENOERR == errnum)
     {
-        if (symlink(source, sym_link))
+        if (symlink(dest, sym_link))
         {
             errnum = errno;
             PRINT_ERROR(The call to symlink() failed);
