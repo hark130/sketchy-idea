@@ -777,6 +777,25 @@ bool is_named_pipe(const char *filename, int *errnum)
 }
 
 
+bool is_path(const char *pathname, int *errnum)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;  // Results of execution
+    bool exists = false;  // Existence of pathname
+
+    // INPUT VALIDATION
+
+    // IS IT?
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = result;
+    }
+    return exists;
+}
+
+
 bool is_regular_file(const char *filename, int *errnum)
 {
     // LOCAL VARIABLES
