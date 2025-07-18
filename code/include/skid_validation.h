@@ -37,7 +37,9 @@ int validate_skid_fd(int fd);
  *      must_exist: If true, this function will use lstat() to access pathname.
  *
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *		ENOERR on successful validation.  An errno value indicating the results of validation:
+ *			- EINVAL: pathname is NULL or empty.
+ *			- ENOENT: must_exist is true but pathname was not found.
  */
 int validate_skid_pathname(const char *pathname, bool must_exist);
 
