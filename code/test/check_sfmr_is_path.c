@@ -3,7 +3,7 @@
  *
  *  Copy/paste the following from the repo's top-level directory...
 
-make -C code dist/check_sfmr_is_path.bin
+make -C code dist/check_sfmr_is_path.bin && \
 code/dist/check_sfmr_is_path.bin && CK_FORK=no valgrind --leak-check=full --show-leak-kinds=all code/dist/check_sfmr_is_path.bin
 
  *
