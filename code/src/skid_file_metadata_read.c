@@ -780,12 +780,28 @@ bool is_named_pipe(const char *filename, int *errnum)
 bool is_path(const char *pathname, int *errnum)
 {
     // LOCAL VARIABLES
-    int result = ENOERR;  // Results of execution
-    bool exists = false;  // Existence of pathname
+    int result = ENOERR;      // Results of execution
+    bool exists = false;      // Existence of pathname
+    struct stat stat_struct;  // stat struct
 
     // INPUT VALIDATION
+    result = validate_sfmr_input(pathname, errnum);
 
     // IS IT?
+    // Fetch metadata
+    if (ENOERR == result)
+    {
+        result = call_lstat(pathname, &stat_struct, errnum);
+        // Check it
+        if (ENOERR == result)
+        {
+            exists = true;  // Got it
+        }
+        else if (ENOENT == result)
+        {
+            result = ENOERR;  // It's missing, but that's not an error here
+        }
+    }
 
     // DONE
     if (NULL != errnum)
