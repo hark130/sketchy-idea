@@ -37,6 +37,7 @@ MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destruct
 #define SHUTDOWN_SIG SIGINT            // "Shutdown" signal
 #define SOCKET_DOMAIN AF_UNIX          // Socket domain
 #define SOCKET_TYPE SOCK_STREAM        // Socket type
+#define QUEUE_BACKLOG (int)1024        // Maximum length of the pending socket queue
 
 /*
  *  Single point of truth for this program's "escape".
@@ -49,7 +50,7 @@ void print_shutdown(const char *prog_name, const char *sock_path);
 void print_usage(const char *prog_name);
 
 /*
- *  Open the socket and bind it to sock_path.  Returns the socket file descriptor.
+ *  Open a socket, binds it to sock_path and sets it to listen.  Returns the socket file descriptor.
  */
 int setup_socket(int domain, int type, int protocol, const char *sock_path, int *errnum);
 
@@ -61,7 +62,10 @@ int main(int argc, char *argv[])
     char *log_filename = NULL;        // Log filename
     int flags = 0;                    // Modifies signal behavior: none necessary(?)
     int sock_fd = SKID_BAD_FD;        // Socket file descriptor
+    int client_fd = SKID_BAD_FD;      // Incoming client file descriptor
     int tmp_errnum = ENOERR;          // Temp errnum values
+    char *tmp_msg = NULL;             // Incoming message to log
+    int recv_flags = 0;                          // See recv(2)
 
     // INPUT VALIDATION
     // Arguments
@@ -130,8 +134,6 @@ int main(int argc, char *argv[])
         print_shutdown(argv[0], SOCK_PATH);
         while (1)
         {
-
-
             // SHUTDOWN_SIG?
             if (SHUTDOWN_SIG == skid_sig_hand_signum)
             {
@@ -139,7 +141,22 @@ int main(int argc, char *argv[])
                 break;  // Handled SHUTDOWN_SIG
             }
 
-            sleep(1);  // Tasteful sleep
+            client_fd = accept_client(sock_fd, NULL, 0, &exit_code);
+            if (EINVAL == exit_code)
+            {
+                PRINT_ERROR(The call to accept_client() failed validation);
+                PRINT_ERRNO(exit_code);
+                break;
+            }
+            else if (ENOERR != exit_code)
+            {
+                exit_code = ENOERR;  // Still waiting on an incoming connection
+                sleep(1);  // Tasteful sleep
+            }
+            else
+            {
+                // TO DO: DON'T DO NOW... continue here
+            }
         }
     }
 
@@ -193,6 +210,7 @@ int setup_socket(int domain, int type, int protocol, const char *sock_path, int 
     }
 
     // SETUP
+    // Open it
     if (ENOERR == results)
     {
         memset(&addr, 0x0, addr_size);  // Zeroize the struct
@@ -215,6 +233,17 @@ int setup_socket(int domain, int type, int protocol, const char *sock_path, int 
         if (ENOERR != results)
         {
             PRINT_ERROR(The call to bind_struct() failed);
+            PRINT_ERRNO(results);
+        }
+    }
+
+    // Set it to listen
+    if (ENOERR == results)
+    {
+        results = listen_socket(sock_fd, QUEUE_BACKLOG);
+        if (ENOERR != results)
+        {
+            PRINT_ERROR(The call to listen_socket() failed);
             PRINT_ERRNO(results);
         }
     }
