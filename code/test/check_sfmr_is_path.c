@@ -28,9 +28,13 @@ export CK_RUN_CASE="Special" && ./code/dist/check_sfmr_is_path.bin; unset CK_RUN
 #include <stdlib.h>                     // EXIT_FAILURE, EXIT_SUCCESS
 // Local includes
 #include "devops_code.h"                // resolve_to_repo(), SKID_REPO_NAME
+#include "skid_file_link.h"             // create_sym_link()
 #include "skid_file_metadata_read.h"    // is_path()
 #include "skid_macros.h"                // ENOERR
+#include "skid_file_operations.h"       // delete_file()
 #include "unit_test_code.h"             // BOOL_STR_LIT(), CANARY_INT, globals, setup(), teardown()
+
+#define MISSING_FILE "/tmp/missing_file.bak"  // Pathname to use for "missing file" test cases
 
 
 /**************************************************************************************************/
@@ -172,7 +176,7 @@ START_TEST(test_n09_missing_file)
     bool exp_return = false;  // Expected return value for this test case
     int exp_errnum = ENOERR;  // Expected errnum value for this test case
     // Absolute path for test input as resolved against the repo name
-    char *input_abs_path = "/tmp/missing_file.bak";
+    char *input_abs_path = MISSING_FILE;
 
     // RUN TEST
     run_test_case(input_abs_path, exp_return, exp_errnum);
@@ -216,20 +220,34 @@ END_TEST
 /**************************************************************************************************/
 /*************************************** SPECIAL TEST CASES ***************************************/
 /**************************************************************************************************/
+#include <stdio.h>
 
+START_TEST(test_s01_dangling_sym_link)
+{
+    // LOCAL VARIABLES
+    bool exp_return = true;       // Expected return value for this test case
+    int exp_errnum = ENOERR;      // Expected errnum value for this test case
+    int tmp_errnum = CANARY_INT;  // Test case internal errnum value
+    // Absolute path for test input as resolved against the repo name
+    char *input_abs_path = resolve_test_input("./code/test/test_input/dangling_sym_link.txt");
 
-// START_TEST(test_s01_deadend_sym_link)
-// {
-//     // LOCAL VARIABLES
-//     bool exp_return = true;   // Expected return value for this test case
-//     int exp_errnum = EINVAL;  // Expected errnum value for this test case
-//     // Absolute path for test input as resolved against the repo name
-//     char *input_abs_path = "TO DO: DON'T DO NOW";
+    // SETUP
+    delete_file(MISSING_FILE);  // Best effort
+    delete_file(input_abs_path);  // Best effort
+    tmp_errnum = create_sym_link(MISSING_FILE, input_abs_path);
+    ck_assert_msg(ENOERR == tmp_errnum,
+                  "create_sym_link(%s, %s) reported errnum as [%d] '%s' "
+                  "instead of [%d] '%s'\n", MISSING_FILE, input_abs_path,
+                  tmp_errnum, strerror(tmp_errnum), ENOERR, strerror(ENOERR));
 
-//     // RUN TEST
-//     run_test_case(input_abs_path, exp_return, exp_errnum);
-// }
-// END_TEST
+    // RUN TEST
+    run_test_case(input_abs_path, exp_return, exp_errnum);
+
+    // CLEANUP
+    delete_file(input_abs_path);  // Best effort
+    free_devops_mem((void **)&input_abs_path);  // Ignore any errors
+}
+END_TEST
 
 
 /**************************************************************************************************/
@@ -243,12 +261,12 @@ Suite *create_test_suite(void)
     Suite *suite = suite_create("SFMR_Is_Path");  // Test suite
     TCase *tc_normal = tcase_create("Normal");    // Normal test cases
     TCase *tc_error = tcase_create("Error");      // Error test cases
-    // TCase *tc_special = tcase_create("Special");  // Special test cases
+    TCase *tc_special = tcase_create("Special");  // Special test cases
 
     // SETUP TEST CASES
     tcase_add_checked_fixture(tc_normal, setup, teardown);
     tcase_add_checked_fixture(tc_error, setup, teardown);
-    // tcase_add_checked_fixture(tc_special, setup, teardown);
+    tcase_add_checked_fixture(tc_special, setup, teardown);
     tcase_add_test(tc_normal, test_n01_block_device);
     tcase_add_test(tc_normal, test_n02_character_device);
     tcase_add_test(tc_normal, test_n03_directory);
@@ -260,10 +278,10 @@ Suite *create_test_suite(void)
     tcase_add_test(tc_normal, test_n09_missing_file);
     tcase_add_test(tc_error, test_e01_null_pathname);
     tcase_add_test(tc_error, test_e02_empty_pathname);
-    // tcase_add_test(tc_special, test_s01_deadend_sym_link);
+    tcase_add_test(tc_special, test_s01_dangling_sym_link);
     suite_add_tcase(suite, tc_normal);
     suite_add_tcase(suite, tc_error);
-    // suite_add_tcase(suite, tc_special);
+    suite_add_tcase(suite, tc_special);
 
     // DONE
     return suite;
