@@ -19,9 +19,13 @@
 #include <stdbool.h>                        // true
 #include <stdint.h>                         // intmax_t
 #include <stdlib.h>                         // exit()
+#include <sys/socket.h>                     // AF_UNIX
+#include <sys/un.h>                         // struct sockaddr_un
 #include "skid_debug.h"                     // MODULE_LOAD(), MODULE_UNLOAD()
 #include "skid_file_metadata_read.h"        // is_path()
+#include "skid_file_operations.h"           // delete_file()
 #include "skid_macros.h"                    // ENOERR
+#include "skid_network.h"                   // close_socket()
 #include "skid_signals.h"                   // set_signal_handler()
 #include "skid_signal_handlers.h"           // handle_signal_number()
 
@@ -31,6 +35,8 @@ MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destruct
 #define LOG_ROLLOVER 1024              // Byte threshold to backup and reset the log
 #define SOCK_PATH "/tmp/logging.sock"  // Socket filename
 #define SHUTDOWN_SIG SIGINT            // "Shutdown" signal
+#define SOCKET_DOMAIN AF_UNIX          // Socket domain
+#define SOCKET_TYPE SOCK_STREAM        // Socket type
 
 /*
  *  Single point of truth for this program's "escape".
@@ -42,6 +48,11 @@ void print_shutdown(const char *prog_name, const char *sock_path);
  */
 void print_usage(const char *prog_name);
 
+/*
+ *  Open the socket and bind it to sock_path.  Returns the socket file descriptor.
+ */
+int setup_socket(int domain, int type, int protocol, const char *sock_path, int *errnum);
+
 
 int main(int argc, char *argv[])
 {
@@ -49,6 +60,8 @@ int main(int argc, char *argv[])
     int exit_code = ENOERR;           // Errno values
     char *log_filename = NULL;        // Log filename
     int flags = 0;                    // Modifies signal behavior: none necessary(?)
+    int sock_fd = SKID_BAD_FD;        // Socket file descriptor
+    int tmp_errnum = ENOERR;          // Temp errnum values
 
     // INPUT VALIDATION
     // Arguments
@@ -100,6 +113,18 @@ int main(int argc, char *argv[])
     }
 
     // LOG IT
+    // Setup the socket
+    if (ENOERR == exit_code)
+    {
+        sock_fd = setup_socket(SOCKET_DOMAIN, SOCKET_TYPE, 0, SOCK_PATH, &exit_code);
+        if (ENOERR != exit_code)
+        {
+            PRINT_ERROR(The call to setup_socket() failed);
+            PRINT_ERRNO(exit_code);
+        }
+    }
+
+    // List on the socket
     if (ENOERR == exit_code)
     {
         print_shutdown(argv[0], SOCK_PATH);
@@ -119,7 +144,18 @@ int main(int argc, char *argv[])
     }
 
     // CLEANUP
+    // Socket file descriptor
+    close_socket(&sock_fd, true);  // Best effort
     // Delete SOCK_PATH
+    if (true == is_path(SOCK_PATH, &tmp_errnum))
+    {
+        tmp_errnum = delete_file(SOCK_PATH);
+        if (ENOERR != tmp_errnum)
+        {
+            FPRINTF_ERR("%s The call to delete_file(%s) failed\n", DEBUG_ERROR_STR, SOCK_PATH);
+            PRINT_ERRNO(tmp_errnum);
+        }
+    }
 
     // DONE
     exit(exit_code);
@@ -138,4 +174,61 @@ void print_shutdown(const char *prog_name, const char *sock_path)
 void print_usage(const char *prog_name)
 {
     fprintf(stderr, "Usage: %s <LOG_FILENAME>\n", prog_name);
+}
+
+
+int setup_socket(int domain, int type, int protocol, const char *sock_path, int *errnum)
+{
+    // LOCAL VARIABLES
+    int results = ENOERR;             // Errno values
+    int sock_fd = SKID_BAD_FD;        // Socket file descriptor
+    struct sockaddr_un addr;          // bind_struct() argument
+    size_t addr_size = sizeof(struct sockaddr_un);  // Size of sockaddr_un
+
+    // INPUT VALIDATION
+    if (strlen(sock_path) * sizeof(sock_path[0]) > sizeof(addr.sun_path) - 1)
+    {
+        PRINT_ERROR(The socket path is too long to copy into the sockaddr struct);
+        results = ENAMETOOLONG;
+    }
+
+    // SETUP
+    if (ENOERR == results)
+    {
+        memset(&addr, 0x0, addr_size);  // Zeroize the struct
+
+        // Open the socket
+        sock_fd = open_socket(SOCKET_DOMAIN, SOCKET_TYPE, 0, &results);
+        if (ENOERR != results)
+        {
+            PRINT_ERROR(The call to open_socket() failed);
+            PRINT_ERRNO(results);
+        }
+    }
+
+    // Bind it
+    if (ENOERR == results)
+    {
+        addr.sun_family = domain;
+        strncpy(addr.sun_path, sock_path, sizeof(addr.sun_path) - 1);
+        results = bind_struct(sock_fd, (struct sockaddr *)&addr, addr_size);
+        if (ENOERR != results)
+        {
+            PRINT_ERROR(The call to bind_struct() failed);
+            PRINT_ERRNO(results);
+        }
+    }
+
+    // CLEANUP
+    if (ENOERR != results)
+    {
+        close_socket(&sock_fd, true);  // Best effort
+    }
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = results;
+    }
+    return sock_fd;
 }
