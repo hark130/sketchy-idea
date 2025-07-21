@@ -135,3 +135,90 @@ char *build_timestamp(int *errnum)
     }
     return timestamp;
 }
+
+
+char *timestamp_a_msg(const char *msg, const char delims[2], int *errnum)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;     // Results of execution
+    char *timestamp = NULL;  // Heap allocated timestamp buffer
+    char *stamp_msg = NULL;  // The timestamped message
+    char front = '\0';       // Front timestamp bookend
+    char back = '\0';        // Back timestamp bookend
+    size_t full_len = 0;     // Length of the stamped message
+
+    // INPUT VALIDATION
+    result = validate_skid_string(msg, true);
+    if (ENOERR == result)
+    {
+        if (NULL == delims)
+        {
+            PRINT_ERROR(The delims argument is invalid);
+            result = EINVAL;
+        }
+        else
+        {
+            if ('\0' != delims[0])
+            {
+                front = delims[0];
+                full_len++;
+            }
+            if ('\0' != delims[1])
+            {
+                back = delims[1];
+                full_len++;
+            }
+        }
+    }
+    if (ENOERR == result)
+    {
+        result = validate_skid_err(errnum);
+    }
+
+    // TIMESTAMP IT
+    // Get timestamp
+    if (ENOERR == result)
+    {
+        timestamp = build_timestamp(&result);
+    }
+    // Allocate memory
+    if (ENOERR == result)
+    {
+        // Delims already included
+        full_len += strlen(timestamp) + 1 + strlen(msg);  // +1 for the space
+        stamp_msg = alloc_skid_mem(full_len, sizeof(char), &result);
+    }
+    // Concatenate it all
+    if (ENOERR == result)
+    {
+        if ('\0' != front && '\0' != back)
+        {
+            sprintf(stamp_msg, "%c%s%c %s", front, timestamp, back, msg);
+        }
+        else if ('\0' != front)
+        {
+            sprintf(stamp_msg, "%c%s %s", front, timestamp, msg);
+        }
+        else if ('\0' != back)
+        {
+            sprintf(stamp_msg, "%s%c %s", timestamp, back, msg);
+        }
+        else
+        {
+            sprintf(stamp_msg, "%s %s", timestamp, msg);
+        }
+    }
+
+    // CLEAN UP
+    if (NULL != timestamp)
+    {
+        free_skid_mem((void**)&timestamp);  // Best effort
+    }
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = result;
+    }
+    return stamp_msg;
+}
