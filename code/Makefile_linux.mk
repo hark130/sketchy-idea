@@ -64,6 +64,7 @@ RAW_OBJ_FILES := $(addsuffix $(OBJ_FILE_EXT),$(BASE_SRC_NAMES))
 #	the memory library.  Also, dir ops requires file metadata.
 DEVOPS_CODE_LINK_DEPS = $(DIST_DIR)devops_code$(OBJ_FILE_EXT) \
                         $(DIST_DIR)skid_dir_operations$(OBJ_FILE_EXT) \
+                        $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) \
                         $(DIST_DIR)skid_file_operations$(OBJ_FILE_EXT) \
                         $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) \
                         $(DIST_DIR)skid_memory$(OBJ_FILE_EXT)
@@ -249,7 +250,7 @@ _validate_musl:
 	@echo "        $(CHECK) $(shell $(MCC) --version | head -n 1)"
 
 # CHECK: Linking skid_dir_operations library unit test binaries
-$(DIST_DIR)$(CHECK_SDO_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SDO_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS)
+$(DIST_DIR)$(CHECK_SDO_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SDO_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS)
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Linking Check unit test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
@@ -267,7 +268,7 @@ $(DIST_DIR)$(CHECK_SFL_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFL_PREFIX)%$
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
 
 # CHECK: Linking skid_file_metadata_read library unit test binaries
-$(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_link$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS) $(UNIT_TEST_LINK_DEPS)
+$(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(CHECK_SFMR_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_link$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT) $(DEVOPS_CODE_LINK_DEPS) $(UNIT_TEST_LINK_DEPS)
 	@#echo "$@ needs $^"  # DEBUGGING
 	@echo "    Linking Check unit test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_CC_ARGS)
@@ -311,7 +312,7 @@ $(DIST_DIR)$(MAN_TEST_SC_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SC_PREFI
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
 # MANUAL TEST: Linking skid_dir_operations library manual test binaries
-$(DIST_DIR)$(MAN_TEST_SDO_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SDO_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_dir_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
+$(DIST_DIR)$(MAN_TEST_SDO_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SDO_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_dir_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
@@ -341,7 +342,7 @@ $(DIST_DIR)$(MAN_TEST_SFMW_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SFMW_P
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
 # MANUAL TEST: Linking skid_network library manual test binaries
-$(DIST_DIR)$(MAN_TEST_SN_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SN_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_network$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT) $(DIST_DIR)skid_signals$(OBJ_FILE_EXT) $(DIST_DIR)skid_signal_handlers$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
+$(DIST_DIR)$(MAN_TEST_SN_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SN_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_network$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT) $(DIST_DIR)skid_signals$(OBJ_FILE_EXT) $(DIST_DIR)skid_signal_handlers$(OBJ_FILE_EXT) $(DIST_DIR)skid_time$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
