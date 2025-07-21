@@ -25,9 +25,12 @@
 #include "skid_file_metadata_read.h"        // is_path()
 #include "skid_file_operations.h"           // delete_file()
 #include "skid_macros.h"                    // ENOERR
+#include "skid_memory.h"                    // free_skid_mem()
 #include "skid_network.h"                   // close_socket()
 #include "skid_signals.h"                   // set_signal_handler()
 #include "skid_signal_handlers.h"           // handle_signal_number()
+#include "skid_time.h"                      // timestamp_a_msg()
+#include "skid_validation.h"                // validate_skid_pathname()
 
 MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
 MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
@@ -40,6 +43,11 @@ MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destruct
 #define QUEUE_BACKLOG (int)1024        // Maximum length of the pending socket queue
 
 /*
+ *  Log a message.
+ */
+int log_message(const char *log_filename, const char *msg);
+
+/*
  *  Single point of truth for this program's "escape".
  */
 void print_shutdown(const char *prog_name, const char *sock_path);
@@ -48,6 +56,11 @@ void print_shutdown(const char *prog_name, const char *sock_path);
  *  Single point of truth for this manual test code's usage.
  */
 void print_usage(const char *prog_name);
+
+/*
+ *  Read a message from a socket file descriptor, log it to log_filename, and close sockfd.
+ */
+int receive_and_log(int *sockfd, int flags, const char *log_filename);
 
 /*
  *  Open a socket, binds it to sock_path and sets it to listen.  Returns the socket file descriptor.
@@ -64,8 +77,7 @@ int main(int argc, char *argv[])
     int sock_fd = SKID_BAD_FD;        // Socket file descriptor
     int client_fd = SKID_BAD_FD;      // Incoming client file descriptor
     int tmp_errnum = ENOERR;          // Temp errnum values
-    char *tmp_msg = NULL;             // Incoming message to log
-    int recv_flags = 0;                          // See recv(2)
+    int recv_flags = 0;               // See recv(2)
 
     // INPUT VALIDATION
     // Arguments
@@ -128,7 +140,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    // List on the socket
+    // Listen on the socket
     if (ENOERR == exit_code)
     {
         print_shutdown(argv[0], SOCK_PATH);
@@ -155,7 +167,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                // TO DO: DON'T DO NOW... continue here
+                exit_code = receive_and_log(&client_fd, recv_flags, log_filename);
             }
         }
     }
@@ -179,6 +191,48 @@ int main(int argc, char *argv[])
 }
 
 
+int log_message(const char *log_filename, const char *msg)
+{
+    // LOCAL VARIABLES
+    int results = ENOERR;           // Errno values
+    char *stamp_msg = NULL;         // Time-stamped message
+    char delims[2] = { '[', ']' };  // Timestamp delimiters
+
+    // INPUT VALIDATION
+    // Log filename
+    if (ENOERR == results)
+    {
+        results = validate_skid_pathname(log_filename, false);
+    }
+    // msg
+    if (ENOERR == results)
+    {
+        results = validate_skid_string(msg, true);
+    }
+
+    // LOG IT
+    // Form the time-stamped message
+    if (ENOERR == results)
+    {
+        stamp_msg = timestamp_a_msg(msg, delims, &results);
+    }
+    // Write the time-stamped message to log_filename
+    if (ENOERR == results)
+    {
+        results = append_to_file(log_filename, stamp_msg, true);
+    }
+
+    // CLEAN UP
+    if (NULL != stamp_msg)
+    {
+        free_skid_mem((void**)&stamp_msg);  // Best effort
+    }
+
+    // DONE
+    return results;
+}
+
+
 void print_shutdown(const char *prog_name, const char *sock_path)
 {
     fprintf(stdout, "%s has begun listening for log entries on %s\n", prog_name, sock_path);
@@ -191,6 +245,72 @@ void print_shutdown(const char *prog_name, const char *sock_path)
 void print_usage(const char *prog_name)
 {
     fprintf(stderr, "Usage: %s <LOG_FILENAME>\n", prog_name);
+}
+
+
+int receive_and_log(int *sockfd_ptr, int flags, const char *log_filename)
+{
+    // LOCAL VARIABLES
+    int results = ENOERR;      // Errno values
+    int sockfd = SKID_BAD_FD;  // Local copy of the socket file descriptor
+    char *msg = NULL;          // Message read from the socket file descriptor
+
+    // INPUT VALIDATION
+    // Socket file descriptor
+    if (NULL == sockfd_ptr)
+    {
+        results = EINVAL;
+    }
+    else
+    {
+        sockfd = *sockfd_ptr;
+        results = validate_skid_sockfd(sockfd);
+    }
+    // Log filename
+    if (ENOERR == results)
+    {
+        results = validate_skid_pathname(log_filename, false);
+    }
+
+    // DO IT
+    // Receive
+    if (ENOERR == results)
+    {
+
+        msg = receive_socket(sockfd, flags, SOCK_STREAM, &results);
+        if (ENOERR != results)
+        {
+            PRINT_ERROR(The call to receive_socket() failed);
+            PRINT_ERRNO(results);
+        }
+    }
+    // Log
+    if (ENOERR == results)
+    {
+
+    }
+
+    // CLEAN UP
+    // Close the socket
+    if (NULL != sockfd_ptr && SKID_BAD_FD != *sockfd_ptr)
+    {
+        if (ENOERR == results)
+        {
+            results = close_socket(sockfd_ptr, false);
+        }
+        else
+        {
+            close_socket(sockfd_ptr, false);  // Don't overwrite the original error
+        }
+    }
+    // Free the message
+    if (NULL != msg)
+    {
+        free_skid_mem((void**)&msg);  // Best effort
+    }
+
+    // DONE
+    return results;
 }
 
 
