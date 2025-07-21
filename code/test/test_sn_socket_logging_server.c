@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
             // SHUTDOWN_SIG?
             if (SHUTDOWN_SIG == skid_sig_hand_signum)
             {
-                fprintf(stdout, "\n%s is exiting\n", argv[0]);  // DEBUGGING?
+                fprintf(stdout, "\n%s is exiting\n", argv[0]);
                 break;  // Handled SHUTDOWN_SIG
             }
 
@@ -287,7 +287,7 @@ int receive_and_log(int *sockfd_ptr, int flags, const char *log_filename)
     // Log
     if (ENOERR == results)
     {
-
+        results = log_message(log_filename, msg);
     }
 
     // CLEAN UP
