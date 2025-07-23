@@ -124,7 +124,7 @@ char *build_timestamp(int *errnum)
     if (ENOERR == result)
     {
         sprintf(timestamp, "%04d%02d%02d-%02d%02d%02d", dt_struct->tm_year+1900,
-                dt_struct->tm_mon, dt_struct->tm_mday, dt_struct->tm_hour,
+                dt_struct->tm_mon + 1, dt_struct->tm_mday, dt_struct->tm_hour,
                 dt_struct->tm_min, dt_struct->tm_sec);
     }
 
