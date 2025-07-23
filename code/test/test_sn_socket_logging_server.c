@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
     {
         if (true == is_path(SOCK_PATH, &exit_code))
         {
-            fprintf(stderr, "%s %s exists\n", DEBUG_WARNG_STR, log_filename);
+            fprintf(stderr, "%s %s exists\n", DEBUG_WARNG_STR, SOCK_PATH);
         }
         else if (ENOERR != exit_code)
         {
@@ -138,6 +138,7 @@ int main(int argc, char *argv[])
             PRINT_ERROR(The call to setup_socket() failed);
             PRINT_ERRNO(exit_code);
         }
+        FPRINTF_ERR("%s sock_fd == %d\n", DEBUG_ERROR_STR, sock_fd);  // DEBUGGING
     }
 
     // Listen on the socket
@@ -153,7 +154,8 @@ int main(int argc, char *argv[])
                 break;  // Handled SHUTDOWN_SIG
             }
 
-            client_fd = accept_client(sock_fd, NULL, 0, &exit_code);
+            client_fd = accept_client(sock_fd, NULL, NULL, &exit_code);
+            FPRINTF_ERR("%s client_fd == %d\n", DEBUG_ERROR_STR, client_fd);  // DEBUGGING
             if (EINVAL == exit_code)
             {
                 PRINT_ERROR(The call to accept_client() failed validation);
