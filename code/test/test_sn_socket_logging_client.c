@@ -8,7 +8,7 @@
  *
  *  Copy/paste the following...
 
-./code/dist/test_sn_socket_logging_server.bin <LOG_FILENAME>
+./code/dist/test_sn_socket_logging_client.bin <LOG_FILENAME>
 
  *
  */
@@ -60,7 +60,10 @@ int main(int argc, char *argv[])
 {
     // LOCAL VARIABLES
     int exit_code = ENOERR;     // Errno values
-    char *in_file = NULL;       // Log filename
+    char *in_file = NULL;       // Filename to use as input
+    char *in_cont = NULL;       // Input file contents
+    char *tmp_ptr = NULL;       // Iterating pointer into in_cont
+    char *tmp_line = NULL;      // Temp pointer to the start of each line
     int sock_fd = SKID_BAD_FD;  // Socket file descriptor
 
     // INPUT VALIDATION
@@ -116,17 +119,64 @@ int main(int argc, char *argv[])
     }
 
     // WRITE
+    // Read from input file
     if (ENOERR == exit_code)
     {
-        exit_code = write_fd(sock_fd, "This is a test.\n");
+        in_cont = read_file(in_file, &exit_code);
         if (ENOERR != exit_code)
         {
-            PRINT_ERROR(The call to write_fd() failed);
+            PRINT_ERROR(The call to read_file() failed);
             PRINT_ERRNO(exit_code);
+        }
+    }
+    if (ENOERR == exit_code)
+    {
+        tmp_ptr = in_cont;
+        while (NULL != tmp_ptr && 0x0 != *tmp_ptr)
+        {
+            // Find the end of the line
+            tmp_line = tmp_ptr;  // Current start of the line
+            while (NULL != tmp_ptr && 0x0 != *tmp_ptr)
+            {
+                if ('\n' == *tmp_ptr)
+                {
+                    *tmp_ptr = 0x0;  // Truncate the line
+                    tmp_ptr++;  // Iterate past it
+                    break;  // We found the end of the line so stop looking
+                }
+                else
+                {
+                    tmp_ptr++;  // Keep searching for the end
+                }
+            }
+
+            // Write the line
+            if (strlen(tmp_line) > 0)
+            {
+                exit_code = write_fd(sock_fd, tmp_line);
+            }
+            else
+            {
+                exit_code = write_fd(sock_fd, " ");  // Convert empty lines (vertical whitespace)
+            }
+            if (ENOERR != exit_code)
+            {
+                PRINT_ERROR(The call to write_fd() failed);
+                PRINT_ERRNO(exit_code);
+                break;  // Encountered an error, so stop iterating
+            }
+            else
+            {
+                sleep(1);  // A tasteful sleep
+            }
         }
     }
 
     // CLEANUP
+    if (NULL != in_cont)
+    {
+        free_skid_mem((void **)&in_cont);  // Best effort
+    }
     // Socket file descriptor
     close_socket(&sock_fd, true);  // Best effort
 
