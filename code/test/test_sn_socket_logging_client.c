@@ -62,7 +62,6 @@ int main(int argc, char *argv[])
     int exit_code = ENOERR;     // Errno values
     char *in_file = NULL;       // Log filename
     int sock_fd = SKID_BAD_FD;  // Socket file descriptor
-    int tmp_errnum = ENOERR;    // Temp errnum values
 
     // INPUT VALIDATION
     // Arguments
@@ -105,7 +104,6 @@ int main(int argc, char *argv[])
     }
 
     // SETUP
-    // LOG IT
     // Setup the socket
     if (ENOERR == exit_code)
     {
@@ -117,19 +115,20 @@ int main(int argc, char *argv[])
         }
     }
 
+    // WRITE
+    if (ENOERR == results)
+    {
+        results = write_fd(sock_fd, "This is a test.\n");
+        if (ENOERR != results)
+        {
+            PRINT_ERROR(The call to write_fd() failed);
+            PRINT_ERRNO(results);
+        }
+    }
+
     // CLEANUP
     // Socket file descriptor
     close_socket(&sock_fd, true);  // Best effort
-    // Delete SOCK_PATH
-    if (true == is_path(SOCK_PATH, &tmp_errnum))
-    {
-        tmp_errnum = delete_file(SOCK_PATH);
-        if (ENOERR != tmp_errnum)
-        {
-            FPRINTF_ERR("%s The call to delete_file(%s) failed\n", DEBUG_ERROR_STR, SOCK_PATH);
-            PRINT_ERRNO(tmp_errnum);
-        }
-    }
 
     // DONE
     exit(exit_code);
@@ -175,17 +174,6 @@ int connect_socket_file(int domain, int type, int protocol, const char *sock_pat
         if (ENOERR != results)
         {
             PRINT_ERROR(The call to connect_socket() failed);
-            PRINT_ERRNO(results);
-        }
-    }
-
-    // Write to it
-    if (ENOERR == results)
-    {
-        results = write_fd(sock_fd, "This is a test.\n");
-        if (ENOERR != results)
-        {
-            PRINT_ERROR(The call to write_fd() failed);
             PRINT_ERRNO(results);
         }
     }
