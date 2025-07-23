@@ -41,11 +41,6 @@ MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destruct
 int connect_socket_file(int domain, int type, int protocol, const char *sock_path, int *errnum);
 
 /*
- *  Single point of truth for this program's "escape".
- */
-void print_shutdown(const char *prog_name, const char *sock_path);
-
-/*
  *  Single point of truth for this manual test code's usage.
  */
 void print_usage(const char *prog_name);
@@ -57,8 +52,6 @@ int main(int argc, char *argv[])
     int exit_code = ENOERR;     // Errno values
     char *in_file = NULL;       // Filename to use as input
     char *in_cont = NULL;       // Input file contents
-    // char *tmp_ptr = NULL;       // Iterating pointer into in_cont
-    // char *tmp_line = NULL;      // Temp pointer to the start of each line
     int sock_fd = SKID_BAD_FD;  // Socket file descriptor
 
     // INPUT VALIDATION
