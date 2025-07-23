@@ -138,7 +138,6 @@ int main(int argc, char *argv[])
             PRINT_ERROR(The call to setup_socket() failed);
             PRINT_ERRNO(exit_code);
         }
-        FPRINTF_ERR("%s sock_fd == %d\n", DEBUG_ERROR_STR, sock_fd);  // DEBUGGING
     }
 
     // Listen on the socket
@@ -155,7 +154,6 @@ int main(int argc, char *argv[])
             }
 
             client_fd = accept_client(sock_fd, NULL, NULL, &exit_code);
-            FPRINTF_ERR("%s client_fd == %d\n", DEBUG_ERROR_STR, client_fd);  // DEBUGGING
             if (EINVAL == exit_code)
             {
                 PRINT_ERROR(The call to accept_client() failed validation);
