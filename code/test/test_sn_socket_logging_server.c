@@ -152,6 +152,20 @@ int main(int argc, char *argv[])
                 fprintf(stdout, "\n%s is exiting\n", argv[0]);
                 break;  // Handled SHUTDOWN_SIG
             }
+            // Verify the socket file still exists
+            if (false == is_path(SOCK_PATH, &exit_code))
+            {
+                fprintf(stderr, "%s is unable to locate %s.\n",
+                        DEBUG_ERROR_STR, SOCK_PATH);
+                if (ENOERR != exit_code)
+                {
+                    FPRINTF_ERR("%s The call to is_path(%s) reported a problem?!\n",
+                                DEBUG_ERROR_STR, SOCK_PATH);
+                    PRINT_ERRNO(exit_code);
+                }
+                fprintf(stderr, "%s %s is exiting!", DEBUG_ERROR_STR, argv[0]);
+                break;  // No socket file means no incoming connections
+            }
 
             client_fd = accept_client(sock_fd, NULL, NULL, &exit_code);
             if (EINVAL == exit_code)
