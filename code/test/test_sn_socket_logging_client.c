@@ -116,13 +116,13 @@ int main(int argc, char *argv[])
     }
 
     // WRITE
-    if (ENOERR == results)
+    if (ENOERR == exit_code)
     {
-        results = write_fd(sock_fd, "This is a test.\n");
-        if (ENOERR != results)
+        exit_code = write_fd(sock_fd, "This is a test.\n");
+        if (ENOERR != exit_code)
         {
             PRINT_ERROR(The call to write_fd() failed);
-            PRINT_ERRNO(results);
+            PRINT_ERRNO(exit_code);
         }
     }
 
