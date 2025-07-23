@@ -135,14 +135,14 @@ SOCKET_CLIENT="${DIST_DIR}test_sn_socket_logging_client_string.bin"  # Socket lo
 SOCKET_FILE="/tmp/logging.sock"                                      # Socket file
 SOCKET_LOG="/tmp/4-3_log.txt"                                        # Log file
 
-# # 1. Stores the date
-# printf "\n%s This output was created by %s on %s %s\n" "$BOOKEND" "$(basename "$0")" "$(date)" "$BOOKEND" && \
-# # 2. Runs the build system (which also executes the Check-based unit tests)
-# make && echo && \
-# # 3. Executes the unit tests with Valgrind
-# ./devops/scripts/run_valgrind.sh; [[ $? -ne 0 ]] && exit; echo && \
-# # 4. Counts the number of unit tests (by running them again)
-# for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
+# 1. Stores the date
+printf "\n%s This output was created by %s on %s %s\n" "$BOOKEND" "$(basename "$0")" "$(date)" "$BOOKEND" && \
+# 2. Runs the build system (which also executes the Check-based unit tests)
+make && echo && \
+# 3. Executes the unit tests with Valgrind
+./devops/scripts/run_valgrind.sh; [[ $? -ne 0 ]] && exit; echo && \
+# 4. Counts the number of unit tests (by running them again)
+for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
 # 5. Misc.
 # 5.A. Unix sockets
 print_banner "UNIX SOCKETS"
