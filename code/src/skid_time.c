@@ -2,7 +2,7 @@
  *  This library defines time-related functionality.
  */
 
-// #define SKID_DEBUG                          // Enable DEBUG logging
+#define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // errno
 #include <stdio.h>                          // sprintf()
@@ -186,7 +186,7 @@ char *timestamp_a_msg(const char *msg, const char delims[2], int *errnum)
     {
         // Delims already included
         full_len += strlen(timestamp) + 1 + strlen(msg);  // +1 for the space
-        stamp_msg = alloc_skid_mem(full_len, sizeof(char), &result);
+        stamp_msg = alloc_skid_mem(full_len + 1, sizeof(char), &result);
     }
     // Concatenate it all
     if (ENOERR == result)
