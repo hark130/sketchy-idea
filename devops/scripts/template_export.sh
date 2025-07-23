@@ -8,7 +8,7 @@
 # 3. Executes the unit tests with Valgrind
 # 4. Counts the number of unit tests
 # 5. Misc. (e.g., executing bespoke manual test code highlighting features/functionality)
-#   A. 
+# 5.A.
 
 
 BOOKEND="***"  # SPOT for formatting titles and banners
