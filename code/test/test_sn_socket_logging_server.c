@@ -35,7 +35,6 @@
 MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
 MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
-#define LOG_ROLLOVER 1024              // Byte threshold to backup and reset the log
 #define SOCK_PATH "/tmp/logging.sock"  // Socket filename
 #define SHUTDOWN_SIG SIGINT            // "Shutdown" signal
 #define SOCKET_DOMAIN AF_UNIX          // Socket domain
