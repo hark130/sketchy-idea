@@ -46,11 +46,6 @@ MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destruct
 int connect_socket_file(int domain, int type, int protocol, const char *sock_path, int *errnum);
 
 /*
- *  Log a message.
- */
-int log_message(const char *log_filename, const char *msg);
-
-/*
  *  Single point of truth for this program's "escape".
  */
 void print_shutdown(const char *prog_name, const char *sock_path);
