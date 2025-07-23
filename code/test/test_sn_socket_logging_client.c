@@ -8,7 +8,7 @@
  *
  *  Copy/paste the following...
 
-./code/dist/test_sn_socket_logging_client.bin <LOG_FILENAME>
+./code/dist/test_sn_socket_logging_client_file.bin <LOG_FILENAME>
 
  *
  */
@@ -17,21 +17,16 @@
 
 #include <errno.h>                          // EINVAL
 #include <stdbool.h>                        // true
-#include <stdint.h>                         // intmax_t
 #include <stdlib.h>                         // exit()
 #include <sys/socket.h>                     // AF_UNIX
 #include <sys/un.h>                         // struct sockaddr_un
 #include "skid_debug.h"                     // MODULE_LOAD(), MODULE_UNLOAD()
 #include "skid_file_descriptors.h"          // write_fd()
 #include "skid_file_metadata_read.h"        // is_path()
-#include "skid_file_operations.h"           // delete_file()
+#include "skid_file_operations.h"           // read_file()
 #include "skid_macros.h"                    // ENOERR
 #include "skid_memory.h"                    // free_skid_mem()
 #include "skid_network.h"                   // close_socket()
-#include "skid_signals.h"                   // set_signal_handler()
-#include "skid_signal_handlers.h"           // handle_signal_number()
-#include "skid_time.h"                      // timestamp_a_msg()
-#include "skid_validation.h"                // validate_skid_pathname()
 
 MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
 MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
@@ -62,8 +57,8 @@ int main(int argc, char *argv[])
     int exit_code = ENOERR;     // Errno values
     char *in_file = NULL;       // Filename to use as input
     char *in_cont = NULL;       // Input file contents
-    char *tmp_ptr = NULL;       // Iterating pointer into in_cont
-    char *tmp_line = NULL;      // Temp pointer to the start of each line
+    // char *tmp_ptr = NULL;       // Iterating pointer into in_cont
+    // char *tmp_line = NULL;      // Temp pointer to the start of each line
     int sock_fd = SKID_BAD_FD;  // Socket file descriptor
 
     // INPUT VALIDATION
@@ -131,45 +126,7 @@ int main(int argc, char *argv[])
     }
     if (ENOERR == exit_code)
     {
-        tmp_ptr = in_cont;
-        while (NULL != tmp_ptr && 0x0 != *tmp_ptr)
-        {
-            // Find the end of the line
-            tmp_line = tmp_ptr;  // Current start of the line
-            while (NULL != tmp_ptr && 0x0 != *tmp_ptr)
-            {
-                if ('\n' == *tmp_ptr)
-                {
-                    *tmp_ptr = 0x0;  // Truncate the line
-                    tmp_ptr++;  // Iterate past it
-                    break;  // We found the end of the line so stop looking
-                }
-                else
-                {
-                    tmp_ptr++;  // Keep searching for the end
-                }
-            }
-
-            // Write the line
-            if (strlen(tmp_line) > 0)
-            {
-                exit_code = write_fd(sock_fd, tmp_line);
-            }
-            else
-            {
-                exit_code = write_fd(sock_fd, " ");  // Convert empty lines (vertical whitespace)
-            }
-            if (ENOERR != exit_code)
-            {
-                PRINT_ERROR(The call to write_fd() failed);
-                PRINT_ERRNO(exit_code);
-                break;  // Encountered an error, so stop iterating
-            }
-            else
-            {
-                sleep(1);  // A tasteful sleep
-            }
-        }
+        exit_code = write_fd(sock_fd, in_cont);
     }
 
     // CLEANUP
