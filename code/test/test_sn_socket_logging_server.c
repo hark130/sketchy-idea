@@ -43,9 +43,15 @@ MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destruct
 #define QUEUE_BACKLOG (int)1024        // Maximum length of the pending socket queue
 
 /*
+ *  Add a newline to msg.  Free the return value with free_skid_mem().  Returns msg if no changes
+ *  were made.  Returns NULL on error and errnum is set with an errno value.
+ */
+char *add_newline(char *msg, int *errnum);
+
+/*
  *  Log a message.
  */
-int log_message(const char *log_filename, const char *msg);
+int log_message(const char *log_filename, char *msg);
 
 /*
  *  Single point of truth for this program's "escape".
@@ -205,12 +211,54 @@ int main(int argc, char *argv[])
 }
 
 
-int log_message(const char *log_filename, const char *msg)
+char *add_newline(char *msg, int *errnum)
+{
+    // LOCAL VARIABLES
+    int results = validate_skid_string(msg, true);  // Errno values
+    size_t msg_len = 0;                             // Length of msg
+    char *new_msg = msg;                      // Copy of msg w/ newline added
+
+    // INPUT VALIDATION
+    if (ENOERR == results)
+    {
+        results = validate_skid_err(errnum);
+    }
+
+    // ADD IT
+    if (ENOERR == results)
+    {
+        msg_len = strlen(msg);
+        if ('\n' != msg[msg_len - 1])
+        {
+            new_msg = alloc_skid_mem(msg_len + 2, sizeof(msg[0]), &results);
+            if (ENOERR == results)
+            {
+                strncpy(new_msg, msg, msg_len);
+                strcat(new_msg, "\n");
+            }
+        }
+    }
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = results;
+    }
+    if (ENOERR != results)
+    {
+        new_msg = NULL;
+    }
+    return new_msg;
+}
+
+
+int log_message(const char *log_filename, char *msg)
 {
     // LOCAL VARIABLES
     int results = ENOERR;           // Errno values
     char *stamp_msg = NULL;         // Time-stamped message
     char delims[2] = { '[', ']' };  // Timestamp delimiters
+    char *new_msg = NULL;           // Add a newline if one doesn't exist
 
     // INPUT VALIDATION
     // Log filename
@@ -224,11 +272,17 @@ int log_message(const char *log_filename, const char *msg)
         results = validate_skid_string(msg, true);
     }
 
+    // SETUP
+    if (ENOERR == results)
+    {
+        new_msg = add_newline(msg, &results);
+    }
+
     // LOG IT
     // Form the time-stamped message
     if (ENOERR == results)
     {
-        stamp_msg = timestamp_a_msg(msg, delims, &results);
+        stamp_msg = timestamp_a_msg(new_msg, delims, &results);
     }
     // Write the time-stamped message to log_filename
     if (ENOERR == results)
@@ -237,6 +291,11 @@ int log_message(const char *log_filename, const char *msg)
     }
 
     // CLEAN UP
+    if (NULL != new_msg && new_msg != msg)
+    {
+        // add_newline() allocated memory
+        free_skid_mem((void **)&new_msg);  // Best effort
+    }
     if (NULL != stamp_msg)
     {
         free_skid_mem((void**)&stamp_msg);  // Best effort
