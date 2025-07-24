@@ -8,7 +8,7 @@
  *
  *  Copy/paste the following...
 
-./code/dist/test_sn_named_pipe_server.bin <NAMED_PIPE>
+./code/dist/test_sp_named_pipe_server.bin <NAMED_PIPE>
 
  *
  */
@@ -16,6 +16,7 @@
 #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // EINVAL
+#include <fcntl.h>                          // O_RDONLY
 #include <stdbool.h>                        // true
 #include <stdint.h>                         // intmax_t
 #include <stdlib.h>                         // exit()
@@ -52,7 +53,7 @@ int main(int argc, char *argv[])
     int tmp_errnum = ENOERR;     // Temporary errno values
     char *pipe_filename = NULL;  // Named pipe filename
     int pipe_fd = SKID_BAD_FD;   // Named pipe file descriptor
-    int flags = 0;               // See open(2)
+    int flags = O_RDONLY;        // The server reads from the pipe
     char *tmp_msg = NULL;        // Read from the pipe_fd by read_fd()
     // Mode for the named pipe
     mode_t mode = SKID_MODE_OWNER_R | SKID_MODE_OWNER_W | SKID_MODE_GROUP_R | SKID_MODE_GROUP_W;
@@ -83,6 +84,10 @@ int main(int argc, char *argv[])
             PRINT_ERROR(The call to is_path() reported an error);
             PRINT_ERRNO(exit_code);
         }
+        if (ENOERR != exit_code)
+        {
+            goto leave_it_be;  // Don't close anything.  Don't unlink() anything.  Just leave.
+        }
     }
 
     // SETUP
@@ -97,13 +102,22 @@ int main(int argc, char *argv[])
     if (ENOERR == exit_code)
     {
         exit_code = make_named_pipe(pipe_filename, mode);
-        PRINT_ERROR(The call to make_named_pipe() reported an error);
-        PRINT_ERRNO(exit_code);
+        if (ENOERR != exit_code)
+        {
+            PRINT_ERROR(The call to make_named_pipe() reported an error);
+            PRINT_ERRNO(exit_code);
+        }
     }
     // Open it
     if (ENOERR == exit_code)
     {
+        print_shutdown(argv[0], pipe_filename);
         pipe_fd = open_fd(pipe_filename, flags, 0, &exit_code);
+        if (ENOERR != exit_code)
+        {
+            PRINT_ERROR(The call to open_fd() reported an error);
+            PRINT_ERRNO(exit_code);
+        }
     }
     // Read it
     if (ENOERR == exit_code)
@@ -122,7 +136,10 @@ int main(int argc, char *argv[])
             tmp_msg = read_fd(pipe_fd, &exit_code);
             if (ENOERR == exit_code)
             {
-                printf("Received: %s\n", tmp_msg);
+                if (strlen(tmp_msg) > 0)
+                {
+                    printf("SERVER: %s\n", tmp_msg);
+                }
                 exit_code = free_skid_mem((void **)&tmp_msg);
             }
         }
@@ -143,6 +160,7 @@ int main(int argc, char *argv[])
     }
 
     // DONE
+leave_it_be:
     exit(exit_code);
 }
 
