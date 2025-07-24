@@ -19,18 +19,14 @@
 #include <stdbool.h>                        // true
 #include <stdint.h>                         // intmax_t
 #include <stdlib.h>                         // exit()
-#include <sys/socket.h>                     // AF_UNIX
-#include <sys/un.h>                         // struct sockaddr_un
 #include "skid_debug.h"                     // MODULE_LOAD(), MODULE_UNLOAD()
+#include "skid_file_descriptors.h"          // open_fd()
 #include "skid_file_metadata_read.h"        // is_path()
-#include "skid_file_operations.h"           // delete_file()
 #include "skid_macros.h"                    // ENOERR
 #include "skid_memory.h"                    // free_skid_mem()
-#include "skid_network.h"                   // close_socket()
+#include "skid_pipes.h"                     // close_pipe(), delete_named_pipe(), make_named_pipe()
 #include "skid_signal_handlers.h"           // handle_signal_number()
 #include "skid_signals.h"                   // set_signal_handler()
-#include "skid_time.h"                      // timestamp_a_msg()
-#include "skid_validation.h"                // validate_skid_pathname()
 
 MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
 MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
