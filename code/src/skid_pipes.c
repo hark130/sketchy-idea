@@ -8,6 +8,7 @@
 #include "skid_debug.h"                     // PRINT_E*(), MODULE_*LOAD()
 #include "skid_file_descriptors.h"          // close_fd()
 #include "skid_file_metadata_read.h"        // is_path()
+#include "skid_file_operations.h"           // delete_file()
 #include "skid_validation.h"                // validate_skid_err(), validate_skid_pathname()
 
 MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
@@ -62,10 +63,6 @@ int make_named_pipe(const char *pathname, mode_t mode)
 
     // INPUT VALIDATION
     result = validate_skid_pathname(pathname, false);
-    if (ENOERR == result)
-    {
-        result = validate_skid_err(errnum);
-    }
 
     // ENVIRONMENT VALIDATION
     if (ENOERR == result)
