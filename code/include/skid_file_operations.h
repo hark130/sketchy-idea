@@ -50,7 +50,7 @@ int create_file(const char *filename, const char *contents, bool overwrite);
  *          processes which have the object open may continue to use it.
  *
  *  Args:
- *      filename: Absolute or relative filename to deleted.
+ *      filename: Absolute or relative filename to delete.
  *
  *  Returns:
  *      0, on success.  On failure, an errno value.
