@@ -12,7 +12,7 @@
  *      quiet: If true, silences all logging/debugging.
  *
  *  Returns:
- *      On success, zero is returned.  On error, errno is returned.
+ *      On success, ENOERR is returned.  On error, errno is returned.
  */
 int close_pipe(int *pipefd, bool quiet);
 
@@ -27,7 +27,7 @@ int close_pipe(int *pipefd, bool quiet);
  *      filename: Absolute or relative named socket to delete.
  *
  *  Returns:
- *      On success, zero is returned.  On error, errno is returned.
+ *      On success, ENOERR is returned.  On error, errno is returned.
  */
 int delete_named_pipe(const char *pathname);
 
