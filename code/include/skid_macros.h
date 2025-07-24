@@ -5,6 +5,7 @@
 #ifndef __SKID_MACROS__
 #define __SKID_MACROS__
 
+#include <sys/stat.h>                       // mode_t MACROS
 #include <sys/types.h>                      // pid_t
 
 /* GENERAL MACROS */
