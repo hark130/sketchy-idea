@@ -27,14 +27,21 @@
 #include "skid_macros.h"                    // ENOERR
 #include "skid_memory.h"                    // free_skid_mem()
 #include "skid_network.h"                   // close_socket()
-#include "skid_signals.h"                   // set_signal_handler()
 #include "skid_signal_handlers.h"           // handle_signal_number()
+#include "skid_signals.h"                   // set_signal_handler()
 #include "skid_time.h"                      // timestamp_a_msg()
 #include "skid_validation.h"                // validate_skid_pathname()
 
 MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
 MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
 
+#define SHUTDOWN_SIG SIGINT                 // "Shutdown" signal
+
+
+/*
+ *  Single point of truth for this program's "escape".
+ */
+void print_shutdown(const char *prog_name, const char *pipe_path);
 
 /*
  *  Single point of truth for this manual test code's usage.
@@ -49,6 +56,10 @@ int main(int argc, char *argv[])
     int tmp_errnum = ENOERR;     // Temporary errno values
     char *pipe_filename = NULL;  // Named pipe filename
     int pipe_fd = SKID_BAD_FD;   // Named pipe file descriptor
+    int flags = 0;               // See open(2)
+    char *tmp_msg = NULL;        // Read from the pipe_fd by read_fd()
+    // Mode for the named pipe
+    mode_t mode = SKID_MODE_OWNER_R | SKID_MODE_OWNER_W | SKID_MODE_GROUP_R | SKID_MODE_GROUP_W;
 
     // INPUT VALIDATION
     // Arguments
@@ -78,25 +89,74 @@ int main(int argc, char *argv[])
         }
     }
 
-    // LISTEN TO IT
+    // SETUP
+    // Signal Handler
+    if (ENOERR == exit_code)
+    {
+        exit_code = set_signal_handler(SHUTDOWN_SIG, handle_signal_number, flags, NULL);
+    }
 
+    // DO IT
+    // Make it
+    if (ENOERR == exit_code)
+    {
+        exit_code = make_named_pipe(pipe_filename, mode);
+        PRINT_ERROR(The call to make_named_pipe() reported an error);
+        PRINT_ERRNO(exit_code);
+    }
+    // Open it
+    if (ENOERR == exit_code)
+    {
+        pipe_fd = open_fd(pipe_filename, flags, 0, &exit_code);
+    }
+    // Read it
+    if (ENOERR == exit_code)
+    {
+        print_shutdown(argv[0], pipe_filename);
+        while (ENOERR == exit_code)
+        {
+            // SHUTDOWN_SIG?
+            if (SHUTDOWN_SIG == skid_sig_hand_signum)
+            {
+                fprintf(stdout, "\n%s is exiting\n", argv[0]);
+                break;  // Handled SHUTDOWN_SIG
+            }
+
+            // Read
+            tmp_msg = read_fd(pipe_fd, &exit_code);
+            if (ENOERR == exit_code)
+            {
+                printf("Received: %s\n", tmp_msg);
+                exit_code = free_skid_mem((void **)&tmp_msg);
+            }
+        }
+    }
 
     // CLEANUP
     // Named pipe file descriptor
-    close_socket(&pipe_fd, true);  // Best effort
-    // Delete SOCK_PATH
+    close_pipe(&pipe_fd, true);  // Best effort
+    // Delete named pipe file
     if (NULL != pipe_filename && true == is_path(pipe_filename, &tmp_errnum))
     {
-        tmp_errnum = delete_file(pipe_filename);
+        tmp_errnum = delete_named_pipe(pipe_filename);
         if (ENOERR != tmp_errnum)
         {
-            FPRINTF_ERR("%s The call to delete_file(%s) failed\n", DEBUG_ERROR_STR, pipe_filename);
+            FPRINTF_ERR("%s The call to delete_named_pipe(%s) failed\n", DEBUG_ERROR_STR, pipe_filename);
             PRINT_ERRNO(tmp_errnum);
         }
     }
 
     // DONE
     exit(exit_code);
+}
+
+
+void print_shutdown(const char *prog_name, const char *pipe_path)
+{
+    fprintf(stdout, "%s has begun reading entries on %s\n", prog_name, pipe_path);
+    fprintf(stdout, "Terminate the server by sending signal [%d] %s\n",
+            SHUTDOWN_SIG, strsignal(SHUTDOWN_SIG));
+    fprintf(stdout, "E.g., kill -%d %jd\n", SHUTDOWN_SIG, (intmax_t)getpid());
 }
 
 
