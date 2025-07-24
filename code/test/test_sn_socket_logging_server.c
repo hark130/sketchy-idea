@@ -27,8 +27,8 @@
 #include "skid_macros.h"                    // ENOERR
 #include "skid_memory.h"                    // free_skid_mem()
 #include "skid_network.h"                   // close_socket()
-#include "skid_signals.h"                   // set_signal_handler()
 #include "skid_signal_handlers.h"           // handle_signal_number()
+#include "skid_signals.h"                   // set_signal_handler()
 #include "skid_time.h"                      // timestamp_a_msg()
 #include "skid_validation.h"                // validate_skid_pathname()
 
