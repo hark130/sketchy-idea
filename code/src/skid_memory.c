@@ -8,7 +8,9 @@
 #include <stdbool.h>                        // false
 #include <stdlib.h>                         // calloc()
 #include <string.h>                         // strlen()
+#include <unistd.h>                         // ftruncate()
 #include "skid_debug.h"                     // PRINT_ERROR(), PRINT_ERRNO()
+#include "skid_file_descriptors.h"          // close_fd()
 #include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
 #include "skid_memory.h"                    // public functions, skidMemMapRegion*
 #include "skid_validation.h"                // validate_skid_*()
