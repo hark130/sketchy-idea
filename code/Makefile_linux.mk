@@ -314,7 +314,7 @@ $(DIST_DIR)$(MAN_TEST_SC_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SC_PREFI
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
 # MANUAL TEST: Linking skid_dir_operations library manual test binaries
-$(DIST_DIR)$(MAN_TEST_SDO_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SDO_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_dir_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
+$(DIST_DIR)$(MAN_TEST_SDO_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SDO_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_dir_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_operations$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
@@ -354,7 +354,7 @@ $(DIST_DIR)$(MAN_TEST_SP_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SP_PREFI
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
 # MANUAL TEST: Linking skid_signals library manual test binaries
-$(DIST_DIR)$(MAN_TEST_SS_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SS_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_signals$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
+$(DIST_DIR)$(MAN_TEST_SS_PREFIX)%$(BIN_FILE_EXT): $(DIST_DIR)$(MAN_TEST_SS_PREFIX)%$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_descriptors$(OBJ_FILE_EXT) $(DIST_DIR)skid_memory$(OBJ_FILE_EXT) $(DIST_DIR)skid_file_metadata_read$(OBJ_FILE_EXT) $(DIST_DIR)skid_signals$(OBJ_FILE_EXT) $(DIST_DIR)skid_validation$(OBJ_FILE_EXT)
 	@echo "    Linking manual test binary: $@"
 	@$(CC) $(CFLAGS) -o $@ $^ -I $(INCLUDE_DIR)
 
