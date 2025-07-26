@@ -65,6 +65,20 @@ void *alloc_skid_mem(size_t num_elem, size_t size_elem, int *errnum);
 
 /*
  *  Description:
+ *      Close the file descriptor to a POSIX shared memory object opened by open_shared_mem()
+ *      and sets it to SKID_BAD_FD (if it was successfully closed).
+ *
+ *  Args:
+ *      shmfd: [In/Out] A pointer to a shared memory object file descriptor to close.
+ *      quiet: If true, silences all logging/debugging.
+ *
+ *  Returns:
+ *      On success, ENOERR is returned.  On error, errno is returned.
+ */
+int close_shared_mem(int *shmfd, bool quiet);
+
+/*
+ *  Description:
  *      Determine the length of source, allocate a zeroized array in heap memory, and copy it.
  *      It is the caller's responsibility to free the return value using free_skid_string().
  *
@@ -77,6 +91,21 @@ void *alloc_skid_mem(size_t num_elem, size_t size_elem, int *errnum);
  *      errnum for details).
  */
 char *copy_skid_string(const char *source, int *errnum);
+
+/*
+ *  Description:
+ *      Remove a shared memory object name by calling shm_unlink().
+ *
+ *  Args:
+ *      name: An existing POSIX shared memory object to remove.  For portable use, a shared memory
+ *          object should be identified by a name of the form /somename; that is, a
+ *          null-terminated string of up to NAME_MAX characters consisting of an initial slash,
+ *          followed by one or more characters, none of which are slashes.
+ *
+ *  Returns:
+ *      ENOERR on success, an errno value on error.
+ */
+int delete_shared_mem(const char *name);
 
 /*
  *  Description:
@@ -142,6 +171,30 @@ int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags);
  *      ENOERR on success, errno value on error.
  */
 int map_skid_struct(skidMemMapRegion_ptr *new_struct, int prot, int flags, size_t length);
+
+/*
+ *  Description:
+ *      Creates and opens a new, or opens an existing, POSIX shared memory object specified by
+ *      name.  Use close_shared_mem() to close the file descriptor and then delete_shared_mem()
+ *      to remove a shared object name.
+ *
+ *  Args:
+ *      name: A new, or existing, POSIX shared memory object.  For portable use, a shared memory
+ *          object should be identified by a name of the form /somename; that is, a
+ *          null-terminated string of up to NAME_MAX characters consisting of an initial slash,
+ *          followed by one or more characters, none of which are slashes.
+ *      flags: A bit mask created by ORing together exactly one of O_RDONLY or O_RDWR and any
+ *          of the other flags listed in shm_open(3).
+ *      mode: The permission bits for a new shared memory object when the O_CREAT flag is used.
+ *          See skid_macros.h (or open(2)) for mode MACROS.
+ *      size: The intended size of the shared memory object.  (See: truncate(2))
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      File descriptor to the shared memory object on success and errnum is set to ENOERR.
+ *      SKID_BAD_FD on error and errnum is set with an errno value.
+ */
+int open_shared_mem(const char *name, int flags, mode_t mode, size_t size, int *errnum);
 
 /*
  *  Description:

@@ -2,7 +2,7 @@
  *  This library defines functionality to allocate and free memory on behalf of SKID.
  */
 
-// #define SKID_DEBUG                          // Enable DEBUG logging
+#define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // errno
 #include <stdbool.h>                        // false
@@ -11,7 +11,7 @@
 #include "skid_debug.h"                     // PRINT_ERROR(), PRINT_ERRNO()
 #include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
 #include "skid_memory.h"                    // public functions, skidMemMapRegion*
-#include "skid_validation.h"                // validate_skid_err(), validate_skid_pathname()
+#include "skid_validation.h"                // validate_skid_*()
 
 MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
 MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
@@ -99,6 +99,22 @@ void *alloc_skid_mem(size_t num_elem, size_t size_elem, int *errnum)
 }
 
 
+int close_shared_mem(int *shmfd, bool quiet)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;  // Errno values
+
+    // INPUT VALIDATION
+    // Handled by close_fd()
+
+    // CLOSE IT
+    result = close_fd(shmfd, quiet);
+
+    // DONE
+    return result;
+}
+
+
 char *copy_skid_string(const char *source, int *errnum)
 {
     // LOCAL VARIABLES
@@ -138,6 +154,27 @@ char *copy_skid_string(const char *source, int *errnum)
         *errnum = result;
     }
     return destination;
+}
+
+
+int delete_shared_mem(const char *name)
+{
+    // LOCAL VARIABLES
+    int result = validate_skid_string(name, false);  // Results from execution
+
+    // DELETE IT
+    if (ENOERR == result)
+    {
+        if (0 != shm_unlink(name))
+        {
+            result = errno;
+            PRINT_ERROR(The call to shm_unlink() failed);
+            PRINT_ERRNO(result);
+        }
+    }
+
+    // DONE
+    return result;
 }
 
 
@@ -244,6 +281,60 @@ int map_skid_struct(skidMemMapRegion_ptr *new_struct, int prot, int flags, size_
 
     // DONE
     return result;
+}
+
+
+int open_shared_mem(const char *name, int flags, mode_t mode, size_t size, int *errnum)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;      // Results of execution
+    int shmfd = SKID_BAD_FD;  // Shared memory object file descriptor
+
+    // INPUT VALIDATION
+    result = validate_skid_string(name, false);
+    if (ENOERR == result)
+    {
+        if (0 >= size)
+        {
+            result = EINVAL;  // Invalid size for a mapping
+        }
+    }
+    if (ENOERR == result)
+    {
+        result = validate_skid_err(errnum);
+    }
+
+    // OPEN IT
+    // Open it
+    if (ENOERR == result)
+    {
+        shmfd = shm_open(name, flags, mode);
+        if (shmfd < 0)
+        {
+            result = errno;
+            PRINT_ERROR(The call to shm_open() failed);
+            PRINT_ERRNO(result);
+            shmfd = SKID_BAD_FD;
+        }
+    }
+    // Truncate it
+    if (ENOERR == result)
+    {
+        if (0 != ftruncate(shmfd, size))
+        {
+            result = errno;
+            PRINT_ERROR(The call to ftruncate() failed);
+            PRINT_ERRNO(result);
+            close_shared_mem(&shmfd, true);  // Best effort
+        }
+    }
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = result;
+    }
+    return shmfd;
 }
 
 
