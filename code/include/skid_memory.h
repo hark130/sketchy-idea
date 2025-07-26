@@ -176,8 +176,8 @@ int map_skid_struct(skidMemMapRegion_ptr *new_struct, int prot, int flags, size_
 /*
  *  Description:
  *      Creates and opens a new, or opens an existing, POSIX shared memory object specified by
- *      name.  Use close_shared_mem() to close the file descriptor and then delete_shared_mem()
- *      to remove a shared object name.
+ *      name of exactly size bytes.  Use close_shared_mem() to close the file descriptor and
+ *      then delete_shared_mem() to remove a shared object name.
  *
  *  Args:
  *      name: A new, or existing, POSIX shared memory object.  For portable use, a shared memory
