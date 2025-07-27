@@ -61,6 +61,9 @@ int main(int argc, char *argv[])
     char *sh_mem_name = NULL;                  // Shared memory object name
     int sh_mem_fd = SKID_BAD_FD;               // Shared memory object file descriptor
     char *sem_name = NULL;                     // Named semaphore
+    skidMemMapRegion virt_mem;                 // Virtual memory mapping and its metadata
+    int virt_prot = PROT_READ | PROT_WRITE;    // Virtual mapped memory protection
+    int virt_flags = MAP_SHARED;               // Virtual mapped memory flags
 
     // INPUT VALIDATION
     // CLI args
@@ -99,6 +102,18 @@ int main(int argc, char *argv[])
     if (ENOERR == results)
     {
         sh_mem_fd = create_new_shm_obj(sh_mem_name, buf_size + 1, &results);
+    }
+    // Map zeroized virtual memory into the shared memory file descriptor
+    if (ENOERR == results)
+    {
+        virt_mem.addr = NULL;  // Let the kernel decide
+        virt_mem.length = buf_size + 1;  // Size of the mapped buffer
+        results = map_skid_mem_fd(&virt_mem, virt_prot, virt_flags, sh_mem_fd, 0);
+        if (ENOERR != results)
+        {
+            PRINT_ERROR(The call to map_skid_mem_fd() failed);
+            PRINT_ERRNO(results);
+        }
     }
 
     // DO IT
