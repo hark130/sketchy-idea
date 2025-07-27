@@ -154,6 +154,27 @@ int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags);
 
 /*
  *  Description:
+ *      Map zeroized virtual memory to a file descriptor by utilizing mmap().
+ *
+ *  Args:
+ *      new_map: [In/Out] skidMemMapRegion pointer for a new mapping.  The mapping.addr value will
+ *          be passed to mmap() as a hint about where to place the mapping.  If NULL, the kernel
+ *          chooses the address.  Regardless, this value will be overwritten by this function with
+ *          the return value from mmap().
+ *      prot: The desired memory protection of the mapping (see: mmap(2)).
+ *      flags: Determines, among other things, whether updates to the mapping are visible to
+ *          other processes mapping the same region.  (see: mmap(2) for flags)
+ *      fd: A file descritptor to a file mapping (or some other object).
+ *      offset: [Optional] Beginning of the initialization of fd.  Must be a multiple of the
+ *          page size as returned by sysconf(_SC_PAGE_SIZE).
+ *
+ *  Returns:
+ *      ENOERR on success, errno value on error.
+ */
+int map_skid_mem_fd(skidMemMapRegion_ptr new_map, int prot, int flags, int fd, off_t offset);
+
+/*
+ *  Description:
  *      Map zeroized virtual memory to contain the struct and an addr pointer of size length.
  *      The same mapping contains the addr region and the struct so utilize unmap_skid_struct()
  *      to delete the mapping: struct, addr, and all.

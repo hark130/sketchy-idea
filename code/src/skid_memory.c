@@ -252,11 +252,34 @@ int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags)
     // MAP IT
     if (ENOERR == result)
     {
-        errno = ENOERR;  // Initialize errno... for safety
         new_map->addr = call_mmap(new_map->addr, new_map->length, prot, new_flags, -1, 0, &result);
-        if (NULL == new_map->addr || ENOERR != result)
+        if (ENOERR != result)
         {
-            result = errno;  // Something failed
+            PRINT_ERROR(The call to call_mmap() failed);
+            PRINT_ERRNO(result);
+            new_map->addr = NULL;  // Zeroize the pointer
+            new_map->length = 0;  // Reset the length
+        }
+    }
+
+    // DONE
+    return result;
+}
+
+
+int map_skid_mem_fd(skidMemMapRegion_ptr new_map, int prot, int flags, int fd, off_t offset)
+{
+    // LOCAL VARIABLES
+    int result = validate_sm_struct(new_map, true);  // Store errno value
+    int new_flags = flags;                           // New flags to pass to call_mmap()
+
+    // MAP IT
+    if (ENOERR == result)
+    {
+        new_map->addr = call_mmap(new_map->addr, new_map->length, prot,
+                                  new_flags, fd, offset, &result);
+        if (ENOERR != result)
+        {
             PRINT_ERROR(The call to call_mmap() failed);
             PRINT_ERRNO(result);
             new_map->addr = NULL;  // Zeroize the pointer
@@ -448,6 +471,7 @@ SKID_INTERNAL void *call_mmap(void *addr, size_t length, int prot, int flags,
 
     if (ENOERR == result)
     {
+        errno = ENOERR;  // Initialize errno... for safety
         map_ptr = mmap(addr, length, prot, flags, fd, offset);
         if (MAP_FAILED == map_ptr || NULL == map_ptr)
         {
