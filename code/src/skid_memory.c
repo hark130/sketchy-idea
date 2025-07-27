@@ -25,6 +25,36 @@ MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destruct
 
 /*
  *  Description:
+ *      Standardize the way mmap() is called and responds to errors.
+ *
+ *  Args:
+ *      addr: [Optional] If addr is NULL, then the kernel chooses the (page-aligned) address at
+ *          which to create the mapping; this is the most portable method of creating a new
+ *          mapping.  If addr is not NULL, then the kernel takes it as a hint about where to
+ *          place the mapping; on Linux, the kernel will pick a nearby page boundary
+ *          (but always above or equal to the value specified by /proc/sys/vm/mmap_min_addr)
+ *          and attempt to create the mapping there.
+ *      length: The number of bytes to intiialize in a file-mapping, starting at offset.
+ *      prot: Describes the desired memory protection of the mapping (and must not conflict with
+ *          the open mode of the file).  It is either PROT_NONE or the bitwise OR of one or more
+ *          flags (see: mmap(2)).
+ *      flags: Determines whether updates to the mapping are visible to other processes
+ *          mapping the same region, and whether updates are carried through to the underlying
+ *          file (see: mmap(2))
+ *      fd: [Optional] A file descritptor to a file mapping (or other object).
+ *      offset: [Optional] Beginning of the initialization of fd.  Must be a multiple of the
+ *          page size as returned by sysconf(_SC_PAGE_SIZE).
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      A pointer to the mapped area on success.  NULL on failure and errnum is set with an
+ *      errno value.
+ */
+SKID_INTERNAL void *call_mmap(void *addr, size_t length, int prot, int flags,
+                              int fd, off_t offset, int *errnum);
+
+/*
+ *  Description:
  *      Validate common arguments on behalf of skid_memory.
  *
  *  Args:
@@ -217,17 +247,17 @@ int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags)
 {
     // LOCAL VARIABLES
     int result = validate_sm_struct(new_map, true);  // Store errno value
-    int new_flags = flags | MAP_ANONYMOUS;           // New flags to pass to mmap()
+    int new_flags = flags | MAP_ANONYMOUS;           // New flags to pass to call_mmap()
 
     // MAP IT
     if (ENOERR == result)
     {
         errno = ENOERR;  // Initialize errno... for safety
-        new_map->addr = mmap(new_map->addr, new_map->length, prot, new_flags, -1, 0);
-        if (MAP_FAILED == new_map->addr)
+        new_map->addr = call_mmap(new_map->addr, new_map->length, prot, new_flags, -1, 0, &result);
+        if (NULL == new_map->addr || ENOERR != result)
         {
             result = errno;  // Something failed
-            PRINT_ERROR(The call to mmap() failed);
+            PRINT_ERROR(The call to call_mmap() failed);
             PRINT_ERRNO(result);
             new_map->addr = NULL;  // Zeroize the pointer
             new_map->length = 0;  // Reset the length
@@ -404,6 +434,37 @@ int unmap_skid_struct(skidMemMapRegion_ptr *old_struct)
 /**************************************************************************************************/
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
+
+
+SKID_INTERNAL void *call_mmap(void *addr, size_t length, int prot, int flags,
+                              int fd, off_t offset, int *errnum)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;   // Store errno value
+    void *map_ptr = NULL;  // Pointer to the mapped area
+
+    // INPUT VALIDATION
+    result = validate_skid_err(errnum);
+
+    if (ENOERR == result)
+    {
+        map_ptr = mmap(addr, length, prot, flags, fd, offset);
+        if (MAP_FAILED == map_ptr || NULL == map_ptr)
+        {
+            result = errno;
+            map_ptr = NULL;  // Who returns (void *)-1 anyway?!
+            PRINT_ERROR(The call to mmap() failed);
+            PRINT_ERRNO(result);
+        }
+    }
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = result;
+    }
+    return map_ptr;
+}
 
 
 SKID_INTERNAL int validate_sm_standard_args(const char *pathname, int *err)
