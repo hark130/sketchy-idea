@@ -339,7 +339,8 @@ int map_skid_struct(skidMemMapRegion_ptr *new_struct, int prot, int flags, size_
 }
 
 
-int open_shared_mem(const char *name, int flags, mode_t mode, size_t size, int *errnum)
+int open_shared_mem(const char *name, int flags, mode_t mode, size_t size,
+                    bool truncate, int *errnum)
 {
     // LOCAL VARIABLES
     int result = ENOERR;      // Results of execution
@@ -375,12 +376,15 @@ int open_shared_mem(const char *name, int flags, mode_t mode, size_t size, int *
     // Truncate it
     if (ENOERR == result)
     {
-        if (0 != ftruncate(shmfd, size))
+        if (true == truncate)
         {
-            result = errno;
-            PRINT_ERROR(The call to ftruncate() failed);
-            PRINT_ERRNO(result);
-            close_shared_mem(&shmfd, true);  // Best effort
+            if (0 != ftruncate(shmfd, size))
+            {
+                result = errno;
+                PRINT_ERROR(The call to ftruncate() failed);
+                PRINT_ERRNO(result);
+                close_shared_mem(&shmfd, true);  // Best effort
+            }
         }
     }
 

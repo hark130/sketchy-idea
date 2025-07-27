@@ -207,16 +207,19 @@ int map_skid_struct(skidMemMapRegion_ptr *new_struct, int prot, int flags, size_
  *          followed by one or more characters, none of which are slashes.
  *      flags: A bit mask created by ORing together exactly one of O_RDONLY or O_RDWR and any
  *          of the other flags listed in shm_open(3).
- *      mode: The permission bits for a new shared memory object when the O_CREAT flag is used.
- *          See skid_macros.h (or open(2)) for mode MACROS.
- *      size: The intended size of the shared memory object.  (See: truncate(2))
+ *      mode: [Optional] The permission bits for a new shared memory object when the O_CREAT
+ *          flag is used.  See skid_macros.h (or open(2)) for mode MACROS.
+ *      size: The intended size of the shared memory object.
+ *      truncate: Skips the call to ftruncate if False (see: truncate(2)).  Pass true when
+ *          this shared memory object is first created but false when it is accessed post-creation.
  *      errnum: [Out] Storage location for errno values encountered.
  *
  *  Returns:
  *      File descriptor to the shared memory object on success and errnum is set to ENOERR.
  *      SKID_BAD_FD on error and errnum is set with an errno value.
  */
-int open_shared_mem(const char *name, int flags, mode_t mode, size_t size, int *errnum);
+int open_shared_mem(const char *name, int flags, mode_t mode, size_t size,
+                    bool truncate, int *errnum);
 
 /*
  *  Description:
