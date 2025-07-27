@@ -2,13 +2,13 @@
  *  Manually test skid_memory's *_shared_mem()-related functionality.
  *
  *  This manual test code performs the following actions:
- *  1. Validate input
+ *  1. Validates input
  *  2. Creates a shared memory object
  *  3. Map virtual memory for communication
  *
  *  Copy/paste the following...
 
-./code/dist/test_sm_shared_mem_server.bin </NEW_SHARED_MEM_OBJECT> </NEW_NAMED_SEMAPHORE>
+./code/dist/test_sm_shared_mem_server.bin
 
  *
  */
@@ -34,11 +34,10 @@
 // #include "skid_signal_handlers.h"   // handle_ext_read_queue_int()
 // #include "skid_signals.h"           // set_signal_handler_ext(), translate_signal_code()
 #include "skid_validation.h"                // validate_skid_*()
-
-#define BUF_LEN 1024                       // Length of the mapped memory buffer
+#include "test_sm_shared_mem.h"             // Common shared memory/semaphore macros
 
 /*
- *  Create a new POSIX shared memory object
+ *  Create a new POSIX shared memory object.
  */
 int create_new_shm_obj(const char *name, size_t size, int *errnum);
 
@@ -56,25 +55,20 @@ int validate_shared_object_name(const char *name);
 int main(int argc, char *argv[])
 {
     // LOCAL VARIABLES
-    int results = ENOERR;                      // Store errno and/or results here
-    size_t buf_size = BUF_LEN * sizeof(char);  // Size of the mapped memory buffer
-    char *sh_mem_name = NULL;                  // Shared memory object name
-    int sh_mem_fd = SKID_BAD_FD;               // Shared memory object file descriptor
-    char *sem_name = NULL;                     // Named semaphore
-    skidMemMapRegion virt_mem;                 // Virtual memory mapping and its metadata
-    int virt_prot = PROT_READ | PROT_WRITE;    // Virtual mapped memory protection
-    int virt_flags = MAP_SHARED;               // Virtual mapped memory flags
+    int results = ENOERR;                    // Store errno and/or results here
+    size_t buf_size = BUF_SIZE;              // Size of the mapped memory buffer
+    char *sh_mem_name = SHM_NAME;            // Shared memory object name
+    int sh_mem_fd = SKID_BAD_FD;             // Shared memory object file descriptor
+    char *sem_name = SEM_NAME;               // Named semaphore
+    skidMemMapRegion virt_mem;               // Virtual memory mapping and its metadata
+    int virt_prot = PROT_READ | PROT_WRITE;  // Virtual mapped memory protection
+    int virt_flags = MAP_SHARED;             // Virtual mapped memory flags
 
     // INPUT VALIDATION
     // CLI args
-    if (argc != 3)
+    if (argc != 1)
     {
         results = EINVAL;
-    }
-    else
-    {
-        sh_mem_name = argv[1];
-        sem_name = argv[2];
     }
     // Shared memory name
     if (ENOERR == results)
@@ -96,7 +90,7 @@ int main(int argc, char *argv[])
     // Create the named semaphore
     if (ENOERR == results)
     {
-        
+        // TO DO: DON'T DO NOW...
     }
     // Create the shared memory object
     if (ENOERR == results)
@@ -120,6 +114,12 @@ int main(int argc, char *argv[])
     // Release the semaphore
     // Check for input
     // Read it
+    if (ENOERR == results)
+    {
+        printf("Press enter to read from the shared memory object\n");
+        getchar();  // Poor substitution for a semaphore
+        printf("MEM: %s\n", (char *)virt_mem.addr);
+    }
     // Clear it
     if (ENOERR == results)
     {
@@ -150,6 +150,7 @@ int create_new_shm_obj(const char *name, size_t size, int *errnum)
     int result = validate_skid_err(errnum);  // Errno values
     int flags = O_CREAT | O_RDWR;            // shm_open() flags
     int shmfd = SKID_BAD_FD;                 // Shared memory object file descriptor
+    bool truncate = true;                    // Size the new shared memory object
     // Permission bits for the shared memory object
     mode_t mode = SKID_MODE_OWNER_R | SKID_MODE_OWNER_W | \
                   SKID_MODE_GROUP_R | SKID_MODE_GROUP_W | \
@@ -158,7 +159,7 @@ int create_new_shm_obj(const char *name, size_t size, int *errnum)
     // CREATE IT
     if (ENOERR == result)
     {
-        shmfd = open_shared_mem(name, flags, mode, size, &result);
+        shmfd = open_shared_mem(name, flags, mode, size, truncate, &result);
         if (ENOERR != result)
         {
             PRINT_ERROR(The call to open_shared_mem() failed);
@@ -177,7 +178,7 @@ int create_new_shm_obj(const char *name, size_t size, int *errnum)
 
 void print_usage(const char *prog_name)
 {
-    fprintf(stderr, "Usage: %s </NEW_SHARED_MEM_OBJECT>\n", prog_name);
+    fprintf(stderr, "Usage: %s\n", prog_name);
 }
 
 
