@@ -2,7 +2,7 @@
  *  This library defines functionality to handle unnamed and named semaphores.
  */
 
-#define SKID_DEBUG                          // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // errno
 #include <fcntl.h>                          // O_CREAT

@@ -2,7 +2,7 @@
  *  This library defines time-related functionality.
  */
 
-#define SKID_DEBUG                          // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // errno
 #include <stdio.h>                          // sprintf()
