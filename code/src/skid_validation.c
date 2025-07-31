@@ -94,6 +94,28 @@ int validate_skid_pathname(const char *pathname, bool must_exist)
 }
 
 
+int validate_skid_shared_name(const char *shared_name, bool must_port)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;  // Errno values
+
+    // INPUT VALIDATION
+    result = validate_skid_string(shared_name, false);
+    if (ENOERR == result)
+    {
+        if (true == must_port && '/' != shared_name[0])
+        {
+            result = EINVAL;
+            FPRINTF_ERR("%s The shared object name '%s' must begin with a '/' (for portability)\n",
+                        DEBUG_ERROR_STR, shared_name);
+        }
+    }
+
+    // DONE
+    return result;
+}
+
+
 int validate_skid_sockfd(int sockfd)
 {
     // LOCAL VARIABLES
