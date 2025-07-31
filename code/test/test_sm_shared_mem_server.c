@@ -3,8 +3,9 @@
  *
  *  This manual test code performs the following actions:
  *  1. Validates input
- *  2. Creates a shared memory object
- *  3. Map virtual memory for communication
+ *  2. Creates a named sempahore
+ *  3. Creates a shared memory object
+ *  4. Start synchronized reading
  *
  *  Copy/paste the following...
 
@@ -167,7 +168,7 @@ int main(int argc, char *argv[])
             if (strlen((char *)virt_mem.addr) > 0)
             {
                 // Read it
-                printf("MEM: %s\n", (char *)virt_mem.addr);
+                printf("SERVER Read: %s\n", (char *)virt_mem.addr);
                 // Clear it
                 ((char *)virt_mem.addr)[0] = '\0';  // Truncate the buffer
             }

@@ -3,8 +3,9 @@
  *
  *  This manual test code performs the following actions:
  *  1. Validates input
+ *  2. Opens the named semaphore
  *  2. Opens the shared memory object
- *  3. Writes a message
+ *  3. Writes a message (safely)
  *
  *  Copy/paste the following...
 
