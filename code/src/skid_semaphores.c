@@ -5,9 +5,10 @@
 #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // errno
+#include <fcntl.h>                          // O_CREAT
 #include "skid_debug.h"                     // MODULE_*LOAD(), PRINT_ERR*()
 #include "skid_macros.h"                    // ENOERR, SKID_BAD_SEM_PTR, SKID_INTERNAL
-#include "skid_semapohres.h"                // named_sem_t, public functions
+#include "skid_semaphores.h"                // named_sem_t, public functions
 #include "skid_validation.h"                // validate_skid_*()
 
 MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
@@ -97,8 +98,9 @@ named_sem_ptr create_named_sem(const char *name, int flags, mode_t mode, int *er
 {
     // LOCAL VARIABLES
     int results = ENOERR;                      // Store errno values
-    int new_flags = flag | O_CREAT;            // This call should create name
+    int new_flags = flags | O_CREAT;           // This call should create name
     named_sem_ptr sem_ptr = SKID_BAD_SEM_PTR;  // Pointer to the new named semaphore
+    int value = 1;                             // Initial value of the semaphore
 
     // INPUT VALIDATION
     results = validate_skid_shared_name(name, true);  // Must be portable
@@ -110,7 +112,7 @@ named_sem_ptr create_named_sem(const char *name, int flags, mode_t mode, int *er
     // CREATE IT
     if (ENOERR == results)
     {
-        sem_ptr = (named_sem_ptr)call_sem_open(name, flags, mode, &results);
+        sem_ptr = (named_sem_ptr)call_sem_open(name, new_flags, mode, value, &results);
     }
 
     // DONE
@@ -176,8 +178,8 @@ SKID_INTERNAL sem_t *call_sem_open(const char *name, int oflag, mode_t mode,
                                    unsigned int value, int *errnum)
 {
     // LOCAL VARIABLES
-    int results = ENOERR;              // Store errno values
-    sem_t sem_ptr = SKID_BAD_SEM_PTR;  // Pointer to the new semaphore
+    int results = ENOERR;               // Store errno values
+    sem_t *sem_ptr = SKID_BAD_SEM_PTR;  // Pointer to the new semaphore
 
     // INPUT VALIDATION
     results = validate_skid_shared_name(name, true);  // Must be portable
