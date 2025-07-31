@@ -25,6 +25,7 @@
 #include "skid_debug.h"                     // PRINT_ERROR()
 #include "skid_macros.h"                    // ENOERR
 #include "skid_memory.h"                    // map mem funcs, *_shared_mem()
+#include "skid_semaphores.h"                // close_named_sem(), open_named_sem(), release_sem()
 #include "skid_validation.h"                // validate_skid_*()
 #include "test_sm_shared_mem.h"             // Common shared memory/semaphore macros
 
@@ -92,15 +93,10 @@ int main(int argc, char *argv[])
     // Open the named semaphore
     if (ENOERR == results)
     {
-        sem_ptr = sem_open(sem_name, 0);  // Open the named semaphore
-        if (SEM_FAILED == sem_ptr || NULL == sem_ptr)
+        sem_ptr = open_named_sem(sem_name, 0, &results);  // Open the named semaphore
+        if (ENOERR != results)
         {
-            results = errno;
-            if (ENOERR == results)
-            {
-                results = ENAVAIL;  // Failed call but no errno?!  This is close enough.
-            }
-            PRINT_ERROR(The call to sem_open() failed);
+            PRINT_ERROR(The call to open_named_sem() failed);
             PRINT_ERRNO(results);
         }
     }
@@ -170,7 +166,7 @@ int main(int argc, char *argv[])
     // Named semaphore
     if (NULL != sem_ptr)
     {
-        sem_close(sem_ptr);  // Best effort
+        close_named_sem(&sem_ptr);  // Best effort
     }
 
     // DONE
@@ -217,24 +213,7 @@ void print_usage(const char *prog_name)
 int release_semaphore(sem_t *semaphore)
 {
     // LOCAL VARIABLES
-    int results = ENOERR;  // Errno values
-
-    // INPUT VALIDATION
-    if (NULL == semaphore)
-    {
-        results = EINVAL;
-    }
-
-    // RELEASE IT
-    if (ENOERR == results)
-    {
-        if (0 != sem_post(semaphore))
-        {
-            results = errno;
-            PRINT_ERROR(The call to sem_post() failed);
-            PRINT_ERRNO(results);
-        }
-    }
+    int results = release_sem(semaphore);
 
     // DONE
     return results;
