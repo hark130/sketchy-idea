@@ -16,23 +16,15 @@
 // Standard includes
 #include <errno.h>                          // EINVAL
 #include <fcntl.h>                          // O_CREAT
-// #include <semaphore.h>                      // sem_init(), sem_post(), sem_trywait()
-// #include <stdbool.h>                        // false
-// #include <stdint.h>                         // SIZE_MAX
+#include <semaphore.h>                      // sem_init(), sem_post(), sem_wait()
+#include <stdbool.h>                        // false
 #include <stdio.h>                          // fprintf()
-// // #include <stdlib.h>                 // exit()
-// #include <sys/wait.h>                       // waitpid()
-// #include <unistd.h>                         // fork()
+#include <unistd.h>                         // sleep()
 // Local includes
 #define SKID_DEBUG                          // The DEBUG output is doing double duty as test output
-// // #include "devops_code.h"            // call_sigqueue()
 #include "skid_debug.h"                     // PRINT_ERROR()
 #include "skid_macros.h"                    // ENOERR
 #include "skid_memory.h"                    // map mem funcs, *_shared_mem()
-// #include "skid_file_metadata_read.h"        // is_regular_file()
-// #include "skid_file_operations.h"           // read_file()
-// #include "skid_signal_handlers.h"   // handle_ext_read_queue_int()
-// #include "skid_signals.h"           // set_signal_handler_ext(), translate_signal_code()
 #include "skid_validation.h"                // validate_skid_*()
 #include "test_sm_shared_mem.h"             // Common shared memory/semaphore macros
 
@@ -48,6 +40,11 @@ int open_shm_obj(const char *name, int *errnum);
 void print_usage(const char *prog_name);
 
 /*
+ *  Release a semaphore.
+ */
+int release_semaphore(sem_t *semaphore);
+
+/*
  *  Validates a shared object name.
  */
 int validate_shared_object_name(const char *name);
@@ -57,13 +54,17 @@ int main(int argc, char *argv[])
 {
     // LOCAL VARIABLES
     int results = ENOERR;                    // Store errno and/or results here
+    /* Semaphore variables */
+    char *sem_name = SEM_NAME;               // Named semaphore
+    sem_t *sem_ptr = NULL;                   // Pointer to the named semaphore
+    /* POSIX Shared Memory variables */
     size_t buf_size = BUF_SIZE;              // Size of the mapped memory buffer
     char *sh_mem_name = SHM_NAME;            // Shared memory object name
     int sh_mem_fd = SKID_BAD_FD;             // Shared memory object file descriptor
-    char *sem_name = SEM_NAME;               // Named semaphore
     skidMemMapRegion virt_mem;               // Virtual memory mapping and its metadata
     int virt_prot = PROT_READ | PROT_WRITE;  // Virtual mapped memory protection
     int virt_flags = MAP_SHARED;             // Virtual mapped memory flags
+    bool wrote_it = false;                   // Did we write our message to the shared memory?
 
     // INPUT VALIDATION
     // CLI args
@@ -88,10 +89,20 @@ int main(int argc, char *argv[])
     }
 
     // SETUP
-    // Create the named semaphore
+    // Open the named semaphore
     if (ENOERR == results)
     {
-        
+        sem_ptr = sem_open(sem_name, 0);  // Open the named semaphore
+        if (SEM_FAILED == sem_ptr || NULL == sem_ptr)
+        {
+            results = errno;
+            if (ENOERR == results)
+            {
+                results = ENAVAIL;  // Failed call but no errno?!  This is close enough.
+            }
+            PRINT_ERROR(The call to sem_open() failed);
+            PRINT_ERRNO(results);
+        }
     }
     // Open the shared memory object
     if (ENOERR == results)
@@ -117,14 +128,33 @@ int main(int argc, char *argv[])
     }
 
     // DO IT
-    // Obtain the semaphore
-    // Check if it's empty
-    // Write it
-    if (ENOERR == results)
+    while (ENOERR == results)
     {
-        strncpy(virt_mem.addr, "Hello from the client!\n", virt_mem.length);
+        // Obtain the semaphore
+        if (0 != sem_wait(sem_ptr))
+        {
+            results = errno;
+            PRINT_ERROR(The call to sem_wait() failed);
+            PRINT_ERRNO(results);
+        }
+        // Check if the shared memory is empty
+        if (0 == strlen((char *)virt_mem.addr))
+        {
+            // Write it
+            strncpy(virt_mem.addr, "Hello from the client!\n", virt_mem.length);
+            wrote_it = true;
+        }
+        // Release the semaphore
+        results = release_semaphore(sem_ptr);
+        if (true == wrote_it)
+        {
+            break;  // Done
+        }
+        else
+        {
+            sleep(1);  // Avoid the thrash
+        }
     }
-    // Release the semaphore
 
     // CLEANUP
     // Mapped memory
@@ -138,7 +168,10 @@ int main(int argc, char *argv[])
         close_shared_mem(&sh_mem_fd, true);  // Best effort
     }
     // Named semaphore
-
+    if (NULL != sem_ptr)
+    {
+        sem_close(sem_ptr);  // Best effort
+    }
 
     // DONE
     return results;
@@ -177,7 +210,34 @@ int open_shm_obj(const char *name, int *errnum)
 
 void print_usage(const char *prog_name)
 {
-    fprintf(stderr, "Usage: %s </NEW_SHARED_MEM_OBJECT>\n", prog_name);
+    fprintf(stderr, "Usage: %s\n", prog_name);
+}
+
+
+int release_semaphore(sem_t *semaphore)
+{
+    // LOCAL VARIABLES
+    int results = ENOERR;  // Errno values
+
+    // INPUT VALIDATION
+    if (NULL == semaphore)
+    {
+        results = EINVAL;
+    }
+
+    // RELEASE IT
+    if (ENOERR == results)
+    {
+        if (0 != sem_post(semaphore))
+        {
+            results = errno;
+            PRINT_ERROR(The call to sem_post() failed);
+            PRINT_ERRNO(results);
+        }
+    }
+
+    // DONE
+    return results;
 }
 
 
