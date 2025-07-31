@@ -113,7 +113,7 @@ int delete_shared_mem(const char *name);
  *      Free skid-allocated heap memory and set the original pointer to NULL.
  *
  *  Args:
- *      old_mem: Pointer to the heap-allocated memory's storage location.
+ *      old_mem: [In/Out] Pointer to the heap-allocated memory's storage location.
  *
  *  Returns:
  *      0 on success, errno on error.
@@ -125,7 +125,7 @@ int free_skid_mem(void **old_mem);
  *      Free skid-allocated string and set the original pointer to NULL.
  *
  *  Args:
- *      old_string: Pointer to the heap-allocated string's storage location.
+ *      old_string: [In/Out] Pointer to the heap-allocated string's storage location.
  *
  *  Returns:
  *      0 on success, errno on error.
