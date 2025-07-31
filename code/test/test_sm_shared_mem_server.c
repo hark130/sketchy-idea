@@ -26,6 +26,7 @@
 #include "skid_file_operations.h"           // delete_file()
 #include "skid_macros.h"                    // ENOERR
 #include "skid_memory.h"                    // map mem funcs, *_shared_mem()
+#include "skid_semaphores.h"                // *_named_sem(), release_sem()
 #include "skid_signal_handlers.h"           // handle_signal_number()
 #include "skid_signals.h"                   // set_signal_handler()
 #include "skid_validation.h"                // validate_skid_*()
@@ -66,7 +67,6 @@ int main(int argc, char *argv[])
     /* Semaphore variables */
     char *sem_name = SEM_NAME;               // Named semaphore
     sem_t *sem_ptr = NULL;                   // Pointer to the named semaphore
-    size_t sem_size = sizeof(sem_t);         // SPOT for the size of the semaphore
     /* POSIX Shared Memory variables */
     size_t buf_size = BUF_SIZE;              // Size of the mapped memory buffer
     char *sh_mem_name = SHM_NAME;            // Shared memory object name
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
     // Release the semaphore
     if (ENOERR == results)
     {
-        results = release_semaphore((sem_t *)sem_mem.addr);
+        results = release_semaphore((sem_t *)sem_ptr);
     }
     // Print instructions
     if (ENOERR == results)
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
     while (ENOERR == results && SHUTDOWN_SIG != skid_sig_hand_signum)
     {
         // Obtain the lock
-        while (-1 == sem_trywait((sem_t *)sem_mem.addr) && SHUTDOWN_SIG != skid_sig_hand_signum)
+        while (-1 == sem_trywait((sem_t *)sem_ptr) && SHUTDOWN_SIG != skid_sig_hand_signum)
         {
             results = errno;
             if (EAGAIN == results)
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
                 ((char *)virt_mem.addr)[0] = '\0';  // Truncate the buffer
             }
             // Release the lock
-            results = release_semaphore((sem_t *)sem_mem.addr);
+            results = release_semaphore((sem_t *)sem_ptr);
         }
     }
     // SHUTDOWN_SIG?
@@ -269,7 +269,7 @@ int release_semaphore(sem_t *semaphore)
 int validate_shared_object_name(const char *name)
 {
     // LOCAL VARIABLES
-    int result = validate_skid_shared_name(name);  // Errno values
+    int result = validate_skid_shared_name(name, true);  // Errno values
 
     // DONE
     return result;
