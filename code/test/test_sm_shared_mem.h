@@ -19,5 +19,9 @@
 
 /* NAMED SEMAPHORE MACROS */
 #define SEM_NAME "/t_sm_s_m_sem"                   // The named semaphore
+// The mode to use for the named semaphore
+#define SEM_MODE SKID_MODE_OWNER_R | SKID_MODE_OWNER_W | \
+                 SKID_MODE_GROUP_R | SKID_MODE_GROUP_W | \
+                 SKID_MODE_OTHER_R | SKID_MODE_OTHER_W  // rw-rw-rw-
 
 #endif  /* __TEST_SKID_SHARED_MEM__ */
