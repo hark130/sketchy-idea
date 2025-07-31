@@ -1,10 +1,8 @@
 /*
- *  This source file was created for the express purpose of demonstrating IPC using UNIX sockets.
- *  It utilizes legacy functionality implemented in the skid_network module to:
- *      1. Create a UNIX domain socket
- *      2. Bind it to a socket file
- *      3. Listen for client connections
- *      4. Log communication to the filename specified by the args
+ *  This source file was created for the express purpose of demonstrating IPC using named pipes.
+ *      1. Creates a named pipe
+ *      2. Reads from it
+ *      3. Prints what it reads
  *
  *  Copy/paste the following...
 
