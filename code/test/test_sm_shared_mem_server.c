@@ -64,9 +64,8 @@ int main(int argc, char *argv[])
     // LOCAL VARIABLES
     int results = ENOERR;                    // Store errno and/or results here
     /* Semaphore variables */
-    skidMemMapRegion sem_mem;                // Named semaphore virtual memory mapping
     char *sem_name = SEM_NAME;               // Named semaphore
-    int sem_fd = SKID_BAD_FD;                // Semaphore file descriptor
+    sem_t *sem_ptr = NULL;                   // Pointer to the named semaphore
     size_t sem_size = sizeof(sem_t);         // SPOT for the size of the semaphore
     /* POSIX Shared Memory variables */
     size_t buf_size = BUF_SIZE;              // Size of the mapped memory buffer
@@ -107,28 +106,10 @@ int main(int argc, char *argv[])
     // Create the named semaphore
     if (ENOERR == results)
     {
-        sem_fd = create_new_shm_obj(sem_name, sem_size, &results);
-    }
-    // Map zeroized virtual memory into the semaphore file descriptor
-    if (ENOERR == results)
-    {
-        sem_mem.addr = NULL;  // Let the kernel decide
-        sem_mem.length = sem_size;  // Size of the mapped struct
-        results = map_skid_mem_fd(&sem_mem, prot, flags, sem_fd, 0);
+        sem_ptr = create_named_sem(sem_name, 0, SEM_MODE, &results);
         if (ENOERR != results)
         {
-            PRINT_ERROR(The call to map_skid_mem_fd() failed on the sempahore);
-            PRINT_ERRNO(results);
-        }
-    }
-    // Initialize the semaphore
-    if (ENOERR == results)
-    {
-        // Initialize a locked semaphore for use between processes
-        if (0 != sem_init(sem_mem.addr, 1, 0))
-        {
-            results = errno;
-            PRINT_ERROR(The call to sem_init() failed);
+            PRINT_ERROR(The call to create_named_sem() failed);
             PRINT_ERRNO(results);
         }
     }
@@ -183,10 +164,13 @@ int main(int argc, char *argv[])
         }
         if (ENOERR == results)
         {
-            // Read it
-            printf("MEM: %s\n", (char *)virt_mem.addr);
-            // Clear it
-            ((char *)virt_mem.addr)[0] = '\0';  // Truncate the buffer
+            if (strlen((char *)virt_mem.addr) > 0)
+            {
+                // Read it
+                printf("MEM: %s\n", (char *)virt_mem.addr);
+                // Clear it
+                ((char *)virt_mem.addr)[0] = '\0';  // Truncate the buffer
+            }
             // Release the lock
             results = release_semaphore((sem_t *)sem_mem.addr);
         }
@@ -207,21 +191,15 @@ int main(int argc, char *argv[])
     {
         delete_shared_mem(sh_mem_name);  // Best effort
     }
-    // Named semaphore file descriptor
-    if (SKID_BAD_FD != sh_mem_fd)
+    // Named semaphore pointer
+    if (NULL != sem_ptr)
     {
-        close_fd(&sem_fd, true);  // Best effort
-    }
-    // Named semaphore mapped memory
-    if (NULL != sem_mem.addr)
-    {
-        sem_destroy(sem_mem.addr);  // Best effort
-        unmap_skid_mem(&sem_mem);  // Best effort
+        close_named_sem(&sem_ptr);  // Best effort
     }
     // Named semaphore special file
     if (NULL != sem_name)
     {
-        delete_file(sem_name);  // Best effort
+        remove_named_sem(sem_name);  // Best effort
     }
 
     // DONE
@@ -281,24 +259,7 @@ void print_usage(const char *prog_name)
 int release_semaphore(sem_t *semaphore)
 {
     // LOCAL VARIABLES
-    int results = ENOERR;  // Errno values
-
-    // INPUT VALIDATION
-    if (NULL == semaphore)
-    {
-        results = EINVAL;
-    }
-
-    // RELEASE IT
-    if (ENOERR == results)
-    {
-        if (0 != sem_post(semaphore))
-        {
-            results = errno;
-            PRINT_ERROR(The call to sem_post() failed);
-            PRINT_ERRNO(results);
-        }
-    }
+    int results = release_sem(semaphore);
 
     // DONE
     return results;
@@ -308,20 +269,7 @@ int release_semaphore(sem_t *semaphore)
 int validate_shared_object_name(const char *name)
 {
     // LOCAL VARIABLES
-    int result = ENOERR;  // Errno values
-
-    // INPUT VALIDATION
-    result = validate_skid_string(name, false);
-    if (ENOERR == result)
-    {
-        if ('/' != name[0])
-        {
-            result = EINVAL;
-            fprintf(stderr,
-                    "%s The shared object name '%s' must begin with a '/' (for portability)\n",
-                    DEBUG_ERROR_STR, name);
-        }
-    }
+    int result = validate_skid_shared_name(name);  // Errno values
 
     // DONE
     return result;
