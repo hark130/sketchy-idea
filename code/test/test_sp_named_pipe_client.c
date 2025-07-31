@@ -1,6 +1,5 @@
 /*
- *  This source file was created for the express purpose of demonstrating IPC using UNIX sockets.
- *  It utilizes legacy functionality implemented in the skid_network module to:
+ *  This source file was created for the express purpose of demonstrating IPC using named pipes.
  *      1. Reads from stdin
  *      2. Opens the named pipe
  *      3. Writes to it
