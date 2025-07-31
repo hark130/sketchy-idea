@@ -137,15 +137,19 @@ SOCKET_LOG="/tmp/4-3_log.txt"                                        # Log file
 NAMED_PIPE_SERVER="${DIST_DIR}test_sp_named_pipe_server.bin"         # Named pipe server
 NAMED_PIPE_CLIENT="${DIST_DIR}test_sp_named_pipe_client.bin"         # Named pipe client
 NAMED_PIPE="/tmp/named.pipe"                                         # Named pipe
+SHM_SERVER="${DIST_DIR}test_sm_shared_mem_server.bin"                # Shared memory server
+SHM_CLIENT="${DIST_DIR}test_sm_shared_mem_client.bin"                # Shared memory client
+NAMED_SHM="/dev/shm/t_sm_s_m_shm"                                    # Named shared memory object
+NAMED_SEM="/dev/shm/sem.t_sm_s_m_sem"                                # Named semaphore
 
-# # 1. Stores the date
-# printf "\n%s This output was created by %s on %s %s\n" "$BOOKEND" "$(basename "$0")" "$(date)" "$BOOKEND" && \
-# # 2. Runs the build system (which also executes the Check-based unit tests)
-# make && echo && \
-# # 3. Executes the unit tests with Valgrind
-# ./devops/scripts/run_valgrind.sh; [[ $? -ne 0 ]] && exit; echo && \
-# # 4. Counts the number of unit tests (by running them again)
-# for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
+# 1. Stores the date
+printf "\n%s This output was created by %s on %s %s\n" "$BOOKEND" "$(basename "$0")" "$(date)" "$BOOKEND" && \
+# 2. Runs the build system (which also executes the Check-based unit tests)
+make && echo && \
+# 3. Executes the unit tests with Valgrind
+./devops/scripts/run_valgrind.sh; [[ $? -ne 0 ]] && exit; echo && \
+# 4. Counts the number of unit tests (by running them again)
+for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
 # 5. Misc.
 # 5.A. Unix sockets
 print_banner "UNIX SOCKETS"
@@ -183,6 +187,17 @@ print_title "4. Terminate the server"
 run_manual_test_command "kill -2 `pidof ${NAMED_PIPE_SERVER}`"
 # 5.C. POSIX shared memory
 print_banner "POSIX SHARED MEMORY"
+print_title "1. Start a server waiting to read from a shared memory object"
+run_manual_test_command "${SHM_SERVER} &"
+sleep 1  # Give it a second...
+print_title "2. The shared memory object..."
+run_manual_test_command "ls -l ${NAMED_SHM}"
+print_title "3. The named semaphore..."
+run_manual_test_command "ls -l ${NAMED_SEM}"
+print_title "4. Use a client binary to write to the shared memory object"
+run_manual_test_command "${SHM_CLIENT}"
+print_title "5. Terminate the server"
+run_manual_test_command "kill -2 `pidof ${SHM_SERVER}`"
 echo
 
 # DONE
