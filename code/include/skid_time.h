@@ -49,5 +49,27 @@ time_t get_unix_time(int *errnum);
  */
 char *build_timestamp(int *errnum);
 
+/*
+ *  Description:
+ *		Preface a message with a formatted timestamp.  Use the delims as bookends for the
+ *		timestamp.  Uses build_timestap() to get the datetime stamp.
+ *      The caller is responsible for using free_skid_mem() to free the return value.
+ *
+ *	Usage:
+ *		timestamp_a_msg("This is my message\n", "[]", &errnum);  // Should return...
+ *		// "[20250721-124356] This is my message\n"
+ *
+ *  Args:
+ *		msg: The message to add a delimited timestamp to.
+ *		delims: The delimiters to add to the message.  Nul characters (e.g., '\0', 0x0) will
+ *			be ignored/skipped.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      Heap-allocated, nul-terminated, datetime-stamp formatted msg, on success.
+ *      NULL on error (check errnum for details).
+ */
+char *timestamp_a_msg(const char *msg, const char delims[2], int *errnum);
+
 
 #endif  /* __SKID_TIME__ */

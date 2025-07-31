@@ -36,6 +36,7 @@
 //  want to penalize the user for utilizing a different compiler.
 #endif  /* SKID_AUTO_FREE_CHAR, SKID_AUTO_FREE_VOID */
 
+#include <stdbool.h>                        // bool
 #include <stddef.h>                         // size_t
 #include <sys/mman.h>                       // mmap() prot and flag macros
 #include "skid_macros.h"                    // ENOERR
@@ -65,6 +66,20 @@ void *alloc_skid_mem(size_t num_elem, size_t size_elem, int *errnum);
 
 /*
  *  Description:
+ *      Close the file descriptor to a POSIX shared memory object opened by open_shared_mem()
+ *      and sets it to SKID_BAD_FD (if it was successfully closed).
+ *
+ *  Args:
+ *      shmfd: [In/Out] A pointer to a shared memory object file descriptor to close.
+ *      quiet: If true, silences all logging/debugging.
+ *
+ *  Returns:
+ *      On success, ENOERR is returned.  On error, errno is returned.
+ */
+int close_shared_mem(int *shmfd, bool quiet);
+
+/*
+ *  Description:
  *      Determine the length of source, allocate a zeroized array in heap memory, and copy it.
  *      It is the caller's responsibility to free the return value using free_skid_string().
  *
@@ -80,10 +95,25 @@ char *copy_skid_string(const char *source, int *errnum);
 
 /*
  *  Description:
+ *      Remove a shared memory object name by calling shm_unlink().
+ *
+ *  Args:
+ *      name: An existing POSIX shared memory object to remove.  For portable use, a shared memory
+ *          object should be identified by a name of the form /somename; that is, a
+ *          null-terminated string of up to NAME_MAX characters consisting of an initial slash,
+ *          followed by one or more characters, none of which are slashes.
+ *
+ *  Returns:
+ *      ENOERR on success, an errno value on error.
+ */
+int delete_shared_mem(const char *name);
+
+/*
+ *  Description:
  *      Free skid-allocated heap memory and set the original pointer to NULL.
  *
  *  Args:
- *      old_mem: Pointer to the heap-allocated memory's storage location.
+ *      old_mem: [In/Out] Pointer to the heap-allocated memory's storage location.
  *
  *  Returns:
  *      0 on success, errno on error.
@@ -95,7 +125,7 @@ int free_skid_mem(void **old_mem);
  *      Free skid-allocated string and set the original pointer to NULL.
  *
  *  Args:
- *      old_string: Pointer to the heap-allocated string's storage location.
+ *      old_string: [In/Out] Pointer to the heap-allocated string's storage location.
  *
  *  Returns:
  *      0 on success, errno on error.
@@ -124,6 +154,27 @@ int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags);
 
 /*
  *  Description:
+ *      Map zeroized virtual memory to a file descriptor by utilizing mmap().
+ *
+ *  Args:
+ *      new_map: [In/Out] skidMemMapRegion pointer for a new mapping.  The mapping.addr value will
+ *          be passed to mmap() as a hint about where to place the mapping.  If NULL, the kernel
+ *          chooses the address.  Regardless, this value will be overwritten by this function with
+ *          the return value from mmap().
+ *      prot: The desired memory protection of the mapping (see: mmap(2)).
+ *      flags: Determines, among other things, whether updates to the mapping are visible to
+ *          other processes mapping the same region.  (see: mmap(2) for flags)
+ *      fd: A file descritptor to a file mapping (or some other object).
+ *      offset: [Optional] Beginning of the initialization of fd.  Must be a multiple of the
+ *          page size as returned by sysconf(_SC_PAGE_SIZE).
+ *
+ *  Returns:
+ *      ENOERR on success, errno value on error.
+ */
+int map_skid_mem_fd(skidMemMapRegion_ptr new_map, int prot, int flags, int fd, off_t offset);
+
+/*
+ *  Description:
  *      Map zeroized virtual memory to contain the struct and an addr pointer of size length.
  *      The same mapping contains the addr region and the struct so utilize unmap_skid_struct()
  *      to delete the mapping: struct, addr, and all.
@@ -142,6 +193,33 @@ int map_skid_mem(skidMemMapRegion_ptr new_map, int prot, int flags);
  *      ENOERR on success, errno value on error.
  */
 int map_skid_struct(skidMemMapRegion_ptr *new_struct, int prot, int flags, size_t length);
+
+/*
+ *  Description:
+ *      Creates and opens a new, or opens an existing, POSIX shared memory object specified by
+ *      name of exactly size bytes.  Use close_shared_mem() to close the file descriptor and
+ *      then delete_shared_mem() to remove a shared object name.
+ *
+ *  Args:
+ *      name: A new, or existing, POSIX shared memory object.  For portable use, a shared memory
+ *          object should be identified by a name of the form /somename; that is, a
+ *          null-terminated string of up to NAME_MAX characters consisting of an initial slash,
+ *          followed by one or more characters, none of which are slashes.
+ *      flags: A bit mask created by ORing together exactly one of O_RDONLY or O_RDWR and any
+ *          of the other flags listed in shm_open(3).
+ *      mode: [Optional] The permission bits for a new shared memory object when the O_CREAT
+ *          flag is used.  See skid_macros.h (or open(2)) for mode MACROS.
+ *      size: The intended size of the shared memory object.
+ *      truncate: Skips the call to ftruncate if False (see: truncate(2)).  Pass true when
+ *          this shared memory object is first created but false when it is accessed post-creation.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      File descriptor to the shared memory object on success and errnum is set to ENOERR.
+ *      SKID_BAD_FD on error and errnum is set with an errno value.
+ */
+int open_shared_mem(const char *name, int flags, mode_t mode, size_t size,
+                    bool truncate, int *errnum);
 
 /*
  *  Description:

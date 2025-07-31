@@ -1,5 +1,4 @@
-Tester's Creed
-
+TESTER'S CREED
 
 This is my test input. There are many like it, but this one is mine.
 

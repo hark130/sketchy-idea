@@ -5,6 +5,22 @@
 
 /*
  *  Description:
+ *      Write entry to the end of filename.
+ *
+ *  Args:
+ *      filename: Absolute or relative filename to write to.
+ *      entry: The entry to write to the end of filename.
+ *      create: If true, will create filename if it doesn't already exist.  If create is false
+ *          and filename does not exist, returns ENOENT.
+ *
+ *  Returns:
+ *      ENOERR, on success.  On failure, an errno value.  Uses EISDIR if filename exists but
+ *      is not a file.
+ */
+int append_to_file(const char *filename, const char *entry, bool create);
+
+/*
+ *  Description:
  *      Created a filename with provided contents.
  *
  *  Args:
@@ -34,7 +50,7 @@ int create_file(const char *filename, const char *contents, bool overwrite);
  *          processes which have the object open may continue to use it.
  *
  *  Args:
- *      filename: Absolute or relative filename to deleted.
+ *      filename: Absolute or relative filename to delete.
  *
  *  Returns:
  *      0, on success.  On failure, an errno value.

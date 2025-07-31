@@ -448,6 +448,21 @@ bool is_directory(const char *pathname, int *errnum);
 bool is_named_pipe(const char *filename, int *errnum);
 
 /*
+ *	Description:
+ *		Determine if pathname exists or not.
+ *
+ *	Args:
+ *		pathname: The path to test.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *	Returns:
+ *		If pathname exists, true.  Returns false if pathname does not exist or on error.
+ *		Check errnum to determine error status: ENOERR on success (regardless of pathname's existence),
+ *		errno value on error.
+ */
+bool is_path(const char *pathname, int *errnum);
+
+/*
  *  Description:
  *      Answers the question, "Is filename a regular file?".  Updates errnum with errno values.
  *      Calls stat(filename), reads the mode field from the stat struct, and checks it against

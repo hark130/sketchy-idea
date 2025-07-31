@@ -37,9 +37,27 @@ int validate_skid_fd(int fd);
  *      must_exist: If true, this function will use lstat() to access pathname.
  *
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *      ENOERR on successful validation.  An errno value indicating the results of validation:
+ *          - EINVAL: pathname is NULL or empty.
+ *          - ENOENT: must_exist is true but pathname was not found.
  */
 int validate_skid_pathname(const char *pathname, bool must_exist);
+
+/*
+ *  Description:
+ *      Validate shared object names (e.g., shared memory, named semaphores) on behalf of SKID.
+ *
+ *  Args:
+ *      shared_name: Shared object name to validate.
+ *      must_port: If true, shared_name must begin with a '/' for the sake of portability.
+ *          If you feel compelled to use false here, consider calling
+ *          validate_skid_string(name, false) for more gentle validation
+ *          (or use validate_skid_pathname(name, true) if you're using an actual filename?!).
+ *
+ *  Returns:
+ *      ENOERR on success, errno on failed validation.
+ */
+int validate_skid_shared_name(const char *shared_name, bool must_port);
 
 /*
  *  Description:

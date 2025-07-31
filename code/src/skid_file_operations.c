@@ -5,11 +5,13 @@
 // #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // errno
+#include <fcntl.h>                          // O_CREAT, O_WRONLY
 #include <stdbool.h>                        // false
 #include <stdio.h>                          // fclose(), fopen(), fread(), fwrite()
 #include <string.h>                         // strlen()
 #include <unistd.h>                         // unlink()
 #include "skid_debug.h"                     // PRINT_ERROR()
+#include "skid_file_descriptors.h"          // close_fd(), open_fd(), write_fd()
 #include "skid_file_metadata_read.h"        // get_size()
 #include "skid_file_operations.h"           // bool, empty_file(), false, true
 #include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
@@ -93,6 +95,63 @@ SKID_INTERNAL int write_stream(const char *contents, FILE *stream);
 /**************************************************************************************************/
 /********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
 /**************************************************************************************************/
+
+
+int append_to_file(const char *filename, const char *entry, bool create)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;              // Results of execution
+    int fd = SKID_BAD_FD;             // A file descriptor for filename
+    int flags = O_WRONLY | O_APPEND;  // See open(2) && open_fd()
+    // See open(2)
+    mode_t mode = SKID_MODE_OWNER_R | SKID_MODE_OWNER_W | SKID_MODE_GROUP_R | SKID_MODE_GROUP_W;
+
+    // INPUT VALIDATION
+    // filename
+    result = validate_skid_pathname(filename, false);
+    // entry
+    if (ENOERR == result)
+    {
+        result = validate_skid_string(entry, true);
+    }
+
+    // ENVIRONMENT VALIDATION
+    if (ENOERR == result)
+    {
+        if (false == is_path(filename, &result))
+        {
+            if (true == create)
+            {
+                flags |= O_CREAT;  // Create it if it doesn't already exist
+            }
+            else if (ENOERR == result)
+            {
+                result = ENOENT;  // The file didn't exist, no errors found, but we're not to create it.
+            }
+        }
+    }
+
+    // APPEND IT
+    // Open it
+    if (ENOERR == result)
+    {
+        fd = open_fd(filename, flags, mode, &result);
+    }
+    // Write it
+    if (ENOERR == result)
+    {
+        result = write_fd(fd, entry);
+    }
+
+    // CLEANUP
+    if (SKID_BAD_FD != fd)
+    {
+        close_fd(&fd, true);  // Best effort
+    }
+
+    // DONE
+    return result;
+}
 
 
 int create_file(const char *filename, const char *contents, bool overwrite)

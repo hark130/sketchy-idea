@@ -5,6 +5,8 @@
 #ifndef __SKID_MACROS__
 #define __SKID_MACROS__
 
+#include <semaphore.h>                      // sem_t
+#include <sys/stat.h>                       // mode_t MACROS
 #include <sys/types.h>                      // pid_t
 
 /* GENERAL MACROS */
@@ -63,7 +65,7 @@
 #endif
 
 /* FILE DESCRIPTOR MACROS */
-#define SKID_BAD_FD (signed int)-1  // Use this to standardize "invalid" file descriptors
+#define SKID_BAD_FD ((signed int)-1)  // Use this to standardize "invalid" file descriptors
 // SKID_STDIN_FD - File number of stdin.
 #ifdef STDIN_FILENO
 #define SKID_STDIN_FD STDIN_FILENO
@@ -112,6 +114,9 @@
 #define SKID_RAW_SOCK_ALIAS "RAW"  // Use this alias to check for a raw socket protocol
 
 /* PID MACROS */
-#define SKID_BAD_PID (pid_t)-1  // Use this to standardize "invalid" PIDs
+#define SKID_BAD_PID ((pid_t)-1)  // Use this to standardize "invalid" PIDs
+
+/* SEMAPHORE MACROS */
+#define SKID_BAD_SEM_PTR ((sem_t *)0)  // SEM_FAILED, as a pointer type value, is dangerous
 
 #endif  /* __SKID_MACROS__ */
