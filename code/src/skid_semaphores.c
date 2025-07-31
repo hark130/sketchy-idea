@@ -103,16 +103,48 @@ named_sem_ptr create_named_sem(const char *name, int flags, mode_t mode, int *er
     int value = 1;                             // Initial value of the semaphore
 
     // INPUT VALIDATION
-    results = validate_skid_shared_name(name, true);  // Must be portable
-    if (ENOERR == results)
-    {
-        results = validate_skid_err(errnum);
-    }
+    // The name arg is validated by call_sem_open()
+    results = validate_skid_err(errnum);
 
     // CREATE IT
     if (ENOERR == results)
     {
         sem_ptr = (named_sem_ptr)call_sem_open(name, new_flags, mode, value, &results);
+    }
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = results;
+    }
+    return sem_ptr;
+}
+
+
+named_sem_ptr open_named_sem(const char *name, int flags, int *errnum)
+{
+    // LOCAL VARIABLES
+    int results = ENOERR;                      // Store errno values
+    mode_t mode = 0;                           // Dummy sem_open(mode) value
+    int value = 0;                             // Dummy sem_open(value) value
+    named_sem_ptr sem_ptr = SKID_BAD_SEM_PTR;  // Pointer to the named semaphore
+
+    // INPUT VALIDATION
+    // The name arg is validated by call_sem_open()
+    results = validate_skid_err(errnum);
+    if (ENOERR == results)
+    {
+        if (O_CREAT == (O_CREAT & flags) && 0 != O_CREAT)
+        {
+            results = EINVAL;  // Call create_named_sem() instead
+            PRINT_ERROR(Detected the CREATE flag in flags);
+        }
+    }
+
+    // OPEN IT
+    if (ENOERR == results)
+    {
+        sem_ptr = (named_sem_ptr)call_sem_open(name, flags, mode, value, &results);
     }
 
     // DONE

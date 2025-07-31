@@ -49,6 +49,23 @@ named_sem_ptr create_named_sem(const char *name, int flags, mode_t mode, int *er
 
 /*
  *  Description:
+ *      Open an existing named semaphore.  The caller is responsible for calling
+ *      close_named_sem() on the return value.
+ *
+ *  Args:
+ *      name: The name of the named semaphore.  Must begin with '/' for portability.
+ *      flags: Controls the operation of the call to sem_open().  Definitions of the flag values
+ *          can be obtained by including <fcntl.h>.
+ *      errnum: [Out] Storage location for errno values encountered.
+ *
+ *  Returns:
+ *      The address of the named semaphore, on success.  SKID_BAD_SEM_PTR on error and sets
+ *      errnum accordingly.  Uses ENOTNAM for unspecified errors.
+ */
+named_sem_ptr open_named_sem(const char *name, int flags, int *errnum);
+
+/*
+ *  Description:
  *      Releases the semaphore by calling sem_post().
  *
  *  Args:
