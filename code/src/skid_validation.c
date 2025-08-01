@@ -2,7 +2,7 @@
  *  This library defines functionality to help automate validation.
  */
 
-// #define SKID_DEBUG                        // Enable DEBUG logging
+#define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // EINVAL
 #include <stddef.h>                         // NULL
@@ -53,7 +53,7 @@ int validate_skid_fd(int fd)
     }
     else
     {
-        FPRINTF_ERR("%s file descriptor %d failed validation", DEBUG_ERROR_STR, fd);
+        FPRINTF_ERR("%s - File descriptor %d failed validation\n", DEBUG_ERROR_STR, fd);
         PRINT_ERRNO(result);
     }
 
