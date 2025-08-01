@@ -23,7 +23,10 @@
 #include <stdlib.h>                         // exit()
 #include <unistd.h>                         // fork()
 #include "skid_debug.h"                     // MODULE_*LOAD(), *PRINT*_ERR*()
+#include "skid_file_descriptors.h"          // write_fd()
 #include "skid_macros.h"                    // ENOERR, SKID_BAD_FD, SKID_BAD_PID
+#include "skid_memory.h"                    // alloc_skid_mem(), free_skid_mem()
+#include "skid_pipes.h"                     // create_pipes()
 #include "skid_signal_handlers.h"           // handle_signal_number()
 #include "skid_signals.h"                   // set_signal_handler()
 #include "skid_validation.h"                // validate_skid_*()
@@ -68,6 +71,10 @@ int main(int argc, char *argv[])
     int exit_code = ENOERR;         // Errno values
     unsigned int num_children = 0;  // Number of children to spawn
     pid_t pid = SKID_BAD_PID;       // Temp return value from fork()
+    int read_fd = SKID_BAD_FD;      // Temp read end of the pipe
+    int write_fd = SKID_BAD_FD;     // Temp write end of the pipe
+    int *fds = NULL;                // Heap-allocated array for the parent to store read_fds
+    pid_t *child_pids = NULL;       // Heap-allocated array for the parent to store child PIDs
 
     // INPUT VALIDATION
     if (2 != argc)
@@ -100,6 +107,16 @@ int main(int argc, char *argv[])
     {
         exit_code = set_signal_handler(SHUTDOWN_SIG, handle_signal_number, 0, NULL);
     }
+    // Parent's array of pipe read file descriptors
+    if (ENOERR == exit_code)
+    {
+        fds = alloc_skid_mem(num_children, sizeof(int), &exit_code);
+    }
+    // Parent's array of child PIDs
+    if (ENOERR == exit_code)
+    {
+        child_pids = alloc_skid_mem(num_children, sizeof(pid_t), &exit_code);
+    }
 
     // DO IT
     // Fork it
@@ -108,21 +125,33 @@ int main(int argc, char *argv[])
         for (unsigned int i = 0; i < num_children; i++)
         {
             // Create a temp, local pipe
+            exit_code = create_pipes(&read_fd, &write_fd, 0);
+            if (ENOERR != exit_code)
+            {
+                PRINT_ERROR(The call to create_pipes() reported an error);
+                PRINT_ERRNO(exit_code);
+                break;  // We encountered an error, so stop looping
+            }
             // Fork
             pid = fork();
             // Parent
             if (pid > 0)
             {
                 // Store the PID
+                child_pids[i] = pid;
                 // Close the write end of the pipe
+                close_pipe(&write_fd, false);
                 // Add the read end of the pipe to the bookkeeping
+                fds[i] = read_fd;
+                read_fd = SKID_BAD_FD;  // Reset the temp variable
             }
             // Child
             else if (0 == pid)
             {
                 // Close the read end of the pipe
+                close_pipe(&read_fd, false);
                 // Start logging
-                be_a_child(SKID_BAD_FD);
+                be_a_child(write_fd);
             }
             // Error
             else
@@ -156,6 +185,14 @@ int main(int argc, char *argv[])
     }
 
     // CLEANUP
+    if (NULL != fds)
+    {
+        free_skid_mem((void **)&fds);
+    }
+    if (NULL != child_pids)
+    {
+        free_skid_mem((void **)&child_pids);
+    }
 
     // DONE
     exit(exit_code);
@@ -179,12 +216,14 @@ void be_a_child(int fd)
         }
         // Randomize a number
         // Sleep
+        sleep(1);  // TO DO: DON'T DO NOW
         // Generate a messge
         // Write the message to the fd
+        exit_code = write_fd(fd, CHILD_STR);  // TO DO: DON'T DO NOW
     }
 
     // CLEANUP
-    // close_pipe_fd(&fd, false);  // Close the pipe file descriptor
+    close_pipe(&fd, false);  // Close the pipe file descriptor
 
     // DONE
     exit(exit_code);
