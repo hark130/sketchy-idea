@@ -2,7 +2,7 @@
  *    This library defines functionality to manage Linux file descriptors.
  */
 
-// #define SKID_DEBUG                          // Enable DEBUG logging
+#define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                      // EINVAL
 #include <fcntl.h>                      // open()
@@ -51,7 +51,7 @@ SKID_INTERNAL bool check_for_space(size_t bytes_read, size_t output_len, size_t 
  *      output_size: [Out] Pointer to the size of output_buf.
  *
  *  Returns:
- *      0 on success, errno on failure.
+ *      ENOERR on success, errno on failure.
  */
 SKID_INTERNAL int check_for_pre_alloc(char **output_buf, size_t *output_size);
 
@@ -70,7 +70,7 @@ SKID_INTERNAL int check_for_pre_alloc(char **output_buf, size_t *output_size);
  *      output_size: [In/Out] Pointer to the size of output_buf.
  *
  *  Returns:
- *      0 on success, errno on failure.
+ *      ENOERR on success, errno on failure.
  */
 SKID_INTERNAL int read_fd_dynamic(int fd, char **output_buf, size_t *output_size);
 
@@ -87,7 +87,7 @@ SKID_INTERNAL int read_fd_dynamic(int fd, char **output_buf, size_t *output_size
  *      output_size: [In/Out] Pointer to the size of output_buf.
  *
  *  Returns:
- *      0 on success, errno on failure.  EOVERFLOW is used to indicate the output_size can not
+ *      ENOERR on success, errno on failure.  EOVERFLOW is used to indicate the output_size can not
  *      be doubled without overflowing the size_t data type.
  */
 SKID_INTERNAL int realloc_fd_dynamic(char **output_buf, size_t *output_size);
@@ -103,7 +103,7 @@ SKID_INTERNAL int realloc_fd_dynamic(char **output_buf, size_t *output_size);
  *      output_size: [In/Out] Pointer to the size of output_buf.
  *
  *  Returns:
- *      0 on success, errno on failed validation.
+ *      ENOERR on success, errno on failed validation.
  */
 SKID_INTERNAL int validate_sfd_args(char **output_buf, size_t *output_size);
 
@@ -374,6 +374,7 @@ SKID_INTERNAL int read_fd_dynamic(int fd, char **output_buf, size_t *output_size
     ssize_t num_read = 0;                       // Number of bytes read
     size_t output_len = 0;                      // The length of *output_buf's string
     char *tmp_ptr = NULL;                       // Temp pointer
+    bool read_something = false;                // Did one read work?
 
     // INPUT VALIDATION
     if (ENOERR == result)
@@ -395,10 +396,30 @@ SKID_INTERNAL int read_fd_dynamic(int fd, char **output_buf, size_t *output_size
             output_len = strlen(*output_buf);  // Get the current length of output_buf
             // Read into local buff
             num_read = read(fd, local_buf, sizeof(local_buf));
-            if (0 == num_read)
+            if (0 > num_read)
+            {
+                result = errno;
+                // Sometimes, fds flagged with O_NONBLOCK appear to use this on a partial
+                // read.  So, we're going to treat a partial read as a read and roll with it.
+                if ((EAGAIN == result || EWOULDBLOCK == result) && true == read_something)
+                {
+                    result = ENOERR;  // At least one read worked so we're gonna roll with it.
+                }
+                else
+                {
+                    PRINT_ERROR(The call to read() failed);
+                    PRINT_ERRNO(result);
+                }
+                break;  // EOF or error... either way, let's stop
+            }
+            else if (0 == num_read)
             {
                  FPRINTF_ERR("%s - Call to read() reached EOF\n", DEBUG_INFO_STR);
                  break;  // Done reading
+            }
+            else
+            {
+                read_something = true;  // At least one read() worked
             }
             // Check for room
             if (false == check_for_space(num_read, output_len, *output_size))
