@@ -28,14 +28,17 @@
 #include "skid_macros.h"                    // ENOERR, SKID_BAD_FD, SKID_BAD_PID
 #include "skid_memory.h"                    // alloc_skid_mem(), free_skid_mem()
 #include "skid_pipes.h"                     // create_pipes()
+#include "skid_random.h"                    // randomize_number()
 #include "skid_signal_handlers.h"           // handle_signal_number()
 #include "skid_signals.h"                   // set_signal_handler()
+#include "skid_time.h"                      // timestamp_a_msg()
 #include "skid_validation.h"                // validate_skid_*()
 
 #define CHILD_STR "CHILD"                   // Identifying string for child process logging
 #define PARENT_STR "PARENT"                 // Identifying string for parent process logging
 #define MAIN_STR "MAIN"                     // Identifying string for .bin logging
 #define SHUTDOWN_SIG SIGINT                 // "Shutdown" signal
+#define MAX_SLEEP 10                        // Upper end bound for random sleep() values
 
 /*
  *  Start randomizing intervals and writing to fd in an infinite loop... like a child.
@@ -54,6 +57,12 @@ void be_a_child(int fd);
  *      Converted value on success.  On error, 0 and errnum is set.
  */
 unsigned int convert_str_to_uint(const char *string, int *errnum);
+
+/*
+ *  "[20250721-124356] Hello from PID <PID>"
+ *  Use free_skid_mem() on the return value.
+ */
+char *generate_a_message(int *errnum);
 
 /*
  *  Print shutdown instructions.
@@ -170,7 +179,6 @@ int main(int argc, char *argv[])
     if (ENOERR == exit_code && pid > 0)
     {
         print_shutdown(argv[0]);
-        fprintf(stdout, "\n\n%s - Polling...", PARENT_STR);
         while(1)
         {
             if (SHUTDOWN_SIG == skid_sig_hand_signum)
@@ -180,8 +188,6 @@ int main(int argc, char *argv[])
             }
             // poll() here
             sleep(1);
-            // fprintf(stdout, ".");
-            fflush(stdout);
             tmp_msg = read_fd(fds[0], &exit_code);  // TO DO: DON'T DO NOW... iterate over the array
             if (ENOERR == exit_code)
             {
@@ -209,33 +215,56 @@ int main(int argc, char *argv[])
 void be_a_child(int fd)
 {
     // LOCAL VARIABLES
-    int exit_code = ENOERR;  // Errno values
+    int exit_code = ENOERR;       // Errno values
+    unsigned int random_num = 0;  // Random sleep value
+    char *tmp_msg = NULL;         // Temporary message
 
     // INPUT VALIDATION
     exit_code = validate_skid_fd(fd);
 
     // BE IT
-    while (ENOERR == exit_code)
+    while (1)
     {
+        // Randomize a number
+        random_num = randomize_number(MAX_SLEEP, &exit_code);
+        if (ENOERR != exit_code)
+        {
+            PRINT_ERROR(The call to randomize_number() failed);
+            PRINT_ERRNO(exit_code);
+            break;
+        }
+        // Sleep
+        sleep(random_num);
+        // Time to shutdown?  Last chance...
         if (SHUTDOWN_SIG == skid_sig_hand_signum)
         {
             break;  // Time to cleanup and exit
         }
-        // Randomize a number
-        // Sleep
-        sleep(1);  // TO DO: DON'T DO NOW
         // Generate a messge
+        tmp_msg = generate_a_message(&exit_code);
+        if (ENOERR != exit_code)
+        {
+            PRINT_ERROR(The call to generate_a_message() failed);
+            PRINT_ERRNO(exit_code);
+            break;
+        }
         // Write the message to the fd
-        exit_code = write_fd(fd, CHILD_STR);  // TO DO: DON'T DO NOW
+        exit_code = write_fd(fd, tmp_msg);
+        free_skid_mem((void **)&tmp_msg);  // Best effort, soonest
         if (ENOERR != exit_code)
         {
             PRINT_ERROR(The call to write_fd() failed);
             PRINT_ERRNO(exit_code);
+            break;
         }
     }
 
     // CLEANUP
     close_pipe(&fd, false);  // Close the pipe file descriptor
+    if (NULL != tmp_msg)
+    {
+        free_skid_mem((void **)&tmp_msg);  // Best effort
+    }
 
     // DONE
     exit(exit_code);
@@ -275,6 +304,36 @@ unsigned int convert_str_to_uint(const char *string, int *errnum)
         *errnum = results;
     }
     return converted_val;
+}
+
+
+char *generate_a_message(int *errnum)
+{
+    // LOCAL VARIABLES
+    int results = ENOERR;     // Store errno value
+    pid_t my_pid = getpid();  // This process' PID
+    char *full_msg = NULL;    // Timestamped version of the base_msg
+    // 20 for the largest PID, 1 for the nul character, and the rest for the string
+    char base_msg[1024] = { "\0" };
+
+    // INPUT VALIDATION
+    results = validate_skid_err(errnum);
+
+    // GENERATE IT
+    if (ENOERR == results)
+    {
+        // Base message
+        sprintf(base_msg, "Hello from PID %jd", (intmax_t)my_pid);
+        // Timestamp it
+        full_msg = timestamp_a_msg(base_msg, "[]", &results);
+    }
+
+    // DONE
+    if (NULL != errnum)
+    {
+        *errnum = results;
+    }
+    return full_msg;
 }
 
 
