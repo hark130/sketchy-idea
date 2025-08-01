@@ -116,7 +116,7 @@ int delete_shared_mem(const char *name);
  *      old_mem: [In/Out] Pointer to the heap-allocated memory's storage location.
  *
  *  Returns:
- *      0 on success, errno on error.
+ *      ENOERR on success, errno on error.
  */
 int free_skid_mem(void **old_mem);
 
@@ -128,7 +128,7 @@ int free_skid_mem(void **old_mem);
  *      old_string: [In/Out] Pointer to the heap-allocated string's storage location.
  *
  *  Returns:
- *      0 on success, errno on error.
+ *      ENOERR on success, errno on error.
  */
 int free_skid_string(char **old_string);
 
