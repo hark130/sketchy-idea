@@ -2,7 +2,7 @@
  *    This library defines functionality to manage Linux file descriptors.
  */
 
-#define SKID_DEBUG                          // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                      // EINVAL
 #include <fcntl.h>                      // open()
