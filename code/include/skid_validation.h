@@ -24,7 +24,7 @@ int validate_skid_err(int *err);
  *      fd: File descriptor to validate.
  *
  *  Returns:
- *      ENOERR on success, errno on failed validation.
+ *      ENOERR on success, EBADF on failed validation.
  */
 int validate_skid_fd(int fd);
 
