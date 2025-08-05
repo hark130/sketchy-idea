@@ -2,7 +2,7 @@
  *  This source file was created to demonstrate the proper usage of poll.
  *      1. Sets up a "shutdown" signal handler
  *      2. Spawns a swarm of children, each with a dedicated unnamed pipe
- *      3. Maintains bookkeeping: PIDs, pipe fds, etc.
+ *      3. Maintains bookkeeping: PIDs, pipe fds, etc
  *      4. Each child will write to their unnamed pipe at psuedo-random intervals
  *      5. The parent will use poll to watch the read ends of the pipes
  *      6. It all gets shutdown when the signal is received
@@ -248,14 +248,6 @@ int main(int argc, char *argv[])
     }
 
     // CLEANUP
-    // if (NULL != poll_fds)
-    // {
-    //     for (int i = 0; i < num_children; i++)
-    //     {
-    //         close_pipe(&(poll_fds[i].fd), true);  // Best effort... might have some SKID_BAD_FDs
-    //     }
-    //     free_skid_mem((void **)&poll_fds);
-    // }
     if (NULL != child_pids)
     {
         // Kill the children
@@ -263,9 +255,8 @@ int main(int argc, char *argv[])
         // Wait for the children to die
         wait_for_children(child_pids, num_children, true);  // print
         // Free the array of PIDs
-        // free_skid_mem((void **)&child_pids);
-        clean_up(&child_pids, &poll_fds, num_children, SKID_BAD_FD);  // Close them *all*
     }
+    clean_up(&child_pids, &poll_fds, num_children, SKID_BAD_FD);  // Close them *all*
 
     // DONE
     exit(exit_code);
