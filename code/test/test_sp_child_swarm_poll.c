@@ -48,6 +48,14 @@
 void be_a_child(int fd);
 
 /*
+ *  Everybody needs to be cleaning up so I made a SPOT.  All pollfd.fds will be closed except for
+ *  my_fd.  Pass SKID_BAD_FD in as my_fd to close all valid fds.  Every call in this function
+ *  will be quiet, as available, and "best effort".
+ */
+void clean_up(pid_t **child_pids_ptr, struct pollfd **poll_fds_ptr, unsigned int array_len,
+              int my_fd);
+
+/*
  *  Description:
  *      Convert a string to an unsigned integer.
  *
@@ -172,6 +180,8 @@ int main(int argc, char *argv[])
             {
                 // Close the read end of the pipe
                 close_pipe(&pipe_read_fd, false);
+                // Cleanup the parent process' allocations
+                clean_up(&child_pids, &poll_fds, num_children, pipe_write_fd);
                 // Start logging
                 be_a_child(pipe_write_fd);
             }
@@ -238,14 +248,14 @@ int main(int argc, char *argv[])
     }
 
     // CLEANUP
-    if (NULL != poll_fds)
-    {
-        for (int i = 0; i < num_children; i++)
-        {
-            close_pipe(&(poll_fds[i].fd), true);  // Best effort... might have some SKID_BAD_FDs
-        }
-        free_skid_mem((void **)&poll_fds);
-    }
+    // if (NULL != poll_fds)
+    // {
+    //     for (int i = 0; i < num_children; i++)
+    //     {
+    //         close_pipe(&(poll_fds[i].fd), true);  // Best effort... might have some SKID_BAD_FDs
+    //     }
+    //     free_skid_mem((void **)&poll_fds);
+    // }
     if (NULL != child_pids)
     {
         // Kill the children
@@ -253,7 +263,8 @@ int main(int argc, char *argv[])
         // Wait for the children to die
         wait_for_children(child_pids, num_children, true);  // print
         // Free the array of PIDs
-        free_skid_mem((void **)&child_pids);
+        // free_skid_mem((void **)&child_pids);
+        clean_up(&child_pids, &poll_fds, num_children, SKID_BAD_FD);  // Close them *all*
     }
 
     // DONE
@@ -317,6 +328,35 @@ void be_a_child(int fd)
 
     // DONE
     exit(exit_code);
+}
+
+
+void clean_up(pid_t **child_pids_ptr, struct pollfd **poll_fds_ptr, unsigned int array_len,
+              int my_fd)
+{
+    // LOCAL VARIABLES
+    struct pollfd *poll_fds = NULL;  // Pointer to the array of pollfd structs
+
+    // CLEAN UP
+    // Child PIDs array
+    if (NULL != child_pids_ptr)
+    {
+        // Free the array of PIDs
+        free_skid_mem((void **)child_pids_ptr);
+    }
+    // Array of pollfd structs
+    if (NULL != poll_fds_ptr && NULL != *poll_fds_ptr)
+    {
+        poll_fds = *poll_fds_ptr;
+        for (unsigned int i = 0; i < array_len; i++)
+        {
+            if (my_fd != poll_fds[i].fd && SKID_BAD_FD != poll_fds[i].fd)
+            {
+                close_pipe(&(poll_fds[i].fd), true);  // Best effort
+            }
+        }
+        free_skid_mem((void **)poll_fds_ptr);  // Best effort
+    }
 }
 
 
