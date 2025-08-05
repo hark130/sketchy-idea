@@ -2,7 +2,7 @@
  *  This library defines functionality to help automate validation.
  */
 
-#define SKID_DEBUG                          // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // EINVAL
 #include <stddef.h>                         // NULL

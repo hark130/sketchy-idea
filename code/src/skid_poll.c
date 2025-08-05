@@ -2,7 +2,7 @@
  *  This library defines poll()-related functionality.
  */
 
-#define SKID_DEBUG                          // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // EINVAL
 #include <stdbool.h>                        // bool, false, true

@@ -4,7 +4,7 @@
 
 #define _GNU_SOURCE                         // Access to pipe2()
 
-#define SKID_DEBUG                          // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // errno, EEXIST
 #include <stdbool.h>                        // false
