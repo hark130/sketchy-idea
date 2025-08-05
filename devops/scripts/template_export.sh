@@ -139,7 +139,10 @@ for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && b
 # 5. Misc.
 # 5.A.
 echo
+print_banner "TD:DDN"
 print_title "TO DO: DON'T DO NOW... Put something here!"
+run_manual_test_command "echo TO DO: DO NOT DO NOW... Put something here!"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 
 # DONE
 if [ $EXIT_CODE -ne 0 ]
