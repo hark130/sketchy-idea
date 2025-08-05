@@ -250,12 +250,13 @@ SKID_INTERNAL bool has_data(struct pollfd *poll_fd, int *errnum)
     {
         if (((poll_fd->revents & POLLIN) == POLLIN) && 0 != POLLIN)
         {
-            FPRINTF_ERR("%s This pollfd struct is reporting there is data to read", DEBUG_INFO_STR);
+            FPRINTF_ERR("%s This pollfd struct is reporting there is data to read\n",
+                        DEBUG_INFO_STR);
             it_has_data = true;
         }
         if (((poll_fd->revents & POLLPRI) == POLLPRI) && 0 != POLLPRI)
         {
-            FPRINTF_ERR("%s This pollfd struct is reporting there is urgent data available",
+            FPRINTF_ERR("%s This pollfd struct is reporting there is urgent data available\n",
                         DEBUG_INFO_STR);
             it_has_data = true;
         }
