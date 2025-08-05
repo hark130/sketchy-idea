@@ -8,7 +8,12 @@
 # 3. Executes the unit tests with Valgrind
 # 4. Counts the number of unit tests
 # 5. Misc. (e.g., executing bespoke manual test code highlighting features/functionality)
-# 5.A.
+# 5.A. Listing sockets
+# 5.B. Listing current processes
+# 5.C. Viewing CPU information, usage, etc.
+# 5.D. View information about the system
+# 5.E. Obtain information about the logged on user
+# 5.F. View the system's IP address(es)
 
 
 BOOKEND="***"  # SPOT for formatting titles and banners
@@ -28,7 +33,7 @@ BOOKEND="***"  # SPOT for formatting titles and banners
 print_banner()
 {
     # LOCAL VARIABLES
-    RET_CODE=0                                                 # Exit code from command execution
+    RET_CODE=0                                                # Exit code from command execution
     FORMAT_CHAR="${BOOKEND:0:1}"                               # Formatting
     TITLE="$@"                                                 # The title argument
     LENGTH=$((${#BOOKEND} + 1 + ${#TITLE} + 1 + ${#BOOKEND}))  # Length of the title
@@ -127,6 +132,8 @@ run_manual_test_command_verbose()
 BOOKEND="***"                                                       # Formatting
 TEMP_RET=0                                                          # Temporary exit code var
 EXIT_CODE=0                                                         # Exit value
+DIST_DIR=./code/dist/                                               # Dist directory
+SOCKET_SERVER="${DIST_DIR}test_sn_simple_stream_server.bin"         # Streaming socket server
 
 # 1. Stores the date
 printf "\n%s This output was created by %s on %s %s\n" "$BOOKEND" "$(basename "$0")" "$(date)" "$BOOKEND" && \
@@ -137,9 +144,52 @@ make && echo && \
 # 4. Counts the number of unit tests (by running them again)
 for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
 # 5. Misc.
-# 5.A.
-echo
-print_title "TO DO: DON'T DO NOW... Put something here!"
+# 5.A. Listing sockets
+print_banner "LISTING SOCKETS"
+print_title "1. Start a server which opens a socket"
+run_manual_test_command "${SOCKET_SERVER} &"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+sleep 1  # Give it a second...
+print_title "2. List all sockets"
+run_manual_test_command "ss --tcp --udp --listening --numeric --processes"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "3. Shutdown the server"
+run_manual_test_command "kill `pidof ${SOCKET_SERVER}`"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+# 5.B. Listing current processes
+print_banner "LISTING CURRENT PROCESSES"
+print_title "List every process on the system using BSD syntax"
+run_manual_test_command "ps axu"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+# 5.C. Viewing CPU information, usage, etc.
+print_banner "VIEWING CPU INFORMATION"
+print_title "Display information about the CPU architecture"
+run_manual_test_command "lscpu"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+# 5.D. View information about the system
+print_banner "VIEW SYSTEM INFORMATION"
+print_title "Print all system information"
+run_manual_test_command "uname -a"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Query and change the system hostname and related settings"
+run_manual_test_command "hostnamectl"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+# 5.E. Obtain information about the logged on user
+print_banner "OBTAIN USER INFORMATION"
+print_title "Show who is logged on and what they are doing"
+run_manual_test_command "w"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Show who is logged on"
+run_manual_test_command "who"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Print real and effective user and group IDs"
+run_manual_test_command "id"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+# 5.F. View the system's IP address(es)
+print_banner "VIEW SYSTEM IP ADDRESSES"
+print_title "Show addresses assigned to all network interfaces"
+run_manual_test_command "ip addr show"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 
 # DONE
 if [ $EXIT_CODE -ne 0 ]
