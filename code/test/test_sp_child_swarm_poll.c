@@ -26,8 +26,9 @@
 #include "skid_debug.h"                     // MODULE_*LOAD(), *PRINT*_ERR*()
 #include "skid_file_descriptors.h"          // read_fd(), write_fd()
 #include "skid_macros.h"                    // ENOERR, SKID_BAD_FD, SKID_BAD_PID
-#include "skid_memory.h"                    // alloc_skid_mem(), free_skid_mem()
-#include "skid_pipes.h"                     // create_pipes()
+#include "skid_memory.h"                    // free_skid_mem()
+#include "skid_pipes.h"                     // close_pipe(), create_pipes()
+#include "skid_poll.h"                      // struct pollfd
 #include "skid_random.h"                    // randomize_number()
 #include "skid_signal_handlers.h"           // handle_signal_number()
 #include "skid_signals.h"                   // set_signal_handler()
@@ -83,9 +84,12 @@ int main(int argc, char *argv[])
     pid_t pid = SKID_BAD_PID;         // Temp return value from fork()
     int pipe_read_fd = SKID_BAD_FD;   // Temp read end of the pipe
     int pipe_write_fd = SKID_BAD_FD;  // Temp write end of the pipe
-    int *fds = NULL;                  // Heap-allocated array for the parent to store read_fds
+    // int *fds = NULL;                  // Heap-allocated array for the parent to store read_fds
     pid_t *child_pids = NULL;         // Heap-allocated array for the parent to store child PIDs
+    struct pollfd *poll_fds = NULL;   // Heap-allocated array for the pollfd structs
     char *tmp_msg = NULL;             // Temp var w/ heap-allocated string read for poll()ing fds
+    int num_rdy = 0;                  // Number of fds ready
+    int tmp_revents = 0;              // Temp var to store the revents
 
     // INPUT VALIDATION
     if (2 != argc)
@@ -118,10 +122,15 @@ int main(int argc, char *argv[])
     {
         exit_code = set_signal_handler(SHUTDOWN_SIG, handle_signal_number, 0, NULL);
     }
-    // Parent's array of pipe read file descriptors
+    // // Parent's array of pipe read file descriptors
+    // if (ENOERR == exit_code)
+    // {
+    //     fds = alloc_skid_mem(num_children, sizeof(int), &exit_code);
+    // }
+    // Parent's array of pollfd structs
     if (ENOERR == exit_code)
     {
-        fds = alloc_skid_mem(num_children, sizeof(int), &exit_code);
+        poll_fds = alloc_skid_mem(num_children, sizeof(struct pollfd), &exit_code);
     }
     // Parent's array of child PIDs
     if (ENOERR == exit_code)
@@ -153,7 +162,8 @@ int main(int argc, char *argv[])
                 // Close the write end of the pipe
                 close_pipe(&pipe_write_fd, false);
                 // Add the read end of the pipe to the bookkeeping
-                fds[i] = pipe_read_fd;
+                // fds[i] = pipe_read_fd;
+                poll_fds[i].fd = pipe_read_fd;
                 pipe_read_fd = SKID_BAD_FD;  // Reset the temp variable
             }
             // Child
@@ -179,7 +189,7 @@ int main(int argc, char *argv[])
     if (ENOERR == exit_code && pid > 0)
     {
         print_shutdown(argv[0]);
-        while(1)
+        while(ENOERR == exit_code)
         {
             if (SHUTDOWN_SIG == skid_sig_hand_signum)
             {
@@ -187,20 +197,44 @@ int main(int argc, char *argv[])
                 break;  // Time to cleanup and exit
             }
             // poll() here
-            sleep(1);
-            tmp_msg = read_fd(fds[0], &exit_code);  // TO DO: DON'T DO NOW... iterate over the array
-            if (ENOERR == exit_code)
+            num_rdy = call_poll(poll_fds, num_children, -1, &exit_code);
+            if (ENOERR != exit_code)
             {
-                fprintf(stdout, "%s - %s\n", PARENT_STR, tmp_msg);
-                exit_code = free_skid_mem((void **)&tmp_msg);
+                PRINT_ERROR(The call to call_poll() reported an error);
+                PRINT_ERRNO(exit_code);
+                break;  // We encountered an error, so stop looping
+            }
+            else if (0 == num_rdy)
+            {
+                printf("%s No children are ready yet\n", PARENT_STR);
+                sleep(1);  // A tasteful sleep
+            }
+            else if (num_rdy > 0)
+            {
+                for (int i = 0; i < num_children; i++)
+                {
+                    if (SKID_BAD_FD != poll_fds[i].fd)
+                    {
+                        tmp_msg = read_pollfd(&(poll_fds[i]), &tmp_revents, &exit_code);
+                        if (ENOERR == exit_code)
+                        {
+                            fprintf(stdout, "%s - %s\n", PARENT_STR, tmp_msg);
+                            exit_code = free_skid_mem((void **)&tmp_msg);
+                        }
+                    }
+                }
             }
         }
     }
 
     // CLEANUP
-    if (NULL != fds)
+    // if (NULL != fds)
+    // {
+    //     free_skid_mem((void **)&fds);
+    // }
+    if (NULL != poll_fds)
     {
-        free_skid_mem((void **)&fds);
+        free_skid_mem((void **)&poll_fds);
     }
     if (NULL != child_pids)
     {
