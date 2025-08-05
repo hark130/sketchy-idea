@@ -107,7 +107,7 @@ int call_poll(struct pollfd *fds, nfds_t nfds, int timeout, int *errnum)
         }
         else if (0 == num_rdy)
         {
-            PRINT_WARNG(The call to poll() timed out before any fds became ready);
+            PRINT_WARNG(The call to poll() timed out before any file descriptors became ready);
         }
         else
         {
