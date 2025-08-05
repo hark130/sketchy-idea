@@ -28,7 +28,7 @@ BOOKEND="***"  # SPOT for formatting titles and banners
 print_banner()
 {
     # LOCAL VARIABLES
-    EXIT_CODE=0                                                # Exit code from command execution
+    RET_CODE=0                                                 # Exit code from command execution
     FORMAT_CHAR="${BOOKEND:0:1}"                               # Formatting
     TITLE="$@"                                                 # The title argument
     LENGTH=$((${#BOOKEND} + 1 + ${#TITLE} + 1 + ${#BOOKEND}))  # Length of the title
@@ -37,11 +37,11 @@ print_banner()
     # DO IT
     printf "\n%s\n" "$BANNER"  # Header
     print_title "$TITLE"
-    EXIT_CODE=$?
+    RET_CODE=$?
     printf "%s\n" "$BANNER"  # Footer
 
     # DONE
-    return $EXIT_CODE
+    return $RET_CODE
 }
 
 #
@@ -57,15 +57,15 @@ print_banner()
 print_title()
 {
     # LOCAL VARIABLES
-    EXIT_CODE=0    # Exit code from command execution
+    RET_CODE=0    # Exit code from command execution
     TITLE="$@"     # The title argument
 
     # DO IT
     printf "%s %s %s\n" "$BOOKEND" "$TITLE" "$BOOKEND"
-    EXIT_CODE=$?
+    RET_CODE=$?
 
     # DONE
-    return $EXIT_CODE
+    return $RET_CODE
 }
 
 #
@@ -79,7 +79,7 @@ print_title()
 run_manual_test_command()
 {
     # LOCAL VARIABLES
-    EXIT_CODE=0  # Exit code from command execution
+    RET_CODE=0  # Exit code from command execution
 
     # DO IT
     # Echo
@@ -87,12 +87,12 @@ run_manual_test_command()
     printf "Command output:\n"
     # Execute
     bash -c "$@"
-    EXIT_CODE=$?
+    RET_CODE=$?
     # Vertical whitespace
     printf "\n\n"
 
     # DONE
-    return $EXIT_CODE
+    return $RET_CODE
 }
 
 #
@@ -110,7 +110,7 @@ run_manual_test_command_verbose()
     FULL_CMD="$@"             # Full manual test command
     CMD_ARRAY=($FULL_CMD)     # Full manual test command as an array
     BASE_CMD=${CMD_ARRAY[0]}  # Base manual test binary
-    EXIT_CODE=0               # Exit code from command execution
+    RET_CODE=0                # Exit code from command execution
 
     # DO IT
     # Invoke Usage
@@ -118,10 +118,10 @@ run_manual_test_command_verbose()
     echo
     # Call run_manual_test_command()
     run_manual_test_command "$FULL_CMD"
-    EXIT_CODE=$?
+    RET_CODE=$?
 
     # DONE
-    return $EXIT_CODE
+    return $RET_CODE
 }
 
 BOOKEND="***"                                                       # Formatting
