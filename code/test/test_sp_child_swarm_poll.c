@@ -84,7 +84,6 @@ int main(int argc, char *argv[])
     pid_t pid = SKID_BAD_PID;         // Temp return value from fork()
     int pipe_read_fd = SKID_BAD_FD;   // Temp read end of the pipe
     int pipe_write_fd = SKID_BAD_FD;  // Temp write end of the pipe
-    // int *fds = NULL;                  // Heap-allocated array for the parent to store read_fds
     pid_t *child_pids = NULL;         // Heap-allocated array for the parent to store child PIDs
     struct pollfd *poll_fds = NULL;   // Heap-allocated array for the pollfd structs
     char *tmp_msg = NULL;             // Temp var w/ heap-allocated string read for poll()ing fds
@@ -122,11 +121,6 @@ int main(int argc, char *argv[])
     {
         exit_code = set_signal_handler(SHUTDOWN_SIG, handle_signal_number, 0, NULL);
     }
-    // // Parent's array of pipe read file descriptors
-    // if (ENOERR == exit_code)
-    // {
-    //     fds = alloc_skid_mem(num_children, sizeof(int), &exit_code);
-    // }
     // Parent's array of pollfd structs
     if (ENOERR == exit_code)
     {
@@ -163,7 +157,6 @@ int main(int argc, char *argv[])
                 // Close the write end of the pipe
                 close_pipe(&pipe_write_fd, false);
                 // Add the read end of the pipe to the bookkeeping
-                // fds[i] = pipe_read_fd;
                 poll_fds[i].fd = pipe_read_fd;
                 poll_fds[i].events = POLLIN | POLLPRI | POLLHUP;  // Read data for these events
                 pipe_read_fd = SKID_BAD_FD;  // Reset the temp variable
@@ -199,8 +192,7 @@ int main(int argc, char *argv[])
                 break;  // Time to cleanup and exit
             }
             // poll() here
-            // num_rdy = call_poll(poll_fds, num_children, -1, &exit_code);
-            num_rdy = call_poll(poll_fds, num_children, 0, &exit_code);
+            num_rdy = call_poll(poll_fds, num_children, -1, &exit_code);  // Infinite timeout
             if (ENOERR != exit_code)
             {
                 PRINT_ERROR(The call to call_poll() reported an error);
@@ -209,21 +201,26 @@ int main(int argc, char *argv[])
             }
             else if (0 == num_rdy)
             {
-                printf("%s No children are ready yet\n", PARENT_STR);
-                sleep(1);  // A tasteful sleep
+                printf("%s: No children are ready yet\n", PARENT_STR);
             }
             else if (num_rdy > 0)
             {
-                printf("%s %d children are ready\n", PARENT_STR, num_rdy);
+                printf("%s: %d children are ready\n", PARENT_STR, num_rdy);
                 for (int i = 0; i < num_children; i++)
                 {
                     if (SKID_BAD_FD != poll_fds[i].fd)
                     {
                         tmp_msg = read_pollfd(&(poll_fds[i]), &tmp_revents, &exit_code);
-                        if (ENOERR == exit_code)
+                        if (NULL != tmp_msg)
                         {
-                            fprintf(stdout, "%s - %s\n", PARENT_STR, tmp_msg);
+                            fprintf(stdout, "%s: %s\n", PARENT_STR, tmp_msg);
                             exit_code = free_skid_mem((void **)&tmp_msg);
+                        }
+                        else if (ENOERR != exit_code)
+                        {
+                            PRINT_ERROR(The call to read_pollfd() failed);
+                            PRINT_ERRNO(exit_code);
+                            break;  // Error encountered so stop looping
                         }
                     }
                 }
@@ -232,10 +229,6 @@ int main(int argc, char *argv[])
     }
 
     // CLEANUP
-    // if (NULL != fds)
-    // {
-    //     free_skid_mem((void **)&fds);
-    // }
     if (NULL != poll_fds)
     {
         for (int i = 0; i < num_children; i++)
