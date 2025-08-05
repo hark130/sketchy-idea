@@ -26,7 +26,7 @@
  *      - A nonnegative value indicates the number of elements in pollfds whose revents
  *        fields have been set to a nonzero value (indicating an event or an error).
  *      - A return value of zero indicates that the system call timed out before any file
- *        descriptors became read.
+ *        descriptors became ready.
  *      - On error, -1 is returned, and errnum is set with the errno value.
  */
 int call_poll(struct pollfd *fds, nfds_t nfds, int timeout, int *errnum);
