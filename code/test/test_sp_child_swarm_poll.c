@@ -146,6 +146,7 @@ int main(int argc, char *argv[])
         {
             // Create a temp, local pipe
             exit_code = create_pipes(&pipe_read_fd, &pipe_write_fd, O_NONBLOCK);
+            // exit_code = create_pipes(&pipe_read_fd, &pipe_write_fd, 0);
             if (ENOERR != exit_code)
             {
                 PRINT_ERROR(The call to create_pipes() reported an error);
@@ -164,6 +165,7 @@ int main(int argc, char *argv[])
                 // Add the read end of the pipe to the bookkeeping
                 // fds[i] = pipe_read_fd;
                 poll_fds[i].fd = pipe_read_fd;
+                poll_fds[i].events = POLLIN | POLLPRI | POLLHUP;  // Read data for these events
                 pipe_read_fd = SKID_BAD_FD;  // Reset the temp variable
             }
             // Child
@@ -197,7 +199,8 @@ int main(int argc, char *argv[])
                 break;  // Time to cleanup and exit
             }
             // poll() here
-            num_rdy = call_poll(poll_fds, num_children, -1, &exit_code);
+            // num_rdy = call_poll(poll_fds, num_children, -1, &exit_code);
+            num_rdy = call_poll(poll_fds, num_children, 0, &exit_code);
             if (ENOERR != exit_code)
             {
                 PRINT_ERROR(The call to call_poll() reported an error);
@@ -211,6 +214,7 @@ int main(int argc, char *argv[])
             }
             else if (num_rdy > 0)
             {
+                printf("%s %d children are ready\n", PARENT_STR, num_rdy);
                 for (int i = 0; i < num_children; i++)
                 {
                     if (SKID_BAD_FD != poll_fds[i].fd)
@@ -234,6 +238,10 @@ int main(int argc, char *argv[])
     // }
     if (NULL != poll_fds)
     {
+        for (int i = 0; i < num_children; i++)
+        {
+            close_pipe(&(poll_fds[i].fd), true);  // Best effort... might have some SKID_BAD_FDs
+        }
         free_skid_mem((void **)&poll_fds);
     }
     if (NULL != child_pids)
