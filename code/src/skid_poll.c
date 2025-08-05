@@ -7,7 +7,9 @@
 #include <errno.h>                          // EINVAL
 #include <stdbool.h>                        // bool, false, true
 #include "skid_debug.h"                     // PRINT_ERROR()
+#include "skid_file_descriptors.h"          // read_fd()
 #include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
+#include "skid_poll.h"                      // struct pollfd
 #include "skid_validation.h"                // validate_skid_err()
 
 MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
@@ -109,7 +111,7 @@ int call_poll(struct pollfd *fds, nfds_t nfds, int timeout, int *errnum)
         }
         else
         {
-            FPRINTF_ERR("%s %d of %d file descriptors are ready\n", DEBUG_INFO_STR, num_rdy, nfds);
+            FPRINTF_ERR("%s %d of %lu file descriptors are ready\n", DEBUG_INFO_STR, num_rdy, nfds);
         }
     }
 
@@ -122,7 +124,7 @@ int call_poll(struct pollfd *fds, nfds_t nfds, int timeout, int *errnum)
     {
         PRINT_ERRNO(results);
     }
-    return num_fds;
+    return num_rdy;
 }
 
 
