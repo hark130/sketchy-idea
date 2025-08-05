@@ -22,6 +22,7 @@
 #include <stdbool.h>                        // false
 #include <stdio.h>                          // fprintf()
 #include <stdlib.h>                         // exit()
+#include <sys/wait.h>                       // waitpid()
 #include <unistd.h>                         // fork()
 #include "skid_debug.h"                     // MODULE_*LOAD(), *PRINT*_ERR*()
 #include "skid_file_descriptors.h"          // read_fd(), write_fd()
@@ -74,6 +75,11 @@ void print_shutdown(const char *prog_name);
  *  Single point of truth for this manual test code's usage.
  */
 void print_usage(const char *prog_name);
+
+/*
+ *  Wait for all the children to die.
+ */
+void wait_for_children(pid_t *child_pids, int num_children, bool print);
 
 
 int main(int argc, char *argv[])
@@ -195,9 +201,12 @@ int main(int argc, char *argv[])
             num_rdy = call_poll(poll_fds, num_children, -1, &exit_code);  // Infinite timeout
             if (ENOERR != exit_code)
             {
-                PRINT_ERROR(The call to call_poll() reported an error);
-                PRINT_ERRNO(exit_code);
-                break;  // We encountered an error, so stop looping
+                if (EINTR != exit_code)
+                {
+                    PRINT_ERROR(The call to call_poll() reported an error);
+                    PRINT_ERRNO(exit_code);
+                }
+                break;  // We encountered an error (or a shutdown), so stop looping
             }
             else if (0 == num_rdy)
             {
@@ -239,6 +248,11 @@ int main(int argc, char *argv[])
     }
     if (NULL != child_pids)
     {
+        // Kill the children
+        kill(0, SHUTDOWN_SIG);
+        // Wait for the children to die
+        wait_for_children(child_pids, num_children, true);  // print
+        // Free the array of PIDs
         free_skid_mem((void **)&child_pids);
     }
 
@@ -385,4 +399,67 @@ void print_shutdown(const char *prog_name)
 void print_usage(const char *prog_name)
 {
     fprintf(stderr, "Usage: %s <NUM_CHILDREN>\n", prog_name);
+}
+
+
+void wait_for_children(pid_t *child_pids, int num_children, bool print)
+{
+    // LOCAL VARIABLES
+    int results = ENOERR;          // Store errno value
+    pid_t tmp_pid = SKID_BAD_PID;  // Return value from waitpid() call
+    int tmp_status = 0;            // Out parameter for waitpid() call
+
+    // INPUT VALIDATION
+    if (NULL == child_pids || num_children < 1)
+    {
+        results = EINVAL;  // git gud
+    }
+
+    // WAIT
+    for (int i = 0; i < num_children; i++)
+    {
+        tmp_pid = waitpid(child_pids[i], &tmp_status, 0);
+        if (tmp_pid != child_pids[i])
+        {
+            results = errno;
+            FPRINTF_ERR("%s The call to waitpid(%jd) failed\n", DEBUG_ERROR_STR,
+                        (intmax_t)child_pids[i]);
+            PRINT_ERRNO(results);
+            continue;
+        }
+
+        if (true == print)
+        {
+            if (WIFEXITED(tmp_status))
+            {
+                printf("Child %jd exited with status %d\n", (intmax_t)tmp_pid,
+                       WEXITSTATUS(tmp_status));
+            }
+            else if (WIFSIGNALED(tmp_status))
+            {
+                printf("Child %jd was terminated by signal %d\n", (intmax_t)tmp_pid,
+                       WTERMSIG(tmp_status));
+#ifdef WCOREDUMP
+                if (WCOREDUMP(tmp_status))
+                {
+                    printf("Child %jd produced a core dump\n", (intmax_t)tmp_pid);
+                }
+#endif  /* WCOREDUMP */
+            }
+            else if (WIFSTOPPED(tmp_status))
+            {
+                printf("Child %jd was stopped by signal %d\n", (intmax_t)tmp_pid,
+                       WSTOPSIG(tmp_status));
+            }
+            else if (WIFCONTINUED(tmp_status))
+            {
+                printf("Child %jd was continued\n", (intmax_t)tmp_pid);
+            }
+            else
+            {
+                printf("Child %jd changed state in an unknown way (status: 0x%x)\n",
+                       (intmax_t)tmp_pid, tmp_status);
+            }
+        }
+    }
 }
