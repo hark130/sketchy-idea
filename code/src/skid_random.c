@@ -5,7 +5,9 @@
 #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // EINVAL
+#include <stdbool.h>                        // bool, false, true
 #include <stdlib.h>                         // rand()
+#include <unistd.h>                         // getpid()
 #include "skid_debug.h"                     // PRINT_ERROR()
 #include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
 #include "skid_random.h"                    // public functions
@@ -100,18 +102,24 @@ unsigned int randomize_range(unsigned int start, unsigned int stop, int *errnum)
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
 
+#include <stdint.h>
 
 SKID_INTERNAL int seed_it(void)
 {
     // LOCAL VARIABLES
-    int results = ENOERR;            // Store errno value
+    int results = ENOERR;              // Store errno value
     time_t num_sec = SKID_BAD_TIME_T;  // Number of seconds since the Epoch
+    static bool seeded = false;        // Only seed once per process
 
     // SEED IT
-    num_sec = get_unix_time(&results);
-    if (ENOERR == results)
+    if (false == seeded)
     {
-        srand(num_sec);
+        num_sec = get_unix_time(&results);
+        if (ENOERR == results)
+        {
+            srand(num_sec ^ getpid());  // Unique(?) seed per PID
+            seeded = true;  // Only seed it once
+        }
     }
 
     // DONE
