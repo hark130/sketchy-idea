@@ -1,5 +1,5 @@
 /*
- *  This source file was created to demonstrate the proper usage of poll.
+ *  This source file was created to demonstrate the proper usage of poll().
  *      1. Sets up a "shutdown" signal handler
  *      2. Spawns a swarm of children, each with a dedicated unnamed pipe
  *      3. Maintains bookkeeping: PIDs, pipe fds, etc
@@ -254,8 +254,8 @@ int main(int argc, char *argv[])
         kill(0, SHUTDOWN_SIG);
         // Wait for the children to die
         wait_for_children(child_pids, num_children, true);  // print
-        // Free the array of PIDs
     }
+    // Free *everything*
     clean_up(&child_pids, &poll_fds, num_children, SKID_BAD_FD);  // Close them *all*
 
     // DONE
