@@ -1,0 +1,1343 @@
+
+*** This output was created by 7-1_export.sh on Wed Aug  6 14:53:35 UTC 2025 ***
+
+VALIDATING
+    Validating gcc
+        [✓] gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+    Validating glibc
+        [✓] ldd (Ubuntu GLIBC 2.35-0ubuntu3.10) 2.35
+    Validating Check
+        [✓] Check unit test version: (0) (15) (2)
+    Validating musl-gcc
+        [✓] x86_64-linux-gnu-gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+
+CLEANING
+    Cleaning dist/ directory
+
+COMPILING
+    Compiling: src/devops_code.c
+    Compiling: src/skid_assembly.c
+    Compiling: src/skid_clone.c
+    Compiling: src/skid_dir_operations.c
+    Compiling: src/skid_file_control.c
+    Compiling: src/skid_file_descriptors.c
+    Compiling: src/skid_file_link.c
+    Compiling: src/skid_file_metadata_read.c
+    Compiling: src/skid_file_metadata_write.c
+    Compiling: src/skid_file_operations.c
+    Compiling: src/skid_memory.c
+    Compiling: src/skid_network.c
+    Compiling: src/skid_pipes.c
+    Compiling: src/skid_poll.c
+    Compiling: src/skid_random.c
+    Compiling: src/skid_select.c
+    Compiling: src/skid_semaphores.c
+    Compiling: src/skid_signal_handlers.c
+    Compiling: src/skid_signals.c
+    Compiling: src/skid_time.c
+    Compiling: src/skid_validation.c
+    Compiling: src/unit_test_code.c
+    Compiling manual test object code: dist/test_devops_code_create_path_tree.o
+    Linking manual test binary: dist/test_devops_code_create_path_tree.bin
+    Compiling manual test object code: dist/test_devops_code_get_compatible_gid.o
+    Linking manual test binary: dist/test_devops_code_get_compatible_gid.bin
+    Compiling manual test object code: dist/test_feature_test_macros.o
+    Linking manual test binary: dist/test_feature_test_macros.bin
+    Compiling dist/test_gcc_nostartfiles.bin with: gcc -Wall -Werror -Wfatal-errors -nostartfiles -o dist/test_gcc_nostartfiles.bin test/test_gcc_nostartfiles.c dist/skid_assembly.o -I include/
+    Compiling dist/test_gcc_nostdlib.bin with: gcc -Wall -Werror -Wfatal-errors -nostdlib -static -o dist/test_gcc_nostdlib.bin test/test_gcc_nostdlib.c
+    Compiling manual test object code: dist/test_libskid_sa_read_cpu_tsc.o
+    Linking manual test binary against libsketchyidea: dist/test_libskid_sa_read_cpu_tsc.bin
+    Compiling manual test object code: dist/test_libskid_sdo_read_dir_contents.o
+    Linking manual test binary against libsketchyidea: dist/test_libskid_sdo_read_dir_contents.bin
+    Compiling manual test object code: dist/test_libskid_sfmr_get_file_perms.o
+    Linking manual test binary against libsketchyidea: dist/test_libskid_sfmr_get_file_perms.bin
+    Statically compiling bespoke binary: dist/test_misc_glibc_vs_musl-static_glibc.bin
+    Statically compiling bespoke binary: dist/test_misc_glibc_vs_musl-static_musl.bin
+    Compiling manual test object code: dist/test_misc_packed_macro.o
+    Linking manual test binary: dist/test_misc_packed_macro.bin
+    Compiling manual test object code: dist/test_misc_setjmp_longjmp.o
+    Linking manual test binary: dist/test_misc_setjmp_longjmp.bin
+    Compiling bespoke binary: dist/test_misc_sfmr_call_stat.bin
+    Compiling manual test object code: dist/test_sa_call_write.o
+    Linking manual test binary: dist/test_sa_call_write.bin
+    Compiling manual test object code: dist/test_sa_read_cpu_tsc.o
+    Linking manual test binary: dist/test_sa_read_cpu_tsc.bin
+    Compiling manual test object code: dist/test_sc_sandbox_process.o
+    Linking manual test binary: dist/test_sc_sandbox_process.bin
+    Compiling manual test object code: dist/test_sdo_read_dir_contents.o
+    Linking manual test binary: dist/test_sdo_read_dir_contents.bin
+    Compiling manual test object code: dist/test_sfc_lock_and_write_fd.o
+    Linking manual test binary: dist/test_sfc_lock_and_write_fd.bin
+    Compiling manual test object code: dist/test_sfc_read_locked_fd.o
+    Linking manual test binary: dist/test_sfc_read_locked_fd.bin
+    Compiling manual test object code: dist/test_sfc_write_locked_fd.o
+    Linking manual test binary: dist/test_sfc_write_locked_fd.bin
+    Compiling manual test object code: dist/test_sfl_create_hard_link.o
+    Linking manual test binary: dist/test_sfl_create_hard_link.bin
+    Compiling manual test object code: dist/test_sfl_create_sym_link.o
+    Linking manual test binary: dist/test_sfl_create_sym_link.bin
+    Compiling manual test object code: dist/test_sfmr_file_metadata.o
+    Linking manual test binary: dist/test_sfmr_file_metadata.bin
+    Compiling manual test object code: dist/test_sfmr_get_block_size.o
+    Linking manual test binary: dist/test_sfmr_get_block_size.bin
+    Compiling manual test object code: dist/test_sfmr_get_container_device_id.o
+    Linking manual test binary: dist/test_sfmr_get_container_device_id.bin
+    Compiling manual test object code: dist/test_sfmr_get_file_device_id.o
+    Linking manual test binary: dist/test_sfmr_get_file_device_id.bin
+    Compiling manual test object code: dist/test_sfmr_get_file_perms.o
+    Linking manual test binary: dist/test_sfmr_get_file_perms.bin
+    Compiling manual test object code: dist/test_sfmr_get_file_times.o
+    Linking manual test binary: dist/test_sfmr_get_file_times.bin
+    Compiling manual test object code: dist/test_sfmr_is_block_device.o
+    Linking manual test binary: dist/test_sfmr_is_block_device.bin
+    Compiling manual test object code: dist/test_sfmr_is_character_device.o
+    Linking manual test binary: dist/test_sfmr_is_character_device.bin
+    Compiling manual test object code: dist/test_sfmr_is_named_pipe.o
+    Linking manual test binary: dist/test_sfmr_is_named_pipe.bin
+    Compiling manual test object code: dist/test_sfmr_is_regular_file.o
+    Linking manual test binary: dist/test_sfmr_is_regular_file.bin
+    Compiling manual test object code: dist/test_sfmr_is_symbolic_link.o
+    Linking manual test binary: dist/test_sfmr_is_symbolic_link.bin
+    Compiling manual test object code: dist/test_sfmw_set_atime_now.o
+    Linking manual test binary: dist/test_sfmw_set_atime_now.bin
+    Compiling manual test object code: dist/test_sfmw_set_ownership.o
+    Linking manual test binary: dist/test_sfmw_set_ownership.bin
+    Compiling manual test object code: dist/test_sfmw_set_times.o
+    Linking manual test binary: dist/test_sfmw_set_times.bin
+    Compiling manual test object code: dist/test_sm_handle_ext_read_queue_ptr.o
+    Linking manual test binary: dist/test_sm_handle_ext_read_queue_ptr.bin
+    Compiling manual test object code: dist/test_sm_mapped_memory.o
+    Linking manual test binary: dist/test_sm_mapped_memory.bin
+    Compiling manual test object code: dist/test_sm_raii_string_macro.o
+    Linking manual test binary: dist/test_sm_raii_string_macro.bin
+    Compiling manual test object code: dist/test_sm_raii_void_macro.o
+    Linking manual test binary: dist/test_sm_raii_void_macro.bin
+    Compiling manual test object code: dist/test_sm_shared_mem_client.o
+    Linking manual test binary: dist/test_sm_shared_mem_client.bin
+    Compiling manual test object code: dist/test_sm_shared_mem_server.o
+    Linking manual test binary: dist/test_sm_shared_mem_server.bin
+    Compiling manual test object code: dist/test_sn_multi_sniffer.o
+    Linking manual test binary: dist/test_sn_multi_sniffer.bin
+    Compiling manual test object code: dist/test_sn_simple_dgram_client.o
+    Linking manual test binary: dist/test_sn_simple_dgram_client.bin
+    Compiling manual test object code: dist/test_sn_simple_dgram_server.o
+    Linking manual test binary: dist/test_sn_simple_dgram_server.bin
+    Compiling manual test object code: dist/test_sn_simple_sniffer.o
+    Linking manual test binary: dist/test_sn_simple_sniffer.bin
+    Compiling manual test object code: dist/test_sn_simple_stream_client.o
+    Linking manual test binary: dist/test_sn_simple_stream_client.bin
+    Compiling manual test object code: dist/test_sn_simple_stream_server.o
+    Linking manual test binary: dist/test_sn_simple_stream_server.bin
+    Compiling manual test object code: dist/test_sn_socket_logging_client_file.o
+    Linking manual test binary: dist/test_sn_socket_logging_client_file.bin
+    Compiling manual test object code: dist/test_sn_socket_logging_client_string.o
+    Linking manual test binary: dist/test_sn_socket_logging_client_string.bin
+    Compiling manual test object code: dist/test_sn_socket_logging_server.o
+    Linking manual test binary: dist/test_sn_socket_logging_server.bin
+    Compiling manual test object code: dist/test_sp_child_swarm_poll.o
+    Linking manual test binary: dist/test_sp_child_swarm_poll.bin
+    Compiling manual test object code: dist/test_sp_child_swarm_select.o
+    Linking manual test binary: dist/test_sp_child_swarm_select.bin
+    Compiling manual test object code: dist/test_sp_named_pipe_client.o
+    Linking manual test binary: dist/test_sp_named_pipe_client.bin
+    Compiling manual test object code: dist/test_sp_named_pipe_server.o
+    Linking manual test binary: dist/test_sp_named_pipe_server.bin
+    Compiling manual test object code: dist/test_ss_block_unblock.o
+    Linking manual test binary: dist/test_ss_block_unblock.bin
+    Compiling manual test object code: dist/test_ssh_handle_ext_async_client.o
+    Linking manual test binary: dist/test_ssh_handle_ext_async_client.bin
+    Compiling manual test object code: dist/test_ssh_handle_ext_async_server.o
+    Linking manual test binary: dist/test_ssh_handle_ext_async_server.bin
+    Compiling manual test object code: dist/test_ssh_handle_ext_read_queue_int.o
+    Linking manual test binary: dist/test_ssh_handle_ext_read_queue_int.bin
+    Compiling manual test object code: dist/test_ssh_handle_ext_sending_process.o
+    Linking manual test binary: dist/test_ssh_handle_ext_sending_process.bin
+    Compiling manual test object code: dist/test_ssh_handle_ext_signal_code.o
+    Linking manual test binary: dist/test_ssh_handle_ext_signal_code.bin
+    Compiling manual test object code: dist/test_ssh_handle_interruptions.o
+    Linking manual test binary: dist/test_ssh_handle_interruptions.bin
+    Compiling manual test object code: dist/test_ssh_handle_signal_number.o
+    Linking manual test binary: dist/test_ssh_handle_signal_number.bin
+    Compiling bespoke binary: dist/redirect_bin_output.bin
+    Compiling Check unit test code: test/check_sdo_create_dir.c
+    Linking Check unit test binary: dist/check_sdo_create_dir.bin
+    Compiling Check unit test code: test/check_sdo_delete_dir.c
+    Linking Check unit test binary: dist/check_sdo_delete_dir.bin
+    Compiling Check unit test code: test/check_sdo_destroy_dir.c
+    Linking Check unit test binary: dist/check_sdo_destroy_dir.bin
+    Compiling Check unit test code: test/check_sdo_read_dir_contents.c
+    Linking Check unit test binary: dist/check_sdo_read_dir_contents.bin
+    Compiling Check unit test code: test/check_sfc_is_close_on_exec.c
+    Linking Check unit test binary: dist/check_sfc_is_close_on_exec.bin
+    Compiling Check unit test code: test/check_sfl_create_hard_link.c
+    Linking Check unit test binary: dist/check_sfl_create_hard_link.bin
+    Compiling Check unit test code: test/check_sfl_create_sym_link.c
+    Linking Check unit test binary: dist/check_sfl_create_sym_link.bin
+    Compiling Check unit test code: test/check_sfmr_get_access_time.c
+    Linking Check unit test binary: dist/check_sfmr_get_access_time.bin
+    Compiling Check unit test code: test/check_sfmr_get_block_count.c
+    Linking Check unit test binary: dist/check_sfmr_get_block_count.bin
+    Compiling Check unit test code: test/check_sfmr_get_block_size.c
+    Linking Check unit test binary: dist/check_sfmr_get_block_size.bin
+    Compiling Check unit test code: test/check_sfmr_get_change_time.c
+    Linking Check unit test binary: dist/check_sfmr_get_change_time.bin
+    Compiling Check unit test code: test/check_sfmr_get_container_device_id.c
+    Linking Check unit test binary: dist/check_sfmr_get_container_device_id.bin
+    Compiling Check unit test code: test/check_sfmr_get_file_device_id.c
+    Linking Check unit test binary: dist/check_sfmr_get_file_device_id.bin
+    Compiling Check unit test code: test/check_sfmr_get_file_perms.c
+    Linking Check unit test binary: dist/check_sfmr_get_file_perms.bin
+    Compiling Check unit test code: test/check_sfmr_get_file_type.c
+    Linking Check unit test binary: dist/check_sfmr_get_file_type.bin
+    Compiling Check unit test code: test/check_sfmr_get_group.c
+    Linking Check unit test binary: dist/check_sfmr_get_group.bin
+    Compiling Check unit test code: test/check_sfmr_get_hard_link_num.c
+    Linking Check unit test binary: dist/check_sfmr_get_hard_link_num.bin
+    Compiling Check unit test code: test/check_sfmr_get_mod_time.c
+    Linking Check unit test binary: dist/check_sfmr_get_mod_time.bin
+    Compiling Check unit test code: test/check_sfmr_get_owner.c
+    Linking Check unit test binary: dist/check_sfmr_get_owner.bin
+    Compiling Check unit test code: test/check_sfmr_get_serial_num.c
+    Linking Check unit test binary: dist/check_sfmr_get_serial_num.bin
+    Compiling Check unit test code: test/check_sfmr_get_size.c
+    Linking Check unit test binary: dist/check_sfmr_get_size.bin
+    Compiling Check unit test code: test/check_sfmr_is_block_device.c
+    Linking Check unit test binary: dist/check_sfmr_is_block_device.bin
+    Compiling Check unit test code: test/check_sfmr_is_character_device.c
+    Linking Check unit test binary: dist/check_sfmr_is_character_device.bin
+    Compiling Check unit test code: test/check_sfmr_is_directory.c
+    Linking Check unit test binary: dist/check_sfmr_is_directory.bin
+    Compiling Check unit test code: test/check_sfmr_is_named_pipe.c
+    Linking Check unit test binary: dist/check_sfmr_is_named_pipe.bin
+    Compiling Check unit test code: test/check_sfmr_is_path.c
+    Linking Check unit test binary: dist/check_sfmr_is_path.bin
+    Compiling Check unit test code: test/check_sfmr_is_regular_file.c
+    Linking Check unit test binary: dist/check_sfmr_is_regular_file.bin
+    Compiling Check unit test code: test/check_sfmr_is_socket.c
+    Linking Check unit test binary: dist/check_sfmr_is_socket.bin
+    Compiling Check unit test code: test/check_sfmr_is_sym_link.c
+    Linking Check unit test binary: dist/check_sfmr_is_sym_link.bin
+    Compiling Check unit test code: test/check_sfmw_add_mode.c
+    Linking Check unit test binary: dist/check_sfmw_add_mode.bin
+    Compiling Check unit test code: test/check_sfmw_remove_mode.c
+    Linking Check unit test binary: dist/check_sfmw_remove_mode.bin
+    Compiling Check unit test code: test/check_sfmw_set_atime.c
+    Linking Check unit test binary: dist/check_sfmw_set_atime.bin
+    Compiling Check unit test code: test/check_sfmw_set_atime_now.c
+    Linking Check unit test binary: dist/check_sfmw_set_atime_now.bin
+    Compiling Check unit test code: test/check_sfmw_set_mode.c
+    Linking Check unit test binary: dist/check_sfmw_set_mode.bin
+    Compiling Check unit test code: test/check_sfmw_set_mtime.c
+    Linking Check unit test binary: dist/check_sfmw_set_mtime.bin
+    Compiling Check unit test code: test/check_sfmw_set_mtime_now.c
+    Linking Check unit test binary: dist/check_sfmw_set_mtime_now.bin
+    Compiling Check unit test code: test/check_sfmw_set_ownership.c
+    Linking Check unit test binary: dist/check_sfmw_set_ownership.bin
+    Compiling Check unit test code: test/check_sfmw_set_times.c
+    Linking Check unit test binary: dist/check_sfmw_set_times.bin
+    Compiling Check unit test code: test/check_sfmw_set_times_now.c
+    Linking Check unit test binary: dist/check_sfmw_set_times_now.bin
+    Compiling Check unit test code: test/check_sv_validate_pathname.c
+    Linking Check unit test binary: dist/check_sv_validate_pathname.bin
+
+RUNNING TEST CASES
+./dist/check_sdo_create_dir.bin
+Running suite(s): SDO_Create_Dir
+100%: Checks: 20, Failures: 0, Errors: 0
+./dist/check_sdo_delete_dir.bin
+Running suite(s): SDO_Delete_Dir
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sdo_destroy_dir.bin
+Running suite(s): SDO_Destroy_Dir
+100%: Checks: 16, Failures: 0, Errors: 0
+./dist/check_sdo_read_dir_contents.bin
+Running suite(s): SDO_Read_Dir_Contents
+100%: Checks: 27, Failures: 0, Errors: 0
+./dist/check_sfc_is_close_on_exec.bin
+Running suite(s): SFC_Is_Close_On_Exec
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfl_create_hard_link.bin
+Running suite(s): SFL_Create_Hard_Link
+100%: Checks: 14, Failures: 0, Errors: 0
+./dist/check_sfl_create_sym_link.bin
+Running suite(s): SFL_Create_Sym_Link
+100%: Checks: 14, Failures: 0, Errors: 0
+./dist/check_sfmr_get_access_time.bin
+Running suite(s): SFMR_Get_Access_Time
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_block_count.bin
+Running suite(s): SFMR_Get_Block_Count
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_block_size.bin
+Running suite(s): SFMR_Get_Block_Size
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_change_time.bin
+Running suite(s): SFMR_Get_Change_Time
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_container_device_id.bin
+Running suite(s): SFMR_Get_Container_Device_ID
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_file_device_id.bin
+Running suite(s): SFMR_Get_File_Device_ID
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_file_perms.bin
+Running suite(s): SFMR_Get_File_Perms
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_file_type.bin
+Running suite(s): SFMR_Get_File_Type
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_group.bin
+Running suite(s): SFMR_Get_Group
+100%: Checks: 12, Failures: 0, Errors: 0
+./dist/check_sfmr_get_hard_link_num.bin
+Running suite(s): SFMR_Get_Hard_Link_Num
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_mod_time.bin
+Running suite(s): SFMR_Get_Mod_Time
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_owner.bin
+Running suite(s): SFMR_Get_Owner
+100%: Checks: 12, Failures: 0, Errors: 0
+./dist/check_sfmr_get_serial_num.bin
+Running suite(s): SFMR_Get_Serial_Num
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_get_size.bin
+Running suite(s): SFMR_Get_Size
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_is_block_device.bin
+Running suite(s): SFMR_Is_Block_Device
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_is_character_device.bin
+Running suite(s): SFMR_Is_Character_Device
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_is_directory.bin
+Running suite(s): SFMR_Is_Directory
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_is_named_pipe.bin
+Running suite(s): SFMR_Is_Named_Pipe
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_is_path.bin
+Running suite(s): SFMR_Is_Path
+100%: Checks: 12, Failures: 0, Errors: 0
+./dist/check_sfmr_is_regular_file.bin
+Running suite(s): SFMR_Is_Regular_File
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_is_socket.bin
+Running suite(s): SFMR_Is_Socket
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmr_is_sym_link.bin
+Running suite(s): SFMR_Is_Sym_Link
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmw_add_mode.bin
+Running suite(s): SFMW_Add_Mode
+100%: Checks: 16, Failures: 0, Errors: 0
+./dist/check_sfmw_remove_mode.bin
+Running suite(s): SFMW_Remove_Mode
+100%: Checks: 16, Failures: 0, Errors: 0
+./dist/check_sfmw_set_atime.bin
+Running suite(s): SFMW_Set_Atime
+100%: Checks: 24, Failures: 0, Errors: 0
+./dist/check_sfmw_set_atime_now.bin
+Running suite(s): SFMW_Set_Atime_Now
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmw_set_mode.bin
+Running suite(s): SFMW_Set_Mode
+100%: Checks: 16, Failures: 0, Errors: 0
+./dist/check_sfmw_set_mtime.bin
+Running suite(s): SFMW_Set_Mtime
+100%: Checks: 24, Failures: 0, Errors: 0
+./dist/check_sfmw_set_mtime_now.bin
+Running suite(s): SFMW_Set_Mtime_Now
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sfmw_set_ownership.bin
+Running suite(s): SFMW_Set_Ownership
+100%: Checks: 20, Failures: 0, Errors: 0
+./dist/check_sfmw_set_times.bin
+Running suite(s): SFMW_Set_Times
+100%: Checks: 24, Failures: 0, Errors: 0
+./dist/check_sfmw_set_times_now.bin
+Running suite(s): SFMW_Set_Times_Now
+100%: Checks: 11, Failures: 0, Errors: 0
+./dist/check_sv_validate_pathname.bin
+Running suite(s): SV_Validate_Pathname
+100%: Checks: 11, Failures: 0, Errors: 0
+
+RELEASING
+Releasing libsketchyidea.so.1.0.0
+
+==33658== Memcheck, a memory error detector
+==33658== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==33658== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==33658== Command: code/dist/check_sdo_create_dir.bin
+==33658== 
+Running suite(s): SDO_Create_Dir
+100%: Checks: 20, Failures: 0, Errors: 0
+==33658== 
+==33658== HEAP SUMMARY:
+==33658==     in use at exit: 0 bytes in 0 blocks
+==33658==   total heap usage: 1,142 allocs, 1,142 frees, 535,512 bytes allocated
+==33658== 
+==33658== All heap blocks were freed -- no leaks are possible
+==33658== 
+==33658== For lists of detected and suppressed errors, rerun with: -s
+==33658== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==33745== Memcheck, a memory error detector
+==33745== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==33745== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==33745== Command: code/dist/check_sdo_delete_dir.bin
+==33745== 
+Running suite(s): SDO_Delete_Dir
+100%: Checks: 11, Failures: 0, Errors: 0
+==33745== 
+==33745== HEAP SUMMARY:
+==33745==     in use at exit: 0 bytes in 0 blocks
+==33745==   total heap usage: 379 allocs, 379 frees, 174,636 bytes allocated
+==33745== 
+==33745== All heap blocks were freed -- no leaks are possible
+==33745== 
+==33745== For lists of detected and suppressed errors, rerun with: -s
+==33745== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==33752== Memcheck, a memory error detector
+==33752== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==33752== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==33752== Command: code/dist/check_sdo_destroy_dir.bin
+==33752== 
+Running suite(s): SDO_Destroy_Dir
+100%: Checks: 16, Failures: 0, Errors: 0
+==33752== 
+==33752== HEAP SUMMARY:
+==33752==     in use at exit: 0 bytes in 0 blocks
+==33752==   total heap usage: 1,100 allocs, 1,100 frees, 1,556,088 bytes allocated
+==33752== 
+==33752== All heap blocks were freed -- no leaks are possible
+==33752== 
+==33752== For lists of detected and suppressed errors, rerun with: -s
+==33752== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==33783== Memcheck, a memory error detector
+==33783== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==33783== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==33783== Command: code/dist/check_sdo_read_dir_contents.bin
+==33783== 
+Running suite(s): SDO_Read_Dir_Contents
+100%: Checks: 27, Failures: 0, Errors: 0
+==33783== 
+==33783== HEAP SUMMARY:
+==33783==     in use at exit: 0 bytes in 0 blocks
+==33783==   total heap usage: 4,188 allocs, 4,188 frees, 2,665,192 bytes allocated
+==33783== 
+==33783== All heap blocks were freed -- no leaks are possible
+==33783== 
+==33783== For lists of detected and suppressed errors, rerun with: -s
+==33783== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==33977== Memcheck, a memory error detector
+==33977== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==33977== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==33977== Command: code/dist/check_sfc_is_close_on_exec.bin
+==33977== 
+Running suite(s): SFC_Is_Close_On_Exec
+100%: Checks: 11, Failures: 0, Errors: 0
+==33977== 
+==33977== HEAP SUMMARY:
+==33977==     in use at exit: 0 bytes in 0 blocks
+==33977==   total heap usage: 1,293 allocs, 1,293 frees, 380,239 bytes allocated
+==33977== 
+==33977== All heap blocks were freed -- no leaks are possible
+==33977== 
+==33977== For lists of detected and suppressed errors, rerun with: -s
+==33977== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34003== Memcheck, a memory error detector
+==34003== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34003== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34003== Command: code/dist/check_sfl_create_hard_link.bin
+==34003== 
+Running suite(s): SFL_Create_Hard_Link
+100%: Checks: 14, Failures: 0, Errors: 0
+==34003== 
+==34003== HEAP SUMMARY:
+==34003==     in use at exit: 0 bytes in 0 blocks
+==34003==   total heap usage: 1,537 allocs, 1,537 frees, 477,742 bytes allocated
+==34003== 
+==34003== All heap blocks were freed -- no leaks are possible
+==34003== 
+==34003== For lists of detected and suppressed errors, rerun with: -s
+==34003== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34034== Memcheck, a memory error detector
+==34034== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34034== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34034== Command: code/dist/check_sfl_create_sym_link.bin
+==34034== 
+Running suite(s): SFL_Create_Sym_Link
+100%: Checks: 14, Failures: 0, Errors: 0
+==34034== 
+==34034== HEAP SUMMARY:
+==34034==     in use at exit: 0 bytes in 0 blocks
+==34034==   total heap usage: 1,513 allocs, 1,513 frees, 476,691 bytes allocated
+==34034== 
+==34034== All heap blocks were freed -- no leaks are possible
+==34034== 
+==34034== For lists of detected and suppressed errors, rerun with: -s
+==34034== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34065== Memcheck, a memory error detector
+==34065== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34065== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34065== Command: code/dist/check_sfmr_get_access_time.bin
+==34065== 
+Running suite(s): SFMR_Get_Access_Time
+100%: Checks: 11, Failures: 0, Errors: 0
+==34065== 
+==34065== HEAP SUMMARY:
+==34065==     in use at exit: 0 bytes in 0 blocks
+==34065==   total heap usage: 1,256 allocs, 1,256 frees, 410,552 bytes allocated
+==34065== 
+==34065== All heap blocks were freed -- no leaks are possible
+==34065== 
+==34065== For lists of detected and suppressed errors, rerun with: -s
+==34065== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34104== Memcheck, a memory error detector
+==34104== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34104== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34104== Command: code/dist/check_sfmr_get_block_count.bin
+==34104== 
+Running suite(s): SFMR_Get_Block_Count
+100%: Checks: 11, Failures: 0, Errors: 0
+==34104== 
+==34104== HEAP SUMMARY:
+==34104==     in use at exit: 0 bytes in 0 blocks
+==34104==   total heap usage: 403 allocs, 403 frees, 195,701 bytes allocated
+==34104== 
+==34104== All heap blocks were freed -- no leaks are possible
+==34104== 
+==34104== For lists of detected and suppressed errors, rerun with: -s
+==34104== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34121== Memcheck, a memory error detector
+==34121== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34121== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34121== Command: code/dist/check_sfmr_get_block_size.bin
+==34121== 
+Running suite(s): SFMR_Get_Block_Size
+100%: Checks: 11, Failures: 0, Errors: 0
+==34121== 
+==34121== HEAP SUMMARY:
+==34121==     in use at exit: 0 bytes in 0 blocks
+==34121==   total heap usage: 395 allocs, 395 frees, 194,992 bytes allocated
+==34121== 
+==34121== All heap blocks were freed -- no leaks are possible
+==34121== 
+==34121== For lists of detected and suppressed errors, rerun with: -s
+==34121== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34137== Memcheck, a memory error detector
+==34137== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34137== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34137== Command: code/dist/check_sfmr_get_change_time.bin
+==34137== 
+Running suite(s): SFMR_Get_Change_Time
+100%: Checks: 11, Failures: 0, Errors: 0
+==34137== 
+==34137== HEAP SUMMARY:
+==34137==     in use at exit: 0 bytes in 0 blocks
+==34137==   total heap usage: 375 allocs, 375 frees, 194,672 bytes allocated
+==34137== 
+==34137== All heap blocks were freed -- no leaks are possible
+==34137== 
+==34137== For lists of detected and suppressed errors, rerun with: -s
+==34137== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34154== Memcheck, a memory error detector
+==34154== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34154== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34154== Command: code/dist/check_sfmr_get_container_device_id.bin
+==34154== 
+Running suite(s): SFMR_Get_Container_Device_ID
+100%: Checks: 11, Failures: 0, Errors: 0
+==34154== 
+==34154== HEAP SUMMARY:
+==34154==     in use at exit: 0 bytes in 0 blocks
+==34154==   total heap usage: 318 allocs, 318 frees, 162,147 bytes allocated
+==34154== 
+==34154== All heap blocks were freed -- no leaks are possible
+==34154== 
+==34154== For lists of detected and suppressed errors, rerun with: -s
+==34154== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34156== Memcheck, a memory error detector
+==34156== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34156== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34156== Command: code/dist/check_sfmr_get_file_device_id.bin
+==34156== 
+Running suite(s): SFMR_Get_File_Device_ID
+100%: Checks: 11, Failures: 0, Errors: 0
+==34156== 
+==34156== HEAP SUMMARY:
+==34156==     in use at exit: 0 bytes in 0 blocks
+==34156==   total heap usage: 403 allocs, 403 frees, 196,340 bytes allocated
+==34156== 
+==34156== All heap blocks were freed -- no leaks are possible
+==34156== 
+==34156== For lists of detected and suppressed errors, rerun with: -s
+==34156== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34172== Memcheck, a memory error detector
+==34172== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34172== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34172== Command: code/dist/check_sfmr_get_file_perms.bin
+==34172== 
+Running suite(s): SFMR_Get_File_Perms
+100%: Checks: 11, Failures: 0, Errors: 0
+==34172== 
+==34172== HEAP SUMMARY:
+==34172==     in use at exit: 0 bytes in 0 blocks
+==34172==   total heap usage: 403 allocs, 403 frees, 195,488 bytes allocated
+==34172== 
+==34172== All heap blocks were freed -- no leaks are possible
+==34172== 
+==34172== For lists of detected and suppressed errors, rerun with: -s
+==34172== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34189== Memcheck, a memory error detector
+==34189== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34189== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34189== Command: code/dist/check_sfmr_get_file_type.bin
+==34189== 
+Running suite(s): SFMR_Get_File_Type
+100%: Checks: 11, Failures: 0, Errors: 0
+==34189== 
+==34189== HEAP SUMMARY:
+==34189==     in use at exit: 0 bytes in 0 blocks
+==34189==   total heap usage: 301 allocs, 301 frees, 154,685 bytes allocated
+==34189== 
+==34189== All heap blocks were freed -- no leaks are possible
+==34189== 
+==34189== For lists of detected and suppressed errors, rerun with: -s
+==34189== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34191== Memcheck, a memory error detector
+==34191== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34191== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34191== Command: code/dist/check_sfmr_get_group.bin
+==34191== 
+Running suite(s): SFMR_Get_Group
+100%: Checks: 12, Failures: 0, Errors: 0
+==34191== 
+==34191== HEAP SUMMARY:
+==34191==     in use at exit: 0 bytes in 0 blocks
+==34191==   total heap usage: 442 allocs, 442 frees, 213,025 bytes allocated
+==34191== 
+==34191== All heap blocks were freed -- no leaks are possible
+==34191== 
+==34191== For lists of detected and suppressed errors, rerun with: -s
+==34191== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34209== Memcheck, a memory error detector
+==34209== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34209== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34209== Command: code/dist/check_sfmr_get_hard_link_num.bin
+==34209== 
+Running suite(s): SFMR_Get_Hard_Link_Num
+100%: Checks: 11, Failures: 0, Errors: 0
+==34209== 
+==34209== HEAP SUMMARY:
+==34209==     in use at exit: 0 bytes in 0 blocks
+==34209==   total heap usage: 403 allocs, 403 frees, 196,127 bytes allocated
+==34209== 
+==34209== All heap blocks were freed -- no leaks are possible
+==34209== 
+==34209== For lists of detected and suppressed errors, rerun with: -s
+==34209== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34226== Memcheck, a memory error detector
+==34226== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34226== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34226== Command: code/dist/check_sfmr_get_mod_time.bin
+==34226== 
+Running suite(s): SFMR_Get_Mod_Time
+100%: Checks: 11, Failures: 0, Errors: 0
+==34226== 
+==34226== HEAP SUMMARY:
+==34226==     in use at exit: 0 bytes in 0 blocks
+==34226==   total heap usage: 375 allocs, 375 frees, 194,117 bytes allocated
+==34226== 
+==34226== All heap blocks were freed -- no leaks are possible
+==34226== 
+==34226== For lists of detected and suppressed errors, rerun with: -s
+==34226== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34242== Memcheck, a memory error detector
+==34242== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34242== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34242== Command: code/dist/check_sfmr_get_owner.bin
+==34242== 
+Running suite(s): SFMR_Get_Owner
+100%: Checks: 12, Failures: 0, Errors: 0
+==34242== 
+==34242== HEAP SUMMARY:
+==34242==     in use at exit: 0 bytes in 0 blocks
+==34242==   total heap usage: 442 allocs, 442 frees, 213,025 bytes allocated
+==34242== 
+==34242== All heap blocks were freed -- no leaks are possible
+==34242== 
+==34242== For lists of detected and suppressed errors, rerun with: -s
+==34242== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34261== Memcheck, a memory error detector
+==34261== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34261== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34261== Command: code/dist/check_sfmr_get_serial_num.bin
+==34261== 
+Running suite(s): SFMR_Get_Serial_Num
+100%: Checks: 11, Failures: 0, Errors: 0
+==34261== 
+==34261== HEAP SUMMARY:
+==34261==     in use at exit: 0 bytes in 0 blocks
+==34261==   total heap usage: 1,284 allocs, 1,284 frees, 411,396 bytes allocated
+==34261== 
+==34261== All heap blocks were freed -- no leaks are possible
+==34261== 
+==34261== For lists of detected and suppressed errors, rerun with: -s
+==34261== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34301== Memcheck, a memory error detector
+==34301== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34301== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34301== Command: code/dist/check_sfmr_get_size.bin
+==34301== 
+Running suite(s): SFMR_Get_Size
+100%: Checks: 11, Failures: 0, Errors: 0
+==34301== 
+==34301== HEAP SUMMARY:
+==34301==     in use at exit: 0 bytes in 0 blocks
+==34301==   total heap usage: 403 allocs, 403 frees, 194,210 bytes allocated
+==34301== 
+==34301== All heap blocks were freed -- no leaks are possible
+==34301== 
+==34301== For lists of detected and suppressed errors, rerun with: -s
+==34301== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34318== Memcheck, a memory error detector
+==34318== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34318== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34318== Command: code/dist/check_sfmr_is_block_device.bin
+==34318== 
+Running suite(s): SFMR_Is_Block_Device
+100%: Checks: 11, Failures: 0, Errors: 0
+==34318== 
+==34318== HEAP SUMMARY:
+==34318==     in use at exit: 0 bytes in 0 blocks
+==34318==   total heap usage: 301 allocs, 301 frees, 154,997 bytes allocated
+==34318== 
+==34318== All heap blocks were freed -- no leaks are possible
+==34318== 
+==34318== For lists of detected and suppressed errors, rerun with: -s
+==34318== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34321== Memcheck, a memory error detector
+==34321== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34321== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34321== Command: code/dist/check_sfmr_is_character_device.bin
+==34321== 
+Running suite(s): SFMR_Is_Character_Device
+100%: Checks: 11, Failures: 0, Errors: 0
+==34321== 
+==34321== HEAP SUMMARY:
+==34321==     in use at exit: 0 bytes in 0 blocks
+==34321==   total heap usage: 301 allocs, 301 frees, 155,621 bytes allocated
+==34321== 
+==34321== All heap blocks were freed -- no leaks are possible
+==34321== 
+==34321== For lists of detected and suppressed errors, rerun with: -s
+==34321== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34323== Memcheck, a memory error detector
+==34323== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34323== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34323== Command: code/dist/check_sfmr_is_directory.bin
+==34323== 
+Running suite(s): SFMR_Is_Directory
+100%: Checks: 11, Failures: 0, Errors: 0
+==34323== 
+==34323== HEAP SUMMARY:
+==34323==     in use at exit: 0 bytes in 0 blocks
+==34323==   total heap usage: 301 allocs, 301 frees, 154,529 bytes allocated
+==34323== 
+==34323== All heap blocks were freed -- no leaks are possible
+==34323== 
+==34323== For lists of detected and suppressed errors, rerun with: -s
+==34323== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34325== Memcheck, a memory error detector
+==34325== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34325== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34325== Command: code/dist/check_sfmr_is_named_pipe.bin
+==34325== 
+Running suite(s): SFMR_Is_Named_Pipe
+100%: Checks: 11, Failures: 0, Errors: 0
+==34325== 
+==34325== HEAP SUMMARY:
+==34325==     in use at exit: 0 bytes in 0 blocks
+==34325==   total heap usage: 301 allocs, 301 frees, 154,685 bytes allocated
+==34325== 
+==34325== All heap blocks were freed -- no leaks are possible
+==34325== 
+==34325== For lists of detected and suppressed errors, rerun with: -s
+==34325== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34327== Memcheck, a memory error detector
+==34327== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34327== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34327== Command: code/dist/check_sfmr_is_path.bin
+==34327== 
+Running suite(s): SFMR_Is_Path
+100%: Checks: 12, Failures: 0, Errors: 0
+==34327== 
+==34327== HEAP SUMMARY:
+==34327==     in use at exit: 0 bytes in 0 blocks
+==34327==   total heap usage: 1,367 allocs, 1,367 frees, 410,947 bytes allocated
+==34327== 
+==34327== All heap blocks were freed -- no leaks are possible
+==34327== 
+==34327== For lists of detected and suppressed errors, rerun with: -s
+==34327== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34354== Memcheck, a memory error detector
+==34354== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34354== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34354== Command: code/dist/check_sfmr_is_regular_file.bin
+==34354== 
+Running suite(s): SFMR_Is_Regular_File
+100%: Checks: 11, Failures: 0, Errors: 0
+==34354== 
+==34354== HEAP SUMMARY:
+==34354==     in use at exit: 0 bytes in 0 blocks
+==34354==   total heap usage: 301 allocs, 301 frees, 154,997 bytes allocated
+==34354== 
+==34354== All heap blocks were freed -- no leaks are possible
+==34354== 
+==34354== For lists of detected and suppressed errors, rerun with: -s
+==34354== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34356== Memcheck, a memory error detector
+==34356== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34356== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34356== Command: code/dist/check_sfmr_is_socket.bin
+==34356== 
+Running suite(s): SFMR_Is_Socket
+100%: Checks: 11, Failures: 0, Errors: 0
+==34356== 
+==34356== HEAP SUMMARY:
+==34356==     in use at exit: 0 bytes in 0 blocks
+==34356==   total heap usage: 301 allocs, 301 frees, 154,061 bytes allocated
+==34356== 
+==34356== All heap blocks were freed -- no leaks are possible
+==34356== 
+==34356== For lists of detected and suppressed errors, rerun with: -s
+==34356== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34358== Memcheck, a memory error detector
+==34358== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34358== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34358== Command: code/dist/check_sfmr_is_sym_link.bin
+==34358== 
+Running suite(s): SFMR_Is_Sym_Link
+100%: Checks: 11, Failures: 0, Errors: 0
+==34358== 
+==34358== HEAP SUMMARY:
+==34358==     in use at exit: 0 bytes in 0 blocks
+==34358==   total heap usage: 301 allocs, 301 frees, 154,373 bytes allocated
+==34358== 
+==34358== All heap blocks were freed -- no leaks are possible
+==34358== 
+==34358== For lists of detected and suppressed errors, rerun with: -s
+==34358== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34360== Memcheck, a memory error detector
+==34360== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34360== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34360== Command: code/dist/check_sfmw_add_mode.bin
+==34360== 
+Running suite(s): SFMW_Add_Mode
+100%: Checks: 16, Failures: 0, Errors: 0
+==34360== 
+==34360== HEAP SUMMARY:
+==34360==     in use at exit: 0 bytes in 0 blocks
+==34360==   total heap usage: 5,321 allocs, 5,321 frees, 1,417,570 bytes allocated
+==34360== 
+==34360== All heap blocks were freed -- no leaks are possible
+==34360== 
+==34360== For lists of detected and suppressed errors, rerun with: -s
+==34360== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==34743== Memcheck, a memory error detector
+==34743== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==34743== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==34743== Command: code/dist/check_sfmw_remove_mode.bin
+==34743== 
+Running suite(s): SFMW_Remove_Mode
+100%: Checks: 16, Failures: 0, Errors: 0
+==34743== 
+==34743== HEAP SUMMARY:
+==34743==     in use at exit: 0 bytes in 0 blocks
+==34743==   total heap usage: 5,321 allocs, 5,321 frees, 1,429,537 bytes allocated
+==34743== 
+==34743== All heap blocks were freed -- no leaks are possible
+==34743== 
+==34743== For lists of detected and suppressed errors, rerun with: -s
+==34743== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==35125== Memcheck, a memory error detector
+==35125== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==35125== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==35125== Command: code/dist/check_sfmw_set_atime.bin
+==35125== 
+Running suite(s): SFMW_Set_Atime
+100%: Checks: 24, Failures: 0, Errors: 0
+==35125== 
+==35125== HEAP SUMMARY:
+==35125==     in use at exit: 0 bytes in 0 blocks
+==35125==   total heap usage: 2,628 allocs, 2,628 frees, 706,269 bytes allocated
+==35125== 
+==35125== All heap blocks were freed -- no leaks are possible
+==35125== 
+==35125== For lists of detected and suppressed errors, rerun with: -s
+==35125== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==35131== Memcheck, a memory error detector
+==35131== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==35131== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==35131== Command: code/dist/check_sfmw_set_atime_now.bin
+==35131== 
+Running suite(s): SFMW_Set_Atime_Now
+100%: Checks: 11, Failures: 0, Errors: 0
+==35131== 
+==35131== HEAP SUMMARY:
+==35131==     in use at exit: 0 bytes in 0 blocks
+==35131==   total heap usage: 738 allocs, 738 frees, 315,349 bytes allocated
+==35131== 
+==35131== All heap blocks were freed -- no leaks are possible
+==35131== 
+==35131== For lists of detected and suppressed errors, rerun with: -s
+==35131== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==35135== Memcheck, a memory error detector
+==35135== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==35135== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==35135== Command: code/dist/check_sfmw_set_mode.bin
+==35135== 
+Running suite(s): SFMW_Set_Mode
+100%: Checks: 16, Failures: 0, Errors: 0
+==35135== 
+==35135== HEAP SUMMARY:
+==35135==     in use at exit: 0 bytes in 0 blocks
+==35135==   total heap usage: 5,225 allocs, 5,225 frees, 1,359,890 bytes allocated
+==35135== 
+==35135== All heap blocks were freed -- no leaks are possible
+==35135== 
+==35135== For lists of detected and suppressed errors, rerun with: -s
+==35135== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==35493== Memcheck, a memory error detector
+==35493== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==35493== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==35493== Command: code/dist/check_sfmw_set_mtime.bin
+==35493== 
+Running suite(s): SFMW_Set_Mtime
+100%: Checks: 24, Failures: 0, Errors: 0
+==35493== 
+==35493== HEAP SUMMARY:
+==35493==     in use at exit: 0 bytes in 0 blocks
+==35493==   total heap usage: 2,628 allocs, 2,628 frees, 706,269 bytes allocated
+==35493== 
+==35493== All heap blocks were freed -- no leaks are possible
+==35493== 
+==35493== For lists of detected and suppressed errors, rerun with: -s
+==35493== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==35500== Memcheck, a memory error detector
+==35500== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==35500== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==35500== Command: code/dist/check_sfmw_set_mtime_now.bin
+==35500== 
+Running suite(s): SFMW_Set_Mtime_Now
+100%: Checks: 11, Failures: 0, Errors: 0
+==35500== 
+==35500== HEAP SUMMARY:
+==35500==     in use at exit: 0 bytes in 0 blocks
+==35500==   total heap usage: 738 allocs, 738 frees, 315,349 bytes allocated
+==35500== 
+==35500== All heap blocks were freed -- no leaks are possible
+==35500== 
+==35500== For lists of detected and suppressed errors, rerun with: -s
+==35500== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==35504== Memcheck, a memory error detector
+==35504== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==35504== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==35504== Command: code/dist/check_sfmw_set_ownership.bin
+==35504== 
+Running suite(s): SFMW_Set_Ownership
+100%: Checks: 20, Failures: 0, Errors: 0
+==35504== 
+==35504== HEAP SUMMARY:
+==35504==     in use at exit: 0 bytes in 0 blocks
+==35504==   total heap usage: 7,287 allocs, 7,287 frees, 1,517,442 bytes allocated
+==35504== 
+==35504== All heap blocks were freed -- no leaks are possible
+==35504== 
+==35504== For lists of detected and suppressed errors, rerun with: -s
+==35504== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==35788== Memcheck, a memory error detector
+==35788== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==35788== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==35788== Command: code/dist/check_sfmw_set_times.bin
+==35788== 
+Running suite(s): SFMW_Set_Times
+100%: Checks: 24, Failures: 0, Errors: 0
+==35788== 
+==35788== HEAP SUMMARY:
+==35788==     in use at exit: 0 bytes in 0 blocks
+==35788==   total heap usage: 2,748 allocs, 2,748 frees, 709,959 bytes allocated
+==35788== 
+==35788== All heap blocks were freed -- no leaks are possible
+==35788== 
+==35788== For lists of detected and suppressed errors, rerun with: -s
+==35788== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==35794== Memcheck, a memory error detector
+==35794== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==35794== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==35794== Command: code/dist/check_sfmw_set_times_now.bin
+==35794== 
+Running suite(s): SFMW_Set_Times_Now
+100%: Checks: 11, Failures: 0, Errors: 0
+==35794== 
+==35794== HEAP SUMMARY:
+==35794==     in use at exit: 0 bytes in 0 blocks
+==35794==   total heap usage: 802 allocs, 802 frees, 317,573 bytes allocated
+==35794== 
+==35794== All heap blocks were freed -- no leaks are possible
+==35794== 
+==35794== For lists of detected and suppressed errors, rerun with: -s
+==35794== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==35797== Memcheck, a memory error detector
+==35797== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==35797== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==35797== Command: code/dist/check_sv_validate_pathname.bin
+==35797== 
+Running suite(s): SV_Validate_Pathname
+100%: Checks: 11, Failures: 0, Errors: 0
+==35797== 
+==35797== HEAP SUMMARY:
+==35797==     in use at exit: 0 bytes in 0 blocks
+==35797==   total heap usage: 1,160 allocs, 1,160 frees, 375,356 bytes allocated
+==35797== 
+==35797== All heap blocks were freed -- no leaks are possible
+==35797== 
+==35797== For lists of detected and suppressed errors, rerun with: -s
+==35797== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
+TOTAL CHECK UNIT TESTS: 542
+
+
+****************
+*** SELECT() ***
+****************
+*** This manual test binary will create a swarm of children who use unnamed pipes to send messages to the parent. ***
+*** The parent will use select() to determine which, if any, of the unnamed pipes are ready to read. ***
+*** 1. Start the parent ***
+The full command is './code/dist/test_sp_child_swarm_select.bin 20 &'
+Command output:
+
+
+./code/dist/test_sp_child_swarm_select.bin has finished spawning children and is now select()ing pipes
+Terminate the server by sending signal [2] Interrupt
+E.g., kill -2 38443
+PARENT: 2 children are ready
+PARENT: [20250806-145416] Hello from PID 38445
+PARENT: [20250806-145416] Hello from PID 38448
+PARENT: 2 children are ready
+PARENT: [20250806-145416] Hello from PID 38455
+PARENT: [20250806-145416] Hello from PID 38456
+PARENT: 1 children are ready
+PARENT: [20250806-145416] Hello from PID 38463
+PARENT: 1 children are ready
+PARENT: [20250806-145417] Hello from PID 38458
+PARENT: 1 children are ready
+PARENT: [20250806-145418] Hello from PID 38446
+PARENT: 1 children are ready
+PARENT: [20250806-145418] Hello from PID 38454
+PARENT: 2 children are ready
+PARENT: [20250806-145419] Hello from PID 38451
+PARENT: [20250806-145419] Hello from PID 38461
+PARENT: 1 children are ready
+PARENT: [20250806-145420] Hello from PID 38463
+PARENT: 1 children are ready
+PARENT: [20250806-145420] Hello from PID 38451
+PARENT: 1 children are ready
+PARENT: [20250806-145421] Hello from PID 38445
+PARENT: 1 children are ready
+PARENT: [20250806-145421] Hello from PID 38454
+PARENT: 1 children are ready
+PARENT: [20250806-145421] Hello from PID 38457
+PARENT: 1 children are ready
+PARENT: [20250806-145421] Hello from PID 38458
+PARENT: 1 children are ready
+PARENT: [20250806-145421] Hello from PID 38455
+PARENT: 1 children are ready
+PARENT: [20250806-145421] Hello from PID 38451
+PARENT: 1 children are ready
+PARENT: [20250806-145422] Hello from PID 38452
+PARENT: 1 children are ready
+PARENT: [20250806-145422] Hello from PID 38453
+PARENT: 1 children are ready
+PARENT: [20250806-145423] Hello from PID 38447
+PARENT: 2 children are ready
+PARENT: [20250806-145423] Hello from PID 38459
+PARENT: [20250806-145423] Hello from PID 38464
+PARENT: 1 children are ready
+PARENT: [20250806-145424] Hello from PID 38456
+PARENT: 1 children are ready
+PARENT: [20250806-145424] Hello from PID 38446
+PARENT: 1 children are ready
+PARENT: [20250806-145424] Hello from PID 38450
+PARENT: 1 children are ready
+PARENT: [20250806-145424] Hello from PID 38460
+PARENT: 2 children are ready
+PARENT: [20250806-145425] Hello from PID 38449
+PARENT: [20250806-145425] Hello from PID 38456
+PARENT: 2 children are ready
+PARENT: [20250806-145425] Hello from PID 38448
+PARENT: [20250806-145425] Hello from PID 38462
+PARENT: 2 children are ready
+PARENT: [20250806-145425] Hello from PID 38455
+PARENT: [20250806-145425] Hello from PID 38460
+PARENT: 1 children are ready
+PARENT: [20250806-145425] Hello from PID 38451
+PARENT: 1 children are ready
+PARENT: [20250806-145426] Hello from PID 38452
+PARENT: 1 children are ready
+PARENT: [20250806-145426] Hello from PID 38457
+PARENT: 1 children are ready
+PARENT: [20250806-145426] Hello from PID 38463
+PARENT: 1 children are ready
+PARENT: [20250806-145426] Hello from PID 38459
+PARENT: 1 children are ready
+PARENT: [20250806-145426] Hello from PID 38451
+PARENT: 2 children are ready
+PARENT: [20250806-145427] Hello from PID 38453
+PARENT: [20250806-145427] Hello from PID 38462
+PARENT: 1 children are ready
+PARENT: [20250806-145428] Hello from PID 38445
+PARENT: 1 children are ready
+PARENT: [20250806-145428] Hello from PID 38447
+PARENT: 1 children are ready
+PARENT: [20250806-145428] Hello from PID 38463
+PARENT: 1 children are ready
+PARENT: [20250806-145428] Hello from PID 38464
+PARENT: 1 children are ready
+PARENT: [20250806-145428] Hello from PID 38461
+PARENT: 1 children are ready
+PARENT: [20250806-145429] Hello from PID 38456
+PARENT: 1 children are ready
+PARENT: [20250806-145429] Hello from PID 38449
+PARENT: 1 children are ready
+PARENT: [20250806-145429] Hello from PID 38458
+PARENT: 1 children are ready
+PARENT: [20250806-145429] Hello from PID 38464
+PARENT: 1 children are ready
+PARENT: [20250806-145429] Hello from PID 38455
+PARENT: 1 children are ready
+PARENT: [20250806-145429] Hello from PID 38448
+PARENT: 1 children are ready
+PARENT: [20250806-145429] Hello from PID 38462
+PARENT: 1 children are ready
+PARENT: [20250806-145430] Hello from PID 38450
+PARENT: 1 children are ready
+PARENT: [20250806-1*** 2. Terminate the parent ***
+The full command is 'kill -2 38443'
+Command output:
+
+
+45430] Hello from PID 38455
+PARENT: 1 children are ready
+PARENT: [20250806-145431] Hello from PID 38454
+PARENT: 1 children are ready
+PARENT: [20250806-145431] Hello from PID 38452
+PARENT: 1 children are ready
+PARENT: [20250806-145431] Hello from PID 38463
+PARENT: 2 children are ready
+PARENT: [20250806-145432] Hello from PID 38450
+PARENT: [20250806-145432] Hello from PID 38457
+PARENT: 1 children are ready
+PARENT: [20250806-145432] Hello from PID 38461
+PARENT: 1 children are ready
+PARENT: [20250806-145432] Hello from PID 38460
+PARENT: 1 children are ready
+PARENT: [20250806-145432] Hello from PID 38458
+PARENT: 1 children are ready
+PARENT: [20250806-145433] Hello from PID 38452
+PARENT: 1 children are ready
+PARENT: [20250806-145433] Hello from PID 38446
+PARENT: 1 children are ready
+PARENT: [20250806-145434] Hello from PID 38446
+PARENT: 1 children are ready
+PARENT: [20250806-145434] Hello from PID 38459
+PARENT: 1 children are ready
+PARENT: [20250806-145434] Hello from PID 38451
+PARENT: 1 children are ready
+PARENT: [20250806-145435] Hello from PID 38447
+PARENT: 1 children are ready
+PARENT: [20250806-145435] Hello from PID 38461
+PARENT: 1 children are ready
+PARENT: [20250806-145435] Hello from PID 38462
+Child 38445 exited with status 0
+Child 38446 exited with status 0
+Child 38447 exited with status 0
+Child 38448 exited with status 0
+Child 38449 exited with status 0
+Child 38450 exited with status 0
+Child 38451 exited with status 0
+Child 38452 exited with status 0
+Child 38453 exited with status 0
+Child 38454 exited with status 0
+Child 38455 exited with status 0
+Child 38456 exited with status 0
+Child 38457 exited with status 0
+Child 38458 exited with status 0
+Child 38459 exited with status 0
+Child 38460 exited with status 0
+Child 38461 exited with status 0
+Child 38462 exited with status 0
+Child 38463 exited with status 0
+Child 38464 exited with status 0
+
+**************
+*** POLL() ***
+**************
+*** This manual test binary will create a swarm of children who use unnamed pipes to send messages to the parent. ***
+*** The parent will use poll() to determine which, if any, of the unnamed pipes are ready to read. ***
+*** 1. Start the parent ***
+The full command is './code/dist/test_sp_child_swarm_poll.bin 20 &'
+Command output:
+
+
+./code/dist/test_sp_child_swarm_poll.bin has finished spawning children and is now poll()ing pipes
+Terminate the server by sending signal [2] Interrupt
+E.g., kill -2 38475
+PARENT: 1 children are ready
+PARENT: [20250806-145436] Hello from PID 38490
+PARENT: 1 children are ready
+PARENT: [20250806-145437] Hello from PID 38493
+PARENT: 1 children are ready
+PARENT: [20250806-145437] Hello from PID 38496
+PARENT: 1 children are ready
+PARENT: [20250806-145438] Hello from PID 38494
+PARENT: 3 children are ready
+PARENT: [20250806-145438] Hello from PID 38480
+PARENT: [20250806-145438] Hello from PID 38492
+PARENT: [20250806-145438] Hello from PID 38495
+PARENT: 3 children are ready
+PARENT: [20250806-145440] Hello from PID 38479
+PARENT: [20250806-145440] Hello from PID 38485
+PARENT: [20250806-145440] Hello from PID 38491
+PARENT: 1 children are ready
+PARENT: [20250806-145440] Hello from PID 38496
+PARENT: 1 children are ready
+PARENT: [20250806-145441] Hello from PID 38485
+PARENT: 1 children are ready
+PARENT: [20250806-145441] Hello from PID 38495
+PARENT: 1 children are ready
+PARENT: [20250806-145442] Hello from PID 38477
+PARENT: 2 children are ready
+PARENT: [20250806-145442] Hello from PID 38478
+PARENT: [20250806-145442] Hello from PID 38489
+PARENT: 3 children are ready
+PARENT: [20250806-145443] Hello from PID 38481
+PARENT: [20250806-145443] Hello from PID 38484
+PARENT: [20250806-145443] Hello from PID 38486
+PARENT: 3 children are ready
+PARENT: [20250806-145443] Hello from PID 38478
+PARENT: [20250806-145443] Hello from PID 38485
+PARENT: [20250806-145443] Hello from PID 38487
+PARENT: 1 children are ready
+PARENT: [20250806-145444] Hello from PID 38491
+PARENT: 1 children are ready
+PARENT: [20250806-145444] Hello from PID 38489
+PARENT: 1 children are ready
+PARENT: [20250806-145444] Hello from PID 38482
+PARENT: 2 children are ready
+PARENT: [20250806-145444] Hello from PID 38486
+PARENT: [20250806-145444] Hello from PID 38490
+PARENT: 1 children are ready
+PARENT: [20250806-145445] Hello from PID 38483
+PARENT: 1 children are ready
+PARENT: [20250806-145445] Hello from PID 38488
+PARENT: 1 children are ready
+PARENT: [20250806-145445] Hello from PID 38496
+PARENT: 3 children are ready
+PARENT: [20250806-145445] Hello from PID 38479
+PARENT: [20250806-145445] Hello from PID 38487
+PARENT: [20250806-145445] Hello from PID 38489
+PARENT: 1 children are ready
+PARENT: [20250806-145445] Hello from PID 38480
+PARENT: 1 children are ready
+PARENT: [20250806-145446] Hello from PID 38494
+PARENT: 1 children are ready
+PARENT: [20250806-145446] Hello from PID 38480
+PARENT: 1 children are ready
+PARENT: [20250806-145447] Hello from PID 38483
+PARENT: 2 children are ready
+PARENT: [20250806-145447] Hello from PID 38486
+PARENT: [20250806-145447] Hello from PID 38493
+PARENT: 1 children are ready
+PARENT: [20250806-145447] Hello from PID 38479
+PARENT: 1 children are ready
+PARENT: [20250806-145447] Hello from PID 38489
+PARENT: 1 children are ready
+PARENT: [20250806-145447] Hello from PID 38492
+PARENT: 1 children are ready
+PARENT: [20250806-145448] Hello from PID 38484
+PARENT: 2 children are ready
+PARENT: [20250806-145448] Hello from PID 38486
+PARENT: [20250806-145448] Hello from PID 38493
+PARENT: 1 children are ready
+PARENT: [20250806-145448] Hello from PID 38495
+PARENT: 1 children are ready
+PARENT: [20250806-145448] Hello from PID 38492
+PARENT: 1 children are ready
+PARENT: [20250806-145449] Hello from PID 38488
+PARENT: 1 children are ready
+PARENT: [20250806-145449] Hello from PID 38487
+PARENT: 1 children are ready
+PARENT: [20250806-145450] Hello from PID 38481
+PARENT: 1 children are ready
+PARENT: [20250806-145450] Hello from PID 38484
+PARENT: 1 children are ready
+PARENT: [20250806-145450] Hello from PID 38493
+PARENT: 1 children are ready
+PARENT: [20250806-145451] Hello from PID 38477
+PARENT: 1 children are ready
+PARENT: [20250806-145451] Hello from PID 38496
+PARENT: 1 children are ready
+PARENT: [20250806-145451] Hello from PID 38484
+PARENT: 1 children are ready
+PARENT: [20250806-145451] Hello from PID 38494
+PARENT: 1 children are ready
+PARENT: [20250806-145452] Hello from PID 38491
+*** 2. Terminate the parent ***
+The full command is 'kill -2 38475'
+Command output:
+
+
+PARENT: 3 children are ready
+PARENT: [20250806-145452] Hello from PID 38478
+PARENT: [20250806-145452] Hello from PID 38482
+PARENT: [20250806-145452] Hello from PID 38489
+PARENT: 2 children are ready
+PARENT: [20250806-145453] Hello from PID 38485
+PARENT: [20250806-145453] Hello from PID 38496
+PARENT: 1 children are ready
+PARENT: [20250806-145453] Hello from PID 38479
+PARENT: 1 children are ready
+PARENT: [20250806-145453] Hello from PID 38492
+PARENT: 1 children are ready
+PARENT: [20250806-145453] Hello from PID 38495
+PARENT: 2 children are ready
+PARENT: [20250806-145454] Hello from PID 38483
+PARENT: [20250806-145454] Hello from PID 38490
+PARENT: 1 children are ready
+PARENT: [20250806-145454] Hello from PID 38486
+PARENT: 1 children are ready
+PARENT: [20250806-145455] Hello from PID 38481
+PARENT: 1 children are ready
+PARENT: [20250806-145455] Hello from PID 38488
+Child 38477 exited with status 0
+Child 38478 exited with status 0
+Child 38479 exited with status 0
+Child 38480 exited with status 0
+Child 38481 exited with status 0
+Child 38482 exited with status 0
+Child 38483 exited with status 0
+Child 38484 exited with status 0
+Child 38485 exited with status 0
+Child 38486 exited with status 0
+Child 38487 exited with status 0
+Child 38488 exited with status 0
+Child 38489 exited with status 0
+Child 38490 exited with status 0
+Child 38491 exited with status 0
+Child 38492 exited with status 0
+Child 38493 exited with status 0
+Child 38494 exited with status 0
+Child 38495 exited with status 0
+Child 38496 exited with status 0

@@ -15,7 +15,7 @@
  *      quiet: If true, silences all logging/debugging.
  *
  *  Returns:
- *      On success, zero is returned.  On error, errno is returned.
+ *      On success, ENOERR is returned.  On error, errno is returned.
  */
 int close_fd(int *fdp, bool quiet);
 
@@ -74,7 +74,7 @@ char *read_fd(int fd, int *errnum);
  *        msg: The nul-terminated message to write to fd.
  *
  *    Returns:
- *        On success, zero is returned.  On error, errno is returned.
+ *        On success, ENOERR is returned.  On error, errno is returned.
  */
 int write_fd(int fd, const char *msg);
 

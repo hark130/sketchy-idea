@@ -51,18 +51,18 @@ char *build_timestamp(int *errnum);
 
 /*
  *  Description:
- *		Preface a message with a formatted timestamp.  Use the delims as bookends for the
- *		timestamp.  Uses build_timestap() to get the datetime stamp.
+ *      Preface a message with a formatted timestamp.  Use the delims as bookends for the
+ *      timestamp.  Uses build_timestap() to get the datetime stamp.
  *      The caller is responsible for using free_skid_mem() to free the return value.
  *
- *	Usage:
- *		timestamp_a_msg("This is my message\n", "[]", &errnum);  // Should return...
- *		// "[20250721-124356] This is my message\n"
+ *  Usage:
+ *      timestamp_a_msg("This is my message\n", "[]", &errnum);  // Should return...
+ *      // "[20250721-124356] This is my message\n"
  *
  *  Args:
- *		msg: The message to add a delimited timestamp to.
- *		delims: The delimiters to add to the message.  Nul characters (e.g., '\0', 0x0) will
- *			be ignored/skipped.
+ *      msg: The message to add a delimited timestamp to.
+ *      delims: The delimiters to add to the message.  Nul characters (e.g., '\0', 0x0) will
+ *          be ignored/skipped.
  *      errnum: [Out] Storage location for errno values encountered.
  *
  *  Returns:

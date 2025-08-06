@@ -18,6 +18,22 @@ int close_pipe(int *pipefd, bool quiet);
 
 /*
  *  Description:
+ *      Create a pipe, a unidirectional data channel that can be used for interprocess
+ *      communication, utilizing pipe2().
+ *
+ *  Args:
+ *      readfd: [Out] Read end of the pipe.
+ *      writefd: [Out] Write end of the pipe.
+ *      flags: [Optional] A bitwise OR of macros to modify pipe2()'s behavior.  (see: pipe(2))
+ *
+ *  Returns:
+ *      On success, ENOERR is returned.  On error, errno is returned and the *fd argument values
+ *      are set to SKID_BAD_FD.
+ */
+int create_pipes(int *readfd, int *writefd, int flags);
+
+/*
+ *  Description:
  *      Delete a named pipe by calling unlink().
  *
  *  Notes:
