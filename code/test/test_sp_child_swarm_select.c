@@ -4,7 +4,7 @@
  *      2. Spawns a swarm of children, each with a dedicated unnamed pipe
  *      3. Maintains bookkeeping: PIDs, pipe fds, etc
  *      4. Each child will write to their unnamed pipe at psuedo-random intervals
- *      5. The parent will use poll to watch the read ends of the pipes
+ *      5. The parent will use select() to watch the read ends of the pipes
  *      6. It all gets shutdown when the signal is received
  *
  *  Copy/paste the following...
@@ -29,7 +29,6 @@
 #include "skid_macros.h"                    // ENOERR, SKID_BAD_FD, SKID_BAD_PID
 #include "skid_memory.h"                    // free_skid_mem()
 #include "skid_pipes.h"                     // close_pipe(), create_pipes()
-#include "skid_poll.h"                      // struct pollfd
 #include "skid_random.h"                    // randomize_number()
 #include "skid_select.h"                    // *_fd_set(), call_select()
 #include "skid_signal_handlers.h"           // handle_signal_number()
@@ -101,7 +100,7 @@ int main(int argc, char *argv[])
     int pipe_write_fd = SKID_BAD_FD;  // Temp write end of the pipe
     pid_t *child_pids = NULL;         // Heap-allocated array for the parent to store child PIDs
     int *read_fds_arr = NULL;         // Heap-allocated array for the read file descriptors
-    char *tmp_msg = NULL;             // Temp var w/ heap-allocated string read for poll()ing fds
+    char *tmp_msg = NULL;             // Temp var w/ heap-allocated string read for select()ing fds
     int num_rdy = 0;                  // Number of fds ready
     int nfds = SKID_BAD_FD;           // Highest file descriptor + 1
     fd_set readfds;                   // In/Out parameter for the call to select()
@@ -266,7 +265,7 @@ int main(int argc, char *argv[])
                         }
                         else if (ENOERR != exit_code)
                         {
-                            PRINT_ERROR(The call to read_pollfd() failed);
+                            PRINT_ERROR(The call to read_fd() failed);
                             PRINT_ERRNO(exit_code);
                             break;  // Error encountered so stop looping
                         }
@@ -369,7 +368,7 @@ void clean_up(pid_t **child_pids_ptr, int **read_fds_ptr, unsigned int array_len
         // Free the array of PIDs
         free_skid_mem((void **)child_pids_ptr);
     }
-    // Array of pollfd structs
+    // Array of read pipe file descriptors
     if (NULL != read_fds_ptr && NULL != *read_fds_ptr)
     {
         read_fds = *read_fds_ptr;
@@ -453,7 +452,7 @@ char *generate_a_message(int *errnum)
 
 void print_shutdown(const char *prog_name)
 {
-    fprintf(stdout, "%s has finished spawning children and is now poll()ing pipes\n",
+    fprintf(stdout, "%s has finished spawning children and is now select()ing pipes\n",
             prog_name);
     fprintf(stdout, "Terminate the server by sending signal [%d] %s\n",
             SHUTDOWN_SIG, strsignal(SHUTDOWN_SIG));
