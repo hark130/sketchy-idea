@@ -145,7 +145,13 @@ SWARM_POLL="${DIST_DIR}test_sp_child_swarm_poll.bin"      # Child swarm binary: 
 # 5. Misc.
 # 5.A.  Run the select() manual test code
 print_banner "SELECT()"
-print_title "TO DO: DON'T DO NOW"
+print_title "This manual test binary will create a swarm of children who use unnamed pipes to send messages to the parent."
+print_title "The parent will use select() to determine which, if any, of the unnamed pipes are ready to read."
+print_title "1. Start the parent"
+run_manual_test_command "${SWARM_SELECT} ${SWARM_NUM} &"
+sleep $SWARM_SLEEP  # Give it a second...
+print_title "2. Terminate the parent"
+run_manual_test_command "kill -2 `pidof ${SWARM_SELECT} | awk '{print $NF}'`"
 # 5.B.  Run the poll() manual test code
 print_banner "POLL()"
 print_title "This manual test binary will create a swarm of children who use unnamed pipes to send messages to the parent."
