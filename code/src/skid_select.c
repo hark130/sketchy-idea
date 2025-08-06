@@ -2,7 +2,7 @@
  *  This library defines select()-related functionality.
  */
 
-#define SKID_DEBUG                          // Enable DEBUG logging
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // EINVAL
 #include "skid_debug.h"                     // PRINT_ERROR()
