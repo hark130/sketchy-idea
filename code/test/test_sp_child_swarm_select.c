@@ -31,6 +31,7 @@
 #include "skid_pipes.h"                     // close_pipe(), create_pipes()
 #include "skid_poll.h"                      // struct pollfd
 #include "skid_random.h"                    // randomize_number()
+#include "skid_select.h"                    // *_fd_set(), call_select()
 #include "skid_signal_handlers.h"           // handle_signal_number()
 #include "skid_signals.h"                   // set_signal_handler()
 #include "skid_time.h"                      // timestamp_a_msg()
@@ -103,8 +104,8 @@ int main(int argc, char *argv[])
     char *tmp_msg = NULL;             // Temp var w/ heap-allocated string read for poll()ing fds
     int num_rdy = 0;                  // Number of fds ready
     int nfds = SKID_BAD_FD;           // Highest file descriptor + 1
-    fd_set readfds = 0;               // In/Out parameter for the call to select()
-    fd_set origfds = 0;               // Original set of read pipe file descriptors
+    fd_set readfds;                   // In/Out parameter for the call to select()
+    fd_set origfds;                   // Original set of read pipe file descriptors
 
     // INPUT VALIDATION
     if (2 != argc)
@@ -152,6 +153,16 @@ int main(int argc, char *argv[])
     {
         child_pids = alloc_skid_mem(num_children, sizeof(pid_t), &exit_code);
     }
+    // Initialize readfds
+    if (ENOERR == exit_code)
+    {
+        exit_code = clear_fd_set(&readfds);
+    }
+    // Initialize origfds
+    if (ENOERR == exit_code)
+    {
+        exit_code = clear_fd_set(&origfds);
+    }
 
     // DO IT
     // Fork it
@@ -188,7 +199,7 @@ int main(int argc, char *argv[])
                 // Close the read end of the pipe
                 close_pipe(&pipe_read_fd, false);
                 // Cleanup the parent process' allocations
-                clean_up(&child_pids, &poll_fds, num_children, pipe_write_fd);
+                clean_up(&child_pids, &read_fds_arr, num_children, pipe_write_fd);
                 // Start logging
                 be_a_child(pipe_write_fd);
             }
