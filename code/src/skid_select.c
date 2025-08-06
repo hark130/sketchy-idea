@@ -241,7 +241,7 @@ bool is_fd_in_set(int fd, fd_set *haystackfds, int *errnum)
     if (ENOERR == results)
     {
         // int FD_ISSET(int fd, fd_set *set);
-        if (0 != FD_ISSET(fd, dstfds))
+        if (0 != FD_ISSET(fd, haystackfds))
         {
             is_it = true;
         }
