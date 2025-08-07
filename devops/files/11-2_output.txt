@@ -1,0 +1,441 @@
+
+***************
+*** WARNING ***
+***************
+*** This device will be used to demonstrate device management ***
+All data on /dev/sdb will be destroyed.
+
+
+*** This output was created by 11-2_export.sh on Wed Aug  6 09:43:39 PM CDT 2025 ***
+
+
+********************************
+*** MANAGE CHARACTER DEVICES ***
+********************************
+*** List character devices in /dev ***
+The full command is 'ls -l /dev | grep '^c' | head -n 10'
+Command output:
+crw-r--r--    1 root root     10, 235 Aug  6 15:38 autofs
+crw-rw----    1 root disk     10, 234 Aug  6 15:38 btrfs-control
+crw--w----    1 root tty       5,   1 Aug  6 15:38 console
+crw-------    1 root root     10, 123 Aug  6 15:38 cpu_dma_latency
+crw-------    1 root root     10, 203 Aug  6 15:38 cuse
+crw-------    1 root root     10, 125 Aug  6 15:38 ecryptfs
+crw-rw----    1 root video    29,   0 Aug  6 15:38 fb0
+crw-rw-rw-    1 root root      1,   7 Aug  6 15:38 full
+crw-rw-rw-    1 root root     10, 229 Aug  6 15:38 fuse
+crw-------    1 root root    254,   0 Aug  6 15:38 gpiochip0
+
+
+[OUTPUT TRUNCATED]
+
+*** Create a character device in /dev ***
+The full command is 'mknod /dev/11-2_char_device c 318 90'
+Command output:
+
+
+*** Let's see it ***
+The full command is 'ls -l /dev/11-2_char_device'
+Command output:
+crw-r--r-- 1 root root 318, 90 Aug  6 21:43 /dev/11-2_char_device
+
+
+*** Let's get rid of it ***
+The full command is 'unlink /dev/11-2_char_device'
+Command output:
+
+
+
+****************************
+*** MANAGE BLOCK DEVICES ***
+****************************
+*** List block devices in /dev ***
+The full command is 'ls -l /dev | grep '^b' | head -n 10'
+Command output:
+brw-rw----    1 root disk      7,   0 Aug  6 15:38 loop0
+brw-rw----    1 root disk      7,   1 Aug  6 15:38 loop1
+brw-rw----    1 root disk      7,  10 Aug  6 15:38 loop10
+brw-rw----    1 root disk      7,  11 Aug  6 15:38 loop11
+brw-rw----    1 root disk      7,  12 Aug  6 15:38 loop12
+brw-rw----    1 root disk      7,  13 Aug  6 15:38 loop13
+brw-rw----    1 root disk      7,  14 Aug  6 15:38 loop14
+brw-rw----    1 root disk      7,  15 Aug  6 15:38 loop15
+brw-rw----    1 root disk      7,  16 Aug  6 15:38 loop16
+brw-rw----    1 root disk      7,  17 Aug  6 15:38 loop17
+
+
+[OUTPUT TRUNCATED]
+
+*** Create a block device in /dev ***
+The full command is 'mknod /dev/11-2_block_device b 16 0xACC'
+Command output:
+
+
+*** Let's see it ***
+The full command is 'ls -l /dev/11-2_block_device'
+Command output:
+brw-r--r-- 1 root root 16, 2764 Aug  6 21:43 /dev/11-2_block_device
+
+
+*** Let's get rid of it ***
+The full command is 'unlink /dev/11-2_block_device'
+Command output:
+
+
+
+*******************************
+*** CREATE A DISK PARTITION ***
+*******************************
+*** BEFORE: Let's view the block device as-is ***
+The full command is 'lsblk -f -o NAME,FSTYPE,LABEL,UUID,PARTTYPE,PARTLABEL,PARTUUID,RO,RM,TYPE,SIZE,MOUNTPOINT,MODEL,VENDOR,PHY-SeC,LOG-SEC,ROTA,TRAN,SERIAL /dev/sdb'
+Command output:
+NAME FSTYPE LABEL UUID PARTTYPE PARTLABEL PARTUUID RO RM TYPE  SIZE MOUNTPOINT MODEL      VENDOR   PHY-SEC LOG-SEC ROTA TRAN SERIAL
+sdb                                                 0  1 disk 14.9G            USB 2.0 FD PNY          512     512    1 usb  AF819H43YD34001687
+
+
+*** Create a GPT partition table ***
+The full command is 'parted /dev/sdb --script mklabel gpt'
+Command output:
+
+
+*** Create a new primary partition ***
+The full command is 'parted /dev/sdb --script mkpart primary 0% 100%'
+Command output:
+
+
+
+***********************************
+*** CREATE A FILESYSTEM ON DISK ***
+***********************************
+*** Build a new filesystem ***
+The full command is 'mkfs.ext4 -F -L 11-2_label /dev/sdb1'
+Command output:
+mke2fs 1.46.5 (30-Dec-2021)
+Creating filesystem with 3894784 4k blocks and 974848 inodes
+Filesystem UUID: 341f3ec6-1152-421a-bd88-2fbf9b4bbe85
+Superblock backups stored on blocks: 
+	32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632, 2654208
+
+Allocating group tables:   0/119       done                            
+Writing inode tables:   0/119       done                            
+Creating journal (16384 blocks): done
+Writing superblocks and filesystem accounting information:   0/119       done
+
+
+
+
+***************************
+*** MOUNT THE PARTITION ***
+***************************
+*** Create a mount point ***
+The full command is 'mkdir -p /mnt/11-2_target'
+Command output:
+
+
+*** Mount the block device partition to the mount point1 ***
+The full command is 'mount /dev/sdb1 /mnt/11-2_target'
+Command output:
+
+
+*** Change the owner and group of the mount point ***
+The full command is 'chown 1000:1000 /mnt/11-2_target'
+Command output:
+
+
+*** Verify it mounted ***
+The full command is 'df -h | head -n 1 && df -h | grep /dev/sdb'
+Command output:
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sdb1        15G   24K   14G   1% /mnt/11-2_target
+
+
+*** Write a file to the mount ***
+The full command is 'cp ./code/test/test_input/regular_file.txt /mnt/11-2_target'
+Command output:
+
+
+*** DURING: Let's view the block device now that it is mounted ***
+The full command is 'lsblk -f -o NAME,FSTYPE,LABEL,UUID,PARTTYPE,PARTLABEL,PARTUUID,RO,RM,TYPE,SIZE,MOUNTPOINT,MODEL,VENDOR,PHY-SeC,LOG-SEC,ROTA,TRAN,SERIAL /dev/sdb'
+Command output:
+NAME   FSTYPE LABEL      UUID                                 PARTTYPE                             PARTLABEL PARTUUID                             RO RM TYPE  SIZE MOUNTPOINT       MODEL      VENDOR   PHY-SEC LOG-SEC ROTA TRAN SERIAL
+sdb                                                                                                                                                0  1 disk 14.9G                  USB 2.0 FD PNY          512     512    1 usb  AF819H43YD34001687
+└─sdb1 ext4   11-2_label 341f3ec6-1152-421a-bd88-2fbf9b4bbe85 0fc63daf-8483-4772-8e79-3d69d8477de4 primary   2f341e1c-574b-46d9-9af7-f5c64dc869a3  0  1 part 14.9G /mnt/11-2_target                         512     512    1      
+
+
+
+*****************************
+*** UNMOUNT THE PARTITION ***
+*****************************
+*** Unmount the filesystem ***
+The full command is 'umount /mnt/11-2_target'
+Command output:
+
+
+*** AFTER: Let's view the block device now that it is unmounted ***
+The full command is 'lsblk -f -o NAME,FSTYPE,LABEL,UUID,PARTTYPE,PARTLABEL,PARTUUID,RO,RM,TYPE,SIZE,MOUNTPOINT,MODEL,VENDOR,PHY-SeC,LOG-SEC,ROTA,TRAN,SERIAL /dev/sdb'
+Command output:
+NAME   FSTYPE LABEL      UUID                                 PARTTYPE                             PARTLABEL PARTUUID                             RO RM TYPE  SIZE MOUNTPOINT MODEL      VENDOR   PHY-SEC LOG-SEC ROTA TRAN SERIAL
+sdb                                                                                                                                                0  1 disk 14.9G            USB 2.0 FD PNY          512     512    1 usb  AF819H43YD34001687
+└─sdb1 ext4   11-2_label 341f3ec6-1152-421a-bd88-2fbf9b4bbe85 0fc63daf-8483-4772-8e79-3d69d8477de4 primary   2f341e1c-574b-46d9-9af7-f5c64dc869a3  0  1 part 14.9G                                    512     512    1      
+
+
+
+***************
+*** CLEANUP ***
+***************
+*** Remove the mount point ***
+The full command is 'rmdir /mnt/11-2_target'
+Command output:
+
+
+
+******************
+*** DISK IMAGE ***
+******************
+*** Create a 100MB empty disk image ***
+The full command is 'dd if=/dev/zero of=/tmp/11-2_disk.img bs=1M count=100'
+Command output:
+100+0 records in
+100+0 records out
+104857600 bytes (105 MB, 100 MiB) copied, 0.076796 s, 1.4 GB/s
+
+
+*** Create a filesystem on the disk image ***
+The full command is 'mkfs.ext4 /tmp/11-2_disk.img'
+Command output:
+mke2fs 1.46.5 (30-Dec-2021)
+Discarding device blocks:     0/25600           done                            
+Creating filesystem with 25600 4k blocks and 25600 inodes
+
+Allocating group tables: 0/1   done                            
+Writing inode tables: 0/1   done                            
+Creating journal (1024 blocks): done
+Writing superblocks and filesystem accounting information: 0/1   done
+
+
+
+*** Create a mount point ***
+The full command is 'mkdir -p /mnt/11-2_disk_img'
+Command output:
+
+
+*** Mount the disk image as a loop device ***
+The full command is 'mount -o loop /tmp/11-2_disk.img /mnt/11-2_disk_img'
+Command output:
+
+
+*** View the new loop device ***
+The full command is 'lsblk | head -n1 && lsblk | grep /mnt/11-2_disk_img'
+Command output:
+NAME        MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+loop28        7:28   0   100M  0 loop /mnt/11-2_disk_img
+
+
+*** Write a file to the mount ***
+The full command is 'cp ./code/test/test_input/regular_file.txt /mnt/11-2_disk_img'
+Command output:
+
+
+
+*****************************
+*** UNMOUNT THE PARTITION ***
+*****************************
+*** Unmount the filesystem ***
+The full command is 'umount /mnt/11-2_disk_img'
+Command output:
+
+
+
+**************************************
+*** PEEK INTO CLEARTEXT DISK IMAGE ***
+**************************************
+*** Find the file contents copied into the mounted image ***
+The full command is 'strings /tmp/11-2_disk.img'
+Command output:
+/mnt/11-2_disk_img
+lost+found
+regular_file.txt
+lost+found
+regular_file.txt
+/mnt/11-2_disk_img
+TESTER'S CREED
+This is my test input. There are many like it, but this one is mine.
+My test input is my best friend. It is my life. I must master it as I must master my life.
+Without me, my test input is useless. Without my test input, I am useless. I must test my production code true. I must test my production code better than my adversary who is trying to reverse engineer my code. I must fix my code before they exploit it.
+I will ...
+My test input and I know that what counts in testing is not the number of test cases, the number of statements we test, nor our code coverage. We know that it is the requirements that count. We will trace ...
+My test code is human, even as I am human, because it is my life. Thus, I will learn my test code as a brother. I will learn its weaknesses, its strength, its classes, its functions, its decorators, its execution, and its flow control. I will keep my test code clean and DRY, even as I like to be clean and dry. We will become part of each other. We will ...
+Before Guido, I swear this creed. My test code and I are the defenders of my production code. We are the masters of our adversaries. We are the saviors of my career.
+So be it, until delivery is ours and there are no bugs, but operationally accepted capabilities!
+
+
+*** More proof?  Let's grep for a string we know is in there. ***
+The full command is 'grep --ignore-case "TESTER'S CREED" /tmp/11-2_disk.img'
+Command output:
+grep: /tmp/11-2_disk.img: binary file matches
+
+
+
+***************
+*** CLEANUP ***
+***************
+*** Remove the mount point ***
+The full command is 'rmdir /mnt/11-2_disk_img'
+Command output:
+
+
+*** Delete the disk image ***
+The full command is 'rm --force /tmp/11-2_disk.img'
+Command output:
+
+
+
+****************************
+*** ENCRYPTED DISK IMAGE ***
+****************************
+*** Create a 100MB empty disk image ***
+The full command is 'dd if=/dev/zero of=/tmp/11-2_encr.img bs=1M count=100'
+Command output:
+100+0 records in
+100+0 records out
+104857600 bytes (105 MB, 100 MiB) copied, 0.082121 s, 1.3 GB/s
+
+
+*** Create a keyfile ***
+The full command is 'echo -n SemperInspectus > /tmp/passphrase'
+Command output:
+
+
+*** Encyrpt the disk image with LUKS ***
+The full command is 'cryptsetup luksFormat /tmp/11-2_encr.img --batch-mode --key-file=/tmp/passphrase'
+Command output:
+
+
+*** Create a mapping with name 11-2_enc_disk backed by device /tmp/11-2_encr.img ***
+The full command is 'cryptsetup open /tmp/11-2_encr.img 11-2_enc_disk --key-file=/tmp/passphrase'
+Command output:
+
+
+*** Make a filesystem on the encrypted device ***
+The full command is 'mkfs.ext4 /dev/mapper/11-2_enc_disk'
+Command output:
+mke2fs 1.46.5 (30-Dec-2021)
+Creating filesystem with 21504 4k blocks and 21504 inodes
+
+Allocating group tables: 0/1   done                            
+Writing inode tables: 0/1   done                            
+Creating journal (1024 blocks): done
+Writing superblocks and filesystem accounting information: 0/1   done
+
+
+
+*** Create a mount point ***
+The full command is 'mkdir -p /mnt/11-2_enc_img'
+Command output:
+
+
+*** Mount the encrypted mapping as a loop device ***
+The full command is 'mount -o loop /dev/mapper/11-2_enc_disk /mnt/11-2_enc_img'
+Command output:
+
+
+*** Write a file to the mount ***
+The full command is 'cp ./code/test/test_input/regular_file.txt /mnt/11-2_enc_img'
+Command output:
+
+
+*** Unmount the filesystem ***
+The full command is 'umount /mnt/11-2_enc_img'
+Command output:
+
+
+*** Close the encrypted device ***
+The full command is 'cryptsetup close 11-2_enc_disk'
+Command output:
+
+
+*** The disk image is encrypted ***
+The full command is 'cryptsetup luksDump /tmp/11-2_encr.img'
+Command output:
+LUKS header information
+Version:       	2
+Epoch:         	3
+Metadata area: 	16384 [bytes]
+Keyslots area: 	16744448 [bytes]
+UUID:          	c79d0815-f09b-446a-b9d4-2cd9cfb8288a
+Label:         	(no label)
+Subsystem:     	(no subsystem)
+Flags:       	(no flags)
+
+Data segments:
+  0: crypt
+	offset: 16777216 [bytes]
+	length: (whole device)
+	cipher: aes-xts-plain64
+	sector: 4096 [bytes]
+
+Keyslots:
+  0: luks2
+	Key:        512 bits
+	Priority:   normal
+	Cipher:     aes-xts-plain64
+	Cipher key: 512 bits
+	PBKDF:      argon2id
+	Time cost:  4
+	Memory:     1048576
+	Threads:    4
+	Salt:       62 88 03 4d c6 59 8e d3 7b 22 30 12 fa 1d 7d 27 
+	            a1 79 92 39 27 b9 c5 9c 5d ff 5a 74 72 8c 6a df 
+	AF stripes: 4000
+	AF hash:    sha256
+	Area offset:32768 [bytes]
+	Area length:258048 [bytes]
+	Digest ID:  0
+Tokens:
+Digests:
+  0: pbkdf2
+	Hash:       sha256
+	Iterations: 218453
+	Salt:       e1 be f1 05 14 ff be db 76 c9 62 3f e4 55 6b 16 
+	            20 91 a5 4f 8d 95 63 cc a9 6b ef 72 84 0e cd 58 
+	Digest:     55 9e ff 16 cc b6 70 33 39 7d bb 1a a6 fb 1b 8d 
+	            6c ab 50 e3 96 26 64 91 14 13 6f 01 60 e6 4a ff 
+
+
+*** Need more proof?  Let's pull the strings. ***
+The full command is 'strings /tmp/11-2_encr.img | head'
+Command output:
+LUKS
+sha256
+Mi<X
+oU8GAy
+c79d0815-f09b-446a-b9d4-2cd9cfb8288a
+{"keyslots":{"0":{"type":"luks2","key_size":64,"af":{"type":"luks1","stripes":4000,"hash":"sha256"},"area":{"type":"raw","offset":"32768","size":"258048","encryption":"aes-xts-plain64","key_size":64},"kdf":{"type":"argon2id","time":4,"memory":1048576,"cpus":4,"salt":"YogDTcZZjtN7IjAS+h19J6F5kjknucWcXf9adHKMat8="}}},"tokens":{},"segments":{"0":{"type":"crypt","offset":"16777216","size":"dynamic","iv_tweak":"0","encryption":"aes-xts-plain64","sector_size":4096}},"digests":{"0":{"type":"pbkdf2","keyslots":["0"],"segments":["0"],"hash":"sha256","iterations":218453,"salt":"4b7xBRT/vtt2yWI/5FVrFiCRpU+NlWPMqWvvcoQOzVg=","digest":"VZ7/Fsy2cDM5fbsapvsbjWyrUOOWJmSRFBNvAWDmSv8="}},"config":{"json_size":"12288","keyslots_size":"16744448"}}
+SKUL
+sha256
+qSS)
+Xc79d0815-f09b-446a-b9d4-2cd9cfb8288a
+
+
+[OUTPUT TRUNCATED]
+
+*** MORE proof?  Let's grep for a string we know is in there. ***
+The full command is 'grep --invert-match --ignore-case "TESTER'S CREED" /tmp/11-2_encr.img'
+Command output:
+grep: /tmp/11-2_encr.img: binary file matches
+
+
+
+***************
+*** CLEANUP ***
+***************
+*** Remove the mount point ***
+The full command is 'rmdir /mnt/11-2_enc_img'
+Command output:
+
+
+*** Delete the disk image ***
+The full command is 'rm --force /tmp/11-2_encr.img'
+Command output:
+
+
