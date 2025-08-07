@@ -4,16 +4,13 @@
 # text file to use as "proof" for my mentor.  It performs the following:
 #
 # 1. Prints identifying information
-# 2. Runs the build system (which also executes the Check-based unit tests)
-# 3. Executes the unit tests with Valgrind
-# 4. Counts the number of unit tests
-# 5. Misc. (e.g., executing bespoke manual test code highlighting features/functionality)
-# 5.A. Manage character and block devices found in /dev
-# 5.B. Create a disk partition
-# 5.C. Select and create a filesystem on a disk
-# 5.D. Mount and unmount a disk
-# 5.E. Mount a disk image
-# 5.F. Create, mount, and unmount an encrypted disk
+# 2. Misc. (e.g., executing bespoke manual test code highlighting features/functionality)
+# 2.A. Manage character and block devices found in /dev
+# 2.B. Create a disk partition
+# 2.C. Select and create a filesystem on a disk
+# 2.D. Mount and unmount a disk
+# 2.E. Mount a disk image
+# 2.F. Create, mount, and unmount an encrypted disk
 
 
 BOOKEND="***"  # SPOT for formatting titles and banners
@@ -162,6 +159,8 @@ run_manual_test_command_verbose()
 BOOKEND="***"                                                       # Formatting
 TEMP_RET=0                                                          # Temporary exit code var
 EXIT_CODE=0                                                         # Exit value
+REG_FILE=./code/test/test_input/regular_file.txt                    # Regular file for test input
+NEEDLE=`head -n 1 ${REG_FILE}`                                      # A needle to search for as proof
 TARGET_DEVICE=$1                                                    # Command line argument
 CHAR_DEVICE=/dev/11-2_char_device                                   # New character device
 BLOCK_DEVICE=/dev/11-2_block_device                                 # New block device
@@ -169,6 +168,13 @@ TARGET_LABEL=11-2_label
 TARGET_MOUNT=/mnt/11-2_target                                       # Mount point for TARGET_LABEL
 DISK_IMAGE=/tmp/11-2_disk.img                                       # Disk image file
 DISK_MOUNT=/mnt/11-2_disk_img                                       # Mount point for DISK_IMAGE
+PASSPHRASE=SemperInspectus                                          # Passphrase for the encrypted image
+PASS_FILE=/tmp/passphrase                                           # Keyfile for cryptsetup
+ENCR_IMAGE=/tmp/11-2_encr.img                                       # Encrypted disk image
+ENCR_MAP_NAME=11-2_enc_disk                                         # Encrypted mapping base name
+ENCR_MAPPING="/dev/mapper/${ENCR_MAP_NAME}"                         # Absolute mapping filename
+ENCR_MNT=/mnt/11-2_enc_img                                          # Mounted encrypted mapping
+
 # lsblk command for maximum detail
 LSBLK_CMD="lsblk -f -o NAME,FSTYPE,LABEL,UUID,PARTTYPE,PARTLABEL,PARTUUID,RO,RM,TYPE,SIZE,MOUNTPOINT,MODEL,VENDOR,PHY-SeC,LOG-SEC,ROTA,TRAN,SERIAL"
 
@@ -205,18 +211,12 @@ else
 fi
 
 
-# # 1. Stores the date
-# printf "\n%s This output was created by %s on %s %s\n" "$BOOKEND" "$(basename "$0")" "$(date)" "$BOOKEND" && \
-# # 2. Runs the build system (which also executes the Check-based unit tests)
-# make && echo && \
-# # 3. Executes the unit tests with Valgrind
-# ./devops/scripts/run_valgrind.sh; [[ $? -ne 0 ]] && exit; echo && \
-# # 4. Counts the number of unit tests (by running them again)
-# for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
-# 5. Misc.
+# 1. Stores the date
+printf "\n%s This output was created by %s on %s %s\n" "$BOOKEND" "$(basename "$0")" "$(date)" "$BOOKEND"
+# 2. Misc.
 echo
 
-# 5.A. Manage character and block devices found in /dev
+# 2.A. Manage character and block devices found in /dev
 print_banner "MANAGE CHARACTER DEVICES"
 print_title "List character devices in /dev"
 run_manual_test_command "ls -l /dev | grep '^c'"
@@ -244,7 +244,7 @@ print_title "Let's get rid of it"
 run_manual_test_command "unlink ${BLOCK_DEVICE}"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 
-# 5.B. Create a disk partition
+# 2.B. Create a disk partition
 print_banner "CREATE A DISK PARTITION"
 print_title "BEFORE: Let's view the block device as-is"
 run_manual_test_command "${LSBLK_CMD} ${TARGET_DEVICE}"
@@ -256,13 +256,13 @@ print_title "Create a new primary partition"
 run_manual_test_command "parted ${TARGET_DEVICE} --script mkpart primary 0% 100%"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 
-# 5.C. Select and create a filesystem on a disk
+# 2.C. Select and create a filesystem on a disk
 print_banner "CREATE A FILESYSTEM ON DISK"
 print_title "Build a new filesystem"
 run_manual_test_command "mkfs.ext4 -F -L ${TARGET_LABEL} ${TARGET_DEVICE}1"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 
-# 5.D. Mount and unmount a disk
+# 2.D. Mount and unmount a disk
 print_banner "MOUNT THE PARTITION"
 print_title "Create a mount point"
 run_manual_test_command "mkdir -p ${TARGET_MOUNT}"
@@ -277,7 +277,7 @@ print_title "Verify it mounted"
 run_manual_test_command "df -h | head -n 1 && df -h | grep ${TARGET_DEVICE}"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 print_title "Write a file to the mount"
-run_manual_test_command "cp ./code/test/test_input/regular_file.txt ${TARGET_MOUNT}"
+run_manual_test_command "cp ${REG_FILE} ${TARGET_MOUNT}"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 print_title "DURING: Let's view the block device now that it is mounted"
 run_manual_test_command "${LSBLK_CMD} ${TARGET_DEVICE}"
@@ -299,7 +299,7 @@ print_title "Remove the mount point"
 run_manual_test_command "rmdir ${TARGET_MOUNT}"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 
-# 5.E. Mount a disk image
+# 2.E. Mount a disk image
 print_banner "DISK IMAGE"
 print_title "Create a 100MB empty disk image"
 run_manual_test_command "dd if=/dev/zero of=${DISK_IMAGE} bs=1M count=100"
@@ -309,6 +309,7 @@ run_manual_test_command "mkfs.ext4 ${DISK_IMAGE}"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 print_title "Create a mount point"
 run_manual_test_command "mkdir -p ${DISK_MOUNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 print_title "Mount the disk image as a loop device"
 run_manual_test_command "mount -o loop ${DISK_IMAGE} ${DISK_MOUNT}"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
@@ -316,7 +317,7 @@ print_title "View the new loop device"
 run_manual_test_command "lsblk | head -n1 && lsblk | grep ${DISK_MOUNT}"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 print_title "Write a file to the mount"
-run_manual_test_command "cp ./code/test/test_input/regular_file.txt ${DISK_MOUNT}"
+run_manual_test_command "cp ${REG_FILE} ${DISK_MOUNT}"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 
 # echo "Press any key to continue..."  # DEBUGGING
@@ -331,6 +332,9 @@ print_banner "PEEK INTO CLEARTEXT DISK IMAGE"
 print_title "Find the file contents copied into the mounted image"
 run_manual_test_command "strings ${DISK_IMAGE}"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "More proof?  Let's grep for a string we know is in there."
+run_manual_test_command "grep --ignore-case \"${NEEDLE}\" ${DISK_IMAGE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 print_banner "CLEANUP"
 print_title "Remove the mount point"
 run_manual_test_command "rmdir ${DISK_MOUNT}"
@@ -339,8 +343,60 @@ print_title "Delete the disk image"
 run_manual_test_command "rm --force ${DISK_IMAGE}"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 
-# 5.F. Create, mount, and unmount an encrypted disk
+# 2.F. Create, mount, and unmount an encrypted disk
+print_banner "ENCRYPTED DISK IMAGE"
+print_title "Create a 100MB empty disk image"
+run_manual_test_command "dd if=/dev/zero of=${ENCR_IMAGE} bs=1M count=100"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Create a keyfile"
+run_manual_test_command "echo -n ${PASSPHRASE} > ${PASS_FILE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Encyrpt the disk image with LUKS"
+run_manual_test_command "cryptsetup luksFormat ${ENCR_IMAGE} --batch-mode --key-file=${PASS_FILE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Create a mapping with name ${ENCR_MAP_NAME} backed by device ${ENCR_IMAGE}"
+run_manual_test_command "cryptsetup open ${ENCR_IMAGE} ${ENCR_MAP_NAME} --key-file=${PASS_FILE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Make a filesystem on the encrypted device"
+run_manual_test_command "mkfs.ext4 ${ENCR_MAPPING}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Create a mount point"
+run_manual_test_command "mkdir -p ${ENCR_MNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Mount the encrypted mapping as a loop device"
+run_manual_test_command "mount -o loop ${ENCR_MAPPING} ${ENCR_MNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 
+# echo "Press any key to continue..."  # DEBUGGING
+# read -n 1 -s  # DEBUGGING
+# echo "Script resumed!"  # DEBUGGING
+
+print_title "Write a file to the mount"
+run_manual_test_command "cp ${REG_FILE} ${ENCR_MNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Unmount the filesystem"
+run_manual_test_command "umount ${ENCR_MNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Close the encrypted device"
+run_manual_test_command "cryptsetup close ${ENCR_MAP_NAME}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "The disk image is encrypted"
+run_manual_test_command "cryptsetup luksDump ${ENCR_IMAGE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Need more proof?  Let's pull the strings."
+run_manual_test_command "strings ${ENCR_IMAGE} | head"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+echo -e "[OUTPUT TRUNCATED]\n"
+print_title "MORE proof?  Let's grep for a string we know is in there."
+run_manual_test_command "grep --invert-match --ignore-case \"${NEEDLE}\" ${ENCR_IMAGE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_banner "CLEANUP"
+print_title "Remove the mount point"
+run_manual_test_command "rmdir ${ENCR_MNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Delete the disk image"
+run_manual_test_command "rm --force ${ENCR_IMAGE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 
 
 # DONE
