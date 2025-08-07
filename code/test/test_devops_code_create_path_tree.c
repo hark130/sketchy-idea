@@ -30,7 +30,7 @@
 
 /*
  *	Description:
- *		Convert a strint to an unsigned integer.
+ *		Convert a string to an unsigned integer.
  *
  *	Args:
  *		string: A non-empty string to convert.

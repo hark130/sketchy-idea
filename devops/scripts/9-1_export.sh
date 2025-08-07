@@ -166,6 +166,18 @@ print_banner "VIEWING CPU INFORMATION"
 print_title "Display information about the CPU architecture"
 run_manual_test_command "lscpu"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_banner "VIEWING CPU USAGE"
+print_title "The top command is good"
+print_title "The htop interactive process viewer is better"
+print_title "However, neither top nor htop lend themselves well to shell scripting"
+print_title "If sysstat is installed, mpstat is useful"
+print_title "Report statistics for all processors using mpstat"
+run_manual_test_command "mpstat -P ALL"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "If sysstat is installed, sar is also useful"
+print_title "Report statistics for all processors, every second, 10 times using sar"
+run_manual_test_command "sar -u ALL 1 10"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 # 5.D. View information about the system
 print_banner "VIEW SYSTEM INFORMATION"
 print_title "Print all system information"

@@ -116,6 +116,11 @@
 /* PID MACROS */
 #define SKID_BAD_PID ((pid_t)-1)  // Use this to standardize "invalid" PIDs
 
+/* PIPE MACROS */
+// See: pipe(2)
+#define PIPE_READ 0  // The array index for the read end of the pipe
+#define PIPE_WRITE 1  // The array index for the write end of the pipe
+
 /* SEMAPHORE MACROS */
 #define SKID_BAD_SEM_PTR ((sem_t *)0)  // SEM_FAILED, as a pointer type value, is dangerous
 

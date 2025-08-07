@@ -2,9 +2,13 @@
  *  This library defines functionality to help manage pipes.
  */
 
+#define _GNU_SOURCE                         // Access to pipe2()
+
+// #define SKID_DEBUG                          // Enable DEBUG logging
 
 #include <errno.h>                          // errno, EEXIST
 #include <stdbool.h>                        // false
+#include <unistd.h>                         // pipe2()
 #include "skid_debug.h"                     // PRINT_E*(), MODULE_*LOAD()
 #include "skid_file_descriptors.h"          // close_fd()
 #include "skid_file_metadata_read.h"        // is_path()
@@ -34,6 +38,46 @@ int close_pipe(int *pipefd, bool quiet)
 
     // CLOSE IT
     result = close_fd(pipefd, quiet);
+
+    // DONE
+    return result;
+}
+
+
+int create_pipes(int *readfd, int *writefd, int flags)
+{
+    // LOCAL VARIABLES
+    int result = ENOERR;                           // Errno values
+    int pipefd[2] = { SKID_BAD_FD, SKID_BAD_FD };  // Our parameter for pipe2()
+
+    // INPUT VALIDATION
+    if (NULL == readfd || NULL == writefd)
+    {
+        result = EINVAL;
+    }
+
+    // CREATE IT
+    if (ENOERR == result)
+    {
+        if (0 != pipe2(pipefd, flags))
+        {
+            result = errno;
+            PRINT_ERROR(The call to pipe2() failed);
+            PRINT_ERRNO(result);
+            pipefd[PIPE_READ] = SKID_BAD_FD;  // Reset them, just in case
+            pipefd[PIPE_WRITE] = SKID_BAD_FD;  // Reset them, just in case
+        }
+    }
+
+    // SET IT
+    if (NULL != readfd)
+    {
+        *readfd = pipefd[PIPE_READ];  // Succeed or fail...
+    }
+    if (NULL != writefd)
+    {
+        *writefd = pipefd[PIPE_WRITE];  // Succeed or fail...
+    }
 
     // DONE
     return result;
