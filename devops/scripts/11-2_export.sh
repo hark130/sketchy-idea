@@ -75,6 +75,36 @@ print_title()
 
 #
 # PURPOSE:
+#   Print script usage
+# ARGUMENTS:
+#   script name: Pass in $0
+# RETURN:
+#   The exit code
+#
+print_usage()
+{
+    # LOCAL VARIABLES
+    RET_CODE=0   # Exit code from command execution
+    SCRIPT="$@"  # The title argument
+
+    # DO IT
+    echo
+    printf "%s\n" \
+           "1. Plug in a disposable block device (e.g., thumb drive)" \
+           "2. Determine the name of the device: lsblk" \
+           "3. Unmount the device (if it's mounted): umount <MOUNT_POINT>" \
+           "4. Delete any partitions: parted <BLOCK_DEVICE> rm 1" \
+           "5. Call this script with the <BLOCK_DEVICE> name" \
+           "" \
+           "USAGE: $SCRIPT <BLOCK_DEVICE>"
+    RET_CODE=$?
+
+    # DONE
+    return $RET_CODE
+}
+
+#
+# PURPOSE:
 #   Run manual test code in a standardized way
 # ARGUMENTS:
 #   command: The command, with a variable number of argments, to echo and then execute
@@ -132,22 +162,186 @@ run_manual_test_command_verbose()
 BOOKEND="***"                                                       # Formatting
 TEMP_RET=0                                                          # Temporary exit code var
 EXIT_CODE=0                                                         # Exit value
+TARGET_DEVICE=$1                                                    # Command line argument
+CHAR_DEVICE=/dev/11-2_char_device                                   # New character device
+BLOCK_DEVICE=/dev/11-2_block_device                                 # New block device
+TARGET_LABEL=11-2_label
+TARGET_MOUNT=/mnt/11-2_target                                       # Mount point for TARGET_LABEL
+DISK_IMAGE=/tmp/11-2_disk.img                                       # Disk image file
+DISK_MOUNT=/mnt/11-2_disk_img                                       # Mount point for DISK_IMAGE
+# lsblk command for maximum detail
+LSBLK_CMD="lsblk -f -o NAME,FSTYPE,LABEL,UUID,PARTTYPE,PARTLABEL,PARTUUID,RO,RM,TYPE,SIZE,MOUNTPOINT,MODEL,VENDOR,PHY-SeC,LOG-SEC,ROTA,TRAN,SERIAL"
 
-# 1. Stores the date
-printf "\n%s This output was created by %s on %s %s\n" "$BOOKEND" "$(basename "$0")" "$(date)" "$BOOKEND" && \
-# 2. Runs the build system (which also executes the Check-based unit tests)
-make && echo && \
-# 3. Executes the unit tests with Valgrind
-./devops/scripts/run_valgrind.sh; [[ $? -ne 0 ]] && exit; echo && \
-# 4. Counts the number of unit tests (by running them again)
-for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
+# 0. Input Validation
+if [[ -z "$TARGET_DEVICE" ]]
+then
+    echo "You neglected to provide a target device on the command line."
+    EXIT_CODE=1
+elif [[ ! -e "$TARGET_DEVICE" ]]
+then
+    echo "Unable to locate: $TARGET_DEVICE"
+    EXIT_CODE=1
+elif [[ ! -b "$TARGET_DEVICE" ]]
+then
+    echo "$TARGET_DEVICE is not a block device"
+    EXIT_CODE=1
+fi
+# Validate
+if [[ $EXIT_CODE -ne 0 ]]
+then
+    echo "You provided invalid input.  Exiting with $EXIT_CODE"
+    print_usage $0
+    exit $EXIT_CODE
+else
+    print_banner "WARNING"
+    print_title "This device will be used to demonstrate device management"
+    echo -e "All data on $TARGET_DEVICE will be destroyed.\n"
+    read -p "Enter 'Y' to continue:  " acknowledge
+    if [[ "$acknowledge" != "Y" ]]
+    then
+        echo "Exiting."
+        exit $EXIT_CODE
+    fi
+fi
+
+
+# # 1. Stores the date
+# printf "\n%s This output was created by %s on %s %s\n" "$BOOKEND" "$(basename "$0")" "$(date)" "$BOOKEND" && \
+# # 2. Runs the build system (which also executes the Check-based unit tests)
+# make && echo && \
+# # 3. Executes the unit tests with Valgrind
+# ./devops/scripts/run_valgrind.sh; [[ $? -ne 0 ]] && exit; echo && \
+# # 4. Counts the number of unit tests (by running them again)
+# for check_bin in $(ls code/dist/check_*.bin); do $check_bin; [[ $? -ne 0 ]] && break; done | grep "100%: Checks: " | awk '{sum += $3} END {print "TOTAL CHECK UNIT TESTS: "sum}' && echo
 # 5. Misc.
-# 5.A.
 echo
-print_banner "TD:DDN"
-print_title "TO DO: DON'T DO NOW... Put something here!"
-run_manual_test_command "echo TO DO: DO NOT DO NOW... Put something here!"
+
+# 5.A. Manage character and block devices found in /dev
+print_banner "MANAGE CHARACTER DEVICES"
+print_title "List character devices in /dev"
+run_manual_test_command "ls -l /dev | grep '^c'"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Create a character device in /dev"
+run_manual_test_command "mknod ${CHAR_DEVICE} c 318 90"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Let's see it"
+run_manual_test_command "ls -l ${CHAR_DEVICE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Let's get rid of it"
+run_manual_test_command "unlink ${CHAR_DEVICE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_banner "MANAGE BLOCK DEVICES"
+print_title "List block devices in /dev"
+run_manual_test_command "ls -l /dev | grep '^b'"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Create a block device in /dev"
+run_manual_test_command "mknod ${BLOCK_DEVICE} b 16 0xACC"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Let's see it"
+run_manual_test_command "ls -l ${BLOCK_DEVICE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Let's get rid of it"
+run_manual_test_command "unlink ${BLOCK_DEVICE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+
+# 5.B. Create a disk partition
+print_banner "CREATE A DISK PARTITION"
+print_title "BEFORE: Let's view the block device as-is"
+run_manual_test_command "${LSBLK_CMD} ${TARGET_DEVICE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Create a GPT partition table"
+run_manual_test_command "parted ${TARGET_DEVICE} --script mklabel gpt"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Create a new primary partition"
+run_manual_test_command "parted ${TARGET_DEVICE} --script mkpart primary 0% 100%"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+
+# 5.C. Select and create a filesystem on a disk
+print_banner "CREATE A FILESYSTEM ON DISK"
+print_title "Build a new filesystem"
+run_manual_test_command "mkfs.ext4 -F -L ${TARGET_LABEL} ${TARGET_DEVICE}1"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+
+# 5.D. Mount and unmount a disk
+print_banner "MOUNT THE PARTITION"
+print_title "Create a mount point"
+run_manual_test_command "mkdir -p ${TARGET_MOUNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Mount the block device partition to the mount point1"
+run_manual_test_command "mount ${TARGET_DEVICE}1 ${TARGET_MOUNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Change the owner and group of the mount point"  # DEBUGGING
+run_manual_test_command "chown ${SUDO_UID}:${SUDO_GID} ${TARGET_MOUNT}"  # DEBUGGING
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Verify it mounted"
+run_manual_test_command "df -h | head -n 1 && df -h | grep ${TARGET_DEVICE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Write a file to the mount"
+run_manual_test_command "cp ./code/test/test_input/regular_file.txt ${TARGET_MOUNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "DURING: Let's view the block device now that it is mounted"
+run_manual_test_command "${LSBLK_CMD} ${TARGET_DEVICE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+
+# echo "Press any key to continue..."  # DEBUGGING
+# read -n 1 -s  # DEBUGGING
+# echo "Script resumed!"  # DEBUGGING
+
+print_banner "UNMOUNT THE PARTITION"
+print_title "Unmount the filesystem"
+run_manual_test_command "umount ${TARGET_MOUNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "AFTER: Let's view the block device now that it is unmounted"
+run_manual_test_command "${LSBLK_CMD} ${TARGET_DEVICE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_banner "CLEANUP"
+print_title "Remove the mount point"
+run_manual_test_command "rmdir ${TARGET_MOUNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+
+# 5.E. Mount a disk image
+print_banner "DISK IMAGE"
+print_title "Create a 100MB empty disk image"
+run_manual_test_command "dd if=/dev/zero of=${DISK_IMAGE} bs=1M count=100"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Create a filesystem on the disk image"
+run_manual_test_command "mkfs.ext4 ${DISK_IMAGE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Create a mount point"
+run_manual_test_command "mkdir -p ${DISK_MOUNT}"
+print_title "Mount the disk image as a loop device"
+run_manual_test_command "mount -o loop ${DISK_IMAGE} ${DISK_MOUNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "View the new loop device"
+run_manual_test_command "lsblk | head -n1 && lsblk | grep ${DISK_MOUNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Write a file to the mount"
+run_manual_test_command "cp ./code/test/test_input/regular_file.txt ${DISK_MOUNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+
+# echo "Press any key to continue..."  # DEBUGGING
+# read -n 1 -s  # DEBUGGING
+# echo "Script resumed!"  # DEBUGGING
+
+print_banner "UNMOUNT THE PARTITION"
+print_title "Unmount the filesystem"
+run_manual_test_command "umount ${DISK_MOUNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_banner "PEEK INTO CLEARTEXT DISK IMAGE"
+print_title "Find the file contents copied into the mounted image"
+run_manual_test_command "strings ${DISK_IMAGE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_banner "CLEANUP"
+print_title "Remove the mount point"
+run_manual_test_command "rmdir ${DISK_MOUNT}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+print_title "Delete the disk image"
+run_manual_test_command "rm --force ${DISK_IMAGE}"
+TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+
+# 5.F. Create, mount, and unmount an encrypted disk
+
+
 
 # DONE
 if [ $EXIT_CODE -ne 0 ]
