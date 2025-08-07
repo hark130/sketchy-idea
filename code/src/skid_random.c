@@ -102,7 +102,6 @@ unsigned int randomize_range(unsigned int start, unsigned int stop, int *errnum)
 /********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
 /**************************************************************************************************/
 
-#include <stdint.h>
 
 SKID_INTERNAL int seed_it(void)
 {
