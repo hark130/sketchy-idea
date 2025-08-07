@@ -219,8 +219,9 @@ echo
 # 2.A. Manage character and block devices found in /dev
 print_banner "MANAGE CHARACTER DEVICES"
 print_title "List character devices in /dev"
-run_manual_test_command "ls -l /dev | grep '^c'"
+run_manual_test_command "ls -l /dev | grep '^c' | head -n 10"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+echo -e "[OUTPUT TRUNCATED]\n"
 print_title "Create a character device in /dev"
 run_manual_test_command "mknod ${CHAR_DEVICE} c 318 90"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
@@ -232,8 +233,9 @@ run_manual_test_command "unlink ${CHAR_DEVICE}"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
 print_banner "MANAGE BLOCK DEVICES"
 print_title "List block devices in /dev"
-run_manual_test_command "ls -l /dev | grep '^b'"
+run_manual_test_command "ls -l /dev | grep '^b' | head -n 10"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
+echo -e "[OUTPUT TRUNCATED]\n"
 print_title "Create a block device in /dev"
 run_manual_test_command "mknod ${BLOCK_DEVICE} b 16 0xACC"
 TEMP_RET=$?; if [[ $TEMP_RET -ne 0 ]]; then EXIT_CODE=$TEMP_RET; echo -e "Command failed!\n"; fi
