@@ -46,7 +46,7 @@ MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destruct
  *      output_size: [Out] Pointer to the size of output_buf.
  *
  *  Returns:
- *      0 on success, errno on failure.
+ *      ENOERR on success, errno on failure.
  */
 SKID_INTERNAL int check_sn_pre_alloc(char **output_buf, size_t *output_size);
 
@@ -71,7 +71,7 @@ SKID_INTERNAL bool check_sn_space(size_t bytes_read, size_t output_len, size_t o
  *
  *  Args:
  *      sa: Pointer to the struct to evaluate.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      Pointer to the relevant struct in*_addr member on success.  NULL on error (consult
@@ -85,7 +85,7 @@ SKID_INTERNAL void *get_inet_addr(struct sockaddr *sa, int *errnum);
  *
  *  Args:
  *      sockfd: Socket file descriptor to fetch information about.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      The struct sockaddr.sa_family value on success, 0 on failure (sets errno value in errnum).
@@ -118,7 +118,7 @@ SKID_INTERNAL sa_family_t get_socket_family(int sockfd, int *errnum);
  *      option_len: [Optional/In] The size of option_value.
  *
  *  Returns:
- *      0 on success, errno on failure.
+ *      ENOERR on success, errno on failure.
  */
 SKID_INTERNAL int get_socket_option(int sockfd, int level, int option_name,
                                     void *restrict option_value, socklen_t *restrict option_len);
@@ -136,7 +136,7 @@ SKID_INTERNAL int get_socket_option(int sockfd, int level, int option_name,
  *      output_size: [In/Out] Pointer to the size of output_buf.
  *
  *  Returns:
- *      0 on success, errno on failure.  EOVERFLOW is used to indicate the output_size can not
+ *      ENOERR on success, errno on failure.  EOVERFLOW is used to indicate the output_size can not
  *      be doubled without overflowing the size_t data type.
  */
 SKID_INTERNAL int realloc_sock_dynamic(char **output_buf, size_t *output_size);
@@ -153,7 +153,7 @@ SKID_INTERNAL int realloc_sock_dynamic(char **output_buf, size_t *output_size);
  *
  *  Args:
  *      sockfd: Socket file descriptor to recv from.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      The real length of the packet or datagram.  Some "error" situations will be treated as
@@ -180,7 +180,7 @@ SKID_INTERNAL ssize_t recv_from_size(int sockfd, int *errnum);
  *      output_size: [In/Out] Pointer to the size of output_buf.
  *
  *  Returns:
- *      0 on success, errno on failure.
+ *      ENOERR on success, errno on failure.
  */
 SKID_INTERNAL int recv_from_socket_dynamic(int sockfd, int flags, struct sockaddr *src_addr,
                                            socklen_t *addrlen, char **output_buf,
@@ -202,54 +202,54 @@ SKID_INTERNAL int recv_from_socket_dynamic(int sockfd, int flags, struct sockadd
  *      output_size: [In/Out] Pointer to the size of output_buf.
  *
  *  Returns:
- *      0 on success, errno on failure.
+ *      ENOERR on success, errno on failure.
  */
 SKID_INTERNAL int recv_socket_dynamic(int sockfd, int flags, char **output_buf,
                                       size_t *output_size);
 
 /*
  *  Description:
- *  A "lite" wrapper around the module's call to sendto(), standardizing error response.
- *  This function does not validate input.  It does, however, attempt to recursively
- *  complete partial sends (bytes successfully sent are less than len).
+ *      A "lite" wrapper around the module's call to sendto(), standardizing error response.
+ *      This function does not validate input.  It does, however, attempt to recursively
+ *      complete partial sends (bytes successfully sent are less than len).
  *
  *  Args:
- *    sockfd: Specifies the socket file descriptor.
- *    buf: Points to a buffer containing the message to be sent.
- *    len: Specifies the size of the message in bytes.
- *    flags: Specifies the type of message transmission.
- *    dest_addr: Points to a sockaddr structure containing the destination address.
- *        The length and format of the address depend on the address family of the socket.
- *    addrlen: Specifies the length of the sockaddr structure pointed to by the dest_addr arg.
- *    errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      sockfd: Specifies the socket file descriptor.
+ *      buf: Points to a buffer containing the message to be sent.
+ *      len: Specifies the size of the message in bytes.
+ *      flags: Specifies the type of message transmission.
+ *      dest_addr: Points to a sockaddr structure containing the destination address.
+ *          The length and format of the address depend on the address family of the socket.
+ *      addrlen: Specifies the length of the sockaddr structure pointed to by the dest_addr arg.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
- *    Upon successful completion, send_to() shall return the number of bytes sent.
- *    Partial sends, number of bytes sent < len, are treated as successful.
- *    Otherwise, -1 shall be returned and errnum set to indicate the error.
+ *      Upon successful completion, send_to() shall return the number of bytes sent.
+ *      Partial sends, number of bytes sent < len, are treated as successful.
+ *      Otherwise, -1 shall be returned and errnum set to indicate the error.
  */
 SKID_INTERNAL ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
                               const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum);
 
 /*
  *  Description:
- *    Chunks buf into get_socket_opt_sndbuf() segments and passes them to send_to().
- *    This function barely validates input: non-NULL buf and valid len.
+ *      Chunks buf into get_socket_opt_sndbuf() segments and passes them to send_to().
+ *      This function barely validates input: non-NULL buf and valid len.
  *
  *  Args:
- *    sockfd: Specifies the socket file descriptor.
- *    buf: Points to a buffer containing the message to be sent.
- *    len: Specifies the size of the message in bytes.
- *    flags: Specifies the type of message transmission.
- *    dest_addr: Points to a sockaddr structure containing the destination address.
- *        The length and format of the address depend on the address family of the socket.
- *    addrlen: Specifies the length of the sockaddr structure pointed to by the dest_addr arg.
- *    errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      sockfd: Specifies the socket file descriptor.
+ *      buf: Points to a buffer containing the message to be sent.
+ *      len: Specifies the size of the message in bytes.
+ *      flags: Specifies the type of message transmission.
+ *      dest_addr: Points to a sockaddr structure containing the destination address.
+ *          The length and format of the address depend on the address family of the socket.
+ *      addrlen: Specifies the length of the sockaddr structure pointed to by the dest_addr arg.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
- *    Upon successful completion, send_to() shall return the number of bytes sent.
- *    Partial sends, number of bytes sent < len, are treated as successful.
- *    Otherwise, -1 shall be returned and errnum set to indicate the error.
+ *      Upon successful completion, send_to() shall return the number of bytes sent.
+ *      Partial sends, number of bytes sent < len, are treated as successful.
+ *      Otherwise, -1 shall be returned and errnum set to indicate the error.
  */
 SKID_INTERNAL ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
                                     const struct sockaddr *dest_addr, socklen_t addrlen,
@@ -257,16 +257,16 @@ SKID_INTERNAL ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int
 
 /*
  *  Description:
- *    Validate common In/Out args on behalf of the library.
+ *      Validate common In/Out args on behalf of the library.
  *
  *  Args:
- *    output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
- *        a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
- *        output_size will be updated.
- *    output_size: [In/Out] Pointer to the size of output_buf.
+ *      output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
+ *          a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
+ *          output_size will be updated.
+ *      output_size: [In/Out] Pointer to the size of output_buf.
  *
  *  Returns:
- *    0 on success, errno on failed validation.
+ *      ENOERR on success, errno on failed validation.
  */
 SKID_INTERNAL int validate_sn_args(char **output_buf, size_t *output_size);
 
@@ -780,7 +780,7 @@ int resolve_alias(const char *proto_alias, int *errnum)
         result = ENOPROTOOPT;  // Default result, post-validation
         while (protocol_num < 0)
         {
-            errno = 0;  // Clear errno
+            errno = ENOERR;  // Clear errno
             protocol_ptr = getprotoent();
             if (NULL == protocol_ptr)
             {
@@ -1228,7 +1228,6 @@ SKID_INTERNAL ssize_t recv_from_size(int sockfd, int *errnum)
     // SIZE IT
     if (ENOERR == result)
     {
-        // data_size = recvfrom(sockfd, NULL, 0, flags);
         // Just get the size of the data in sockfd
         data_size = call_recvfrom(sockfd, flags, NULL, NULL, small_buff, small_size, &result);
         if (data_size < 0)
@@ -1239,7 +1238,7 @@ SKID_INTERNAL ssize_t recv_from_size(int sockfd, int *errnum)
                 data_size = 0;  // Nothing to read
                 result = ENOERR;  // Everything is fine.  Nothing to see here.
             }
-            else if (result)
+            else if (ENOERR != result)
             {
                 PRINT_ERROR(The call to recvfrom() failed);
                 PRINT_ERRNO(result);
@@ -1261,11 +1260,11 @@ SKID_INTERNAL int recv_from_socket_dynamic(int sockfd, int flags, struct sockadd
                                            size_t *output_size)
 {
     // LOCAL VARIABLES
-    int result = validate_skid_fd(sockfd);       // Success of execution
+    int result = validate_skid_fd(sockfd);           // Success of execution
     char local_buf[SKID_NET_BUFF_SIZE + 1] = { 0 };  // Local buffer
-    ssize_t num_read = 0;                        // Number of bytes read
-    size_t output_len = 0;                       // The length of *output_buf's string
-    char *tmp_ptr = NULL;                        // Temp pointer
+    ssize_t num_read = 0;                            // Number of bytes read
+    size_t output_len = 0;                           // The length of *output_buf's string
+    char *tmp_ptr = NULL;                            // Temp pointer
 
     // INPUT VALIDATION
     if (ENOERR == result)

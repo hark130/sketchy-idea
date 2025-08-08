@@ -1,7 +1,7 @@
 #ifndef __SKID_FILE_OPERATIONS__
 #define __SKID_FILE_OPERATIONS__
 
-#include <stdbool.h>    // bool, false, true
+#include <stdbool.h>                        // bool, false, true
 
 /*
  *  Description:
@@ -31,7 +31,7 @@ int append_to_file(const char *filename, const char *entry, bool create);
  *          If overwrite is false and filename exists, will return EEXIST.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value (or -1 for an unspecified error).
+ *      ENOERR, on success.  On failure, an errno value (or -1 for an unspecified error).
  */
 int create_file(const char *filename, const char *contents, bool overwrite);
 
@@ -53,7 +53,7 @@ int create_file(const char *filename, const char *contents, bool overwrite);
  *      filename: Absolute or relative filename to delete.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int delete_file(const char *filename);
 
@@ -65,7 +65,7 @@ int delete_file(const char *filename);
  *      filename: Absolute or relative filename to emptied.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value (or -1 for an unspecified error).
+ *      ENOERR, on success.  On failure, an errno value (or -1 for an unspecified error).
  */
 int empty_file(const char *filename);
 

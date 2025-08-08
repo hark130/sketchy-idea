@@ -62,7 +62,7 @@ SKID_INTERNAL void *call_mmap(void *addr, size_t length, int prot, int flags,
  *      err: A non-NULL integer pointer.
  *
  *  Returns:
- *      0 for good input, errno for failed validation.
+ *      ENOERR for good input, errno for failed validation.
  */
 SKID_INTERNAL int validate_sm_standard_args(const char *pathname, int *err);
 
@@ -74,7 +74,7 @@ SKID_INTERNAL int validate_sm_standard_args(const char *pathname, int *err);
  *      pathname: A non-NULL, non-empty, pathname.
  *
  *  Returns:
- *      0 for good input, errno for failed validation.
+ *      ENOERR for good input, errno for failed validation.
  */
 SKID_INTERNAL int validate_sm_pathname(const char *pathname);
 
@@ -175,7 +175,7 @@ char *copy_skid_string(const char *source, int *errnum)
     }
 
     // CLEANUP
-    if (result)
+    if (ENOERR != result)
     {
         free_skid_string(&destination);  // Best effort
     }

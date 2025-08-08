@@ -69,7 +69,7 @@ SKID_INTERNAL bool is_dirent_a_dir(struct dirent *direntp);
  *  Args:
  *      dirname: A directory, relative or absolute, to join path to.
  *      path: A path, relative or absolute, to join to dirname.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      A heap-allocated copy of dirname/path on success.  NULL on failure (see errnum for details).
@@ -85,7 +85,7 @@ SKID_INTERNAL char *join_dir_path(const char *dirname, const char *path, int *er
  *      content_arr: [Optional] Starting array of strings (which represent pathnames).  If NULL,
  *          this function will create the first array.
  *      capacity: [In/Out] Current capacity of content_arr.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      A larger string array on success, content_arr on failure.  Ensure errnum is checked for
@@ -106,7 +106,7 @@ SKID_INTERNAL char **realloc_dir_contents(char **content_arr, size_t *capacity, 
  *          updated if the content array has to be reallocated.
  *      dirname: Absolute or relative directory to read the contents of (must exist).
  *      recurse: If true, also include all sub-dirs and their files in the array.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      A NULL-terminated array of string pointers.  Each string pointer represents one path
@@ -132,7 +132,7 @@ SKID_INTERNAL char **recurse_dir_contents(char **content_arr, size_t *capacity, 
  *          just the d_name will be stored.
  *      direntp: [Optional] A pointer to a dirent struct to store in content_arr.  This function
  *          will ignore NULL direntp pointers.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      A NULL-terminated array of string pointers.  Each string pointer represents one path.
@@ -164,7 +164,7 @@ SKID_INTERNAL bool validate_direntp(struct dirent *direntp);
  *      See recurse_dir_contents().
  *
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 SKID_INTERNAL int validate_rdc_args(char **content_arr, size_t *capacity, const char *dirname,
                                     bool recurse, int *errnum);
@@ -247,8 +247,12 @@ int delete_dir(const char *dirname)
 int destroy_dir(const char *dirname)
 {
     // From readdir(3)
-    // Only  the fields d_name and (as an XSI extension) d_ino are specified in POSIX.1.  Other than Linux, the d_type field is available mainly only on BSD systems.  The remaining fields are available on many, but not all systems.  Under glibc, programs can check for
-    // the availability of the fields not defined in POSIX.1 by testing whether the macros _DIRENT_HAVE_D_NAMLEN, _DIRENT_HAVE_D_RECLEN, _DIRENT_HAVE_D_OFF, or _DIRENT_HAVE_D_TYPE are defined.
+    // Only  the fields d_name and (as an XSI extension) d_ino are specified in POSIX.1.
+    // Other than Linux, the d_type field is available mainly only on BSD systems.
+    // The remaining fields are available on many, but not all systems.  Under glibc, programs
+    // can check for the availability of the fields not defined in POSIX.1 by testing whether
+    // the macros _DIRENT_HAVE_D_NAMLEN, _DIRENT_HAVE_D_RECLEN, _DIRENT_HAVE_D_OFF, or
+    // _DIRENT_HAVE_D_TYPE are defined.
 
     // LOCAL VARIABLES
     int result = ENOERR;         // Results of execution
@@ -265,7 +269,7 @@ int destroy_dir(const char *dirname)
     if (ENOERR == result)
     {
         dir_contents = read_dir_contents(dirname, true, &result, &capacity);
-        if (result)
+        if (ENOERR != result)
         {
             PRINT_ERROR(The call to read_dir_contents() failed);
             PRINT_ERRNO(result);
@@ -347,7 +351,7 @@ int free_skid_dir_contents(char ***dir_contents)
 
     // FREE IT
     // Free the string pointers
-    if (!result)
+    if (ENOERR == result)
     {
         old_array = *dir_contents;  // Array pointer
         while (NULL != old_array && NULL != *old_array && ENOERR == result)
@@ -357,7 +361,7 @@ int free_skid_dir_contents(char ***dir_contents)
         }
     }
     // Free the array
-    if (!result)
+    if (ENOERR == result)
     {
         free_skid_mem((void **)dir_contents);
     }
@@ -390,7 +394,7 @@ char **read_dir_contents(const char *dirname, bool recurse, int *errnum, size_t 
     if (ENOERR == result)
     {
         content_arr = recurse_dir_contents(content_arr, capacity, dirname, recurse, &result);
-        if (result)
+        if (ENOERR != result)
         {
             PRINT_ERROR(The intial call to recurse_dir_contents() failed);
             PRINT_ERRNO(result);
@@ -645,7 +649,7 @@ SKID_INTERNAL char **recurse_dir_contents(char **content_arr, size_t *capacity, 
             if (NULL == temp_dirent)
             {
                 result = errno;
-                if (result)
+                if (ENOERR != result)
                 {
                     PRINT_ERROR(The call to readdir() failed);
                     PRINT_ERRNO(result);
@@ -659,7 +663,7 @@ SKID_INTERNAL char **recurse_dir_contents(char **content_arr, size_t *capacity, 
             {
                 // Store it
                 curr_arr = store_dirent(curr_arr, capacity, dirname, temp_dirent, &result);
-                if (result)
+                if (ENOERR != result)
                 {
                     PRINT_ERROR(The call to store_dirent() failed);
                     PRINT_ERRNO(result);
@@ -691,7 +695,7 @@ SKID_INTERNAL char **recurse_dir_contents(char **content_arr, size_t *capacity, 
     {
         if (closedir(dirp))
         {
-            if (!result)
+            if (ENOERR == result)
             {
                 result = errno;
                 PRINT_ERROR(The call to closedir() failed);
@@ -700,7 +704,7 @@ SKID_INTERNAL char **recurse_dir_contents(char **content_arr, size_t *capacity, 
         }
     }
     // Free any existing array on an error
-    if (result)
+    if (ENOERR != result)
     {
         free_skid_dir_contents(&curr_arr);  // Best effort
     }
@@ -756,7 +760,7 @@ SKID_INTERNAL char **store_dirent(char **content_arr, size_t *capacity, const ch
                             curr_arr[num_entries] = copy_skid_string(direntp->d_name, &result);
                         }
                         // 4. Verify
-                        if (result)
+                        if (ENOERR != result)
                         {
                             PRINT_ERROR(The direntp->d_name copy operation failed);
                             PRINT_ERRNO(result);
@@ -772,7 +776,7 @@ SKID_INTERNAL char **store_dirent(char **content_arr, size_t *capacity, const ch
                     {
 
                         curr_arr = realloc_dir_contents(curr_arr, capacity, &result);
-                        if (result)
+                        if (ENOERR != result)
                         {
                             PRINT_ERROR(The call to realloc_dir_contents() failed);
                             PRINT_ERRNO(result);
@@ -789,7 +793,7 @@ SKID_INTERNAL char **store_dirent(char **content_arr, size_t *capacity, const ch
                 else
                 {
                     curr_arr = realloc_dir_contents(curr_arr, capacity, &result);
-                    if (result)
+                    if (ENOERR != result)
                     {
                         PRINT_ERROR(The initial call to realloc_dir_contents() failed?);
                         PRINT_ERRNO(result);
@@ -800,7 +804,7 @@ SKID_INTERNAL char **store_dirent(char **content_arr, size_t *capacity, const ch
                 num_loops++;  // One loop completed without success
             }
             // Verify we did something
-            if (!result && num_loops > SKID_MAX_RETRIES)
+            if (ENOERR == result && num_loops > SKID_MAX_RETRIES)
             {
                 result = -1;  // It appears we exceeded the max loops without succeeding or failing
             }
@@ -853,7 +857,7 @@ SKID_INTERNAL int validate_rdc_args(char **content_arr, size_t *capacity, const 
     // INPUT VALIDATION
     // Skipping content_arr
     // capacity
-    if (!result)
+    if (ENOERR == result)
     {
         if (!capacity)
         {
@@ -862,7 +866,7 @@ SKID_INTERNAL int validate_rdc_args(char **content_arr, size_t *capacity, const 
     }
     // dirname already validated
     // errnum
-    if (!result)
+    if (ENOERR == result)
     {
         result = validate_skid_err(errnum);
     }

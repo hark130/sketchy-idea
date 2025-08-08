@@ -35,7 +35,7 @@ MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destruct
  *      stream: A pointer to a file pointer.
  *
  *  Returns:
- *      0 on success, errno on failure.
+ *      ENOERR on success, errno on failure.
  */
 SKID_INTERNAL int close_stream(FILE **stream);
 
@@ -44,10 +44,10 @@ SKID_INTERNAL int close_stream(FILE **stream);
  *      Is filename an actual file?  Any invalid input or errno values are treated as a "no".
  *
  *  Args:
- *    filename: Absolute or relative pathname to check.
+ *      filename: Absolute or relative pathname to check.
  *
  *  Returns:
- *    True if filename exists as a file.  False otherwise.
+ *      True if filename exists as a file.  False otherwise.
  */
 SKID_INTERNAL bool is_file(const char *filename);
 
@@ -63,19 +63,19 @@ SKID_INTERNAL bool is_file(const char *filename);
  *      buff_size: The maximum number of bytes to read into contents.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value (or -1 for an unspecified error).
+ *      ENOERR, on success.  On failure, an errno value (or -1 for an unspecified error).
  */
 SKID_INTERNAL int read_stream(FILE *stream, char *contents, size_t buff_size);
 
 /*
  *  Description:
- *    Validates the pathname arguments on behalf of this library.
+ *      Validates the pathname arguments on behalf of this library.
  *
  *  Args:
- *    pathname: A non-NULL pointer to a non-empty string.
+ *      pathname: A non-NULL pointer to a non-empty string.
  *
  *  Returns:
- *    An errno value indicating the results of validation.  ENOERR on successful validation.
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 SKID_INTERNAL int validate_sfo_pathname(const char *pathname);
 
@@ -88,7 +88,7 @@ SKID_INTERNAL int validate_sfo_pathname(const char *pathname);
  *      stream: Open FILE pointer to write to.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value (or -1 for an unspecified error).
+ *      ENOERR, on success.  On failure, an errno value (or -1 for an unspecified error).
  */
 SKID_INTERNAL int write_stream(const char *contents, FILE *stream);
 
@@ -126,7 +126,7 @@ int append_to_file(const char *filename, const char *entry, bool create)
             }
             else if (ENOERR == result)
             {
-                result = ENOENT;  // The file didn't exist, no errors found, but we're not to create it.
+                result = ENOENT;  // File didn't exist, no errs found, but we're not to create it.
             }
         }
     }
@@ -272,7 +272,7 @@ char *read_file(const char *filename, int *errnum)
     if (ENOERR == result)
     {
         file_size = get_size(filename, &result);
-        if (result)
+        if (ENOERR != result)
         {
             PRINT_ERROR(The call to get_size() failed);
             PRINT_ERRNO(result);
@@ -282,7 +282,7 @@ char *read_file(const char *filename, int *errnum)
     if (ENOERR == result)
     {
         contents = alloc_skid_mem(file_size + 1, 1, &result);
-        if (result)
+        if (ENOERR != result)
         {
             PRINT_ERROR(The call to alloc_skid_mem() failed);
             PRINT_ERRNO(result);
@@ -303,7 +303,7 @@ char *read_file(const char *filename, int *errnum)
     if (ENOERR == result)
     {
         result = read_stream(fp, contents, file_size);
-        if (result)
+        if (ENOERR != result)
         {
             PRINT_ERROR(The call to read_stream() failed);
             PRINT_ERRNO(result);
@@ -312,7 +312,7 @@ char *read_file(const char *filename, int *errnum)
 
     // CLEANUP
     close_stream(&fp);  // Best effort
-    if (result && contents)
+    if (ENOERR != result && contents)
     {
         free_skid_mem((void **)&contents);  // Free the memory since there was an error
     }
