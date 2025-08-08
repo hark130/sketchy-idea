@@ -1,0 +1,102 @@
+/*
+ *    This library defines functionality to create links to Linux files.
+ */
+
+// #define SKID_DEBUG                          // Enable DEBUG logging
+
+#include <errno.h>                          // errno
+#include <stdbool.h>                        // false
+#include <unistd.h>                         // link(), symlink()
+#include "skid_debug.h"                     // PRINT_ERRNO()
+#include "skid_macros.h"                    // ENOERR, SKID_INTERNAL
+#include "skid_validation.h"                // validate_skid_pathname()
+
+MODULE_LOAD();  // Print the module name being loaded using the gcc constructor attribute
+MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destructor attribute
+
+
+/**************************************************************************************************/
+/********************************* PRIVATE FUNCTION DECLARATIONS **********************************/
+/**************************************************************************************************/
+
+/*
+ *  Description:
+ *      Validates the pathname arguments on behalf of this library.
+ *  Args:
+ *      pathname: A non-NULL pointer to a non-empty string.
+ *  Returns:
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
+ */
+SKID_INTERNAL int validate_sfl_pathname(const char *pathname);
+
+
+/**************************************************************************************************/
+/********************************** PUBLIC FUNCTION DEFINITIONS ***********************************/
+/**************************************************************************************************/
+
+
+int create_hard_link(const char *source, const char *hard_link)
+{
+    // LOCAL VARIABLES
+    int errnum = ENOERR;  // Results of the function call
+
+    // INPUT VALIDATION
+    errnum = validate_sfl_pathname(source);
+    if (ENOERR == errnum)
+    {
+        errnum = validate_sfl_pathname(hard_link);
+    }
+
+    // CREATE IT
+    if (ENOERR == errnum)
+    {
+        if (link(source, hard_link))
+        {
+            errnum = errno;
+            PRINT_ERROR(The call to link() failed);
+            PRINT_ERRNO(errnum);
+        }
+    }
+
+    // DONE
+    return errnum;
+}
+
+
+int create_sym_link(const char *dest, const char *sym_link)
+{
+    // LOCAL VARIABLES
+    int errnum = ENOERR;  // Results of the function call
+
+    // INPUT VALIDATION
+    errnum = validate_sfl_pathname(dest);
+    if (ENOERR == errnum)
+    {
+        errnum = validate_sfl_pathname(sym_link);
+    }
+
+    // CREATE IT
+    if (ENOERR == errnum)
+    {
+        if (symlink(dest, sym_link))
+        {
+            errnum = errno;
+            PRINT_ERROR(The call to symlink() failed);
+            PRINT_ERRNO(errnum);
+        }
+    }
+
+    // DONE
+    return errnum;
+}
+
+
+/**************************************************************************************************/
+/********************************** PRIVATE FUNCTION DEFINITIONS **********************************/
+/**************************************************************************************************/
+
+
+SKID_INTERNAL int validate_sfl_pathname(const char *pathname)
+{
+    return validate_skid_pathname(pathname, false);  // Refactored for backwards compatibility
+}
