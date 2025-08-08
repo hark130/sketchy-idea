@@ -1,7 +1,7 @@
 #ifndef __SKID_FILE_OPERATIONS__
 #define __SKID_FILE_OPERATIONS__
 
-#include <stdbool.h>    // bool, false, true
+#include <stdbool.h>                        // bool, false, true
 
 /*
  *  Description:
