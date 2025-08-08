@@ -633,7 +633,7 @@ int format_time(char *output, size_t output_size, time_t time_val)
         errno = ENOERR;  // Zeroize it, for safety
         tmp = localtime(&time_copy);  // Populate the tm struct
         result = errno;  // localtime() may result in EOVERFLOW
-        if (result)
+        if (ENOERR != result)
         {
             PRINT_ERROR(The call to localtime() failed);
             PRINT_ERRNO(result);
@@ -676,7 +676,7 @@ int format_time_terse(char *output, size_t output_size, time_t time_val)
         errno = ENOERR;  // Zeroize it, for safety
         tmp = localtime(&time_copy);  // Populate the tm struct
         result = errno;  // localtime() may result in EOVERFLOW
-        if (result)
+        if (ENOERR != result)
         {
             PRINT_ERROR(The call to localtime() failed);
             PRINT_ERRNO(result);

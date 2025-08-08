@@ -1238,7 +1238,7 @@ SKID_INTERNAL ssize_t recv_from_size(int sockfd, int *errnum)
                 data_size = 0;  // Nothing to read
                 result = ENOERR;  // Everything is fine.  Nothing to see here.
             }
-            else if (result)
+            else if (ENOERR != result)
             {
                 PRINT_ERROR(The call to recvfrom() failed);
                 PRINT_ERRNO(result);

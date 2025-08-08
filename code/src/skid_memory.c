@@ -175,7 +175,7 @@ char *copy_skid_string(const char *source, int *errnum)
     }
 
     // CLEANUP
-    if (result)
+    if (ENOERR != result)
     {
         free_skid_string(&destination);  // Best effort
     }
