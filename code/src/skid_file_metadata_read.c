@@ -25,36 +25,36 @@ MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destruct
  *  Args:
  *      pathname: Absolute or relative pathname to check with lstat().
  *      statbuf: [Out] Pointer to a stat struct to update with the results of the call to stat().
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *      follow_sym: If false, uses lstat() for symlinks.
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 SKID_INTERNAL int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum, bool follow_sym);
 
 /*
  *  Description:
  *      Calls lstat(pathname) and updates statbuf.  Standardizes basic error handling.  Updates
- *      errnum with any errno values encountered, 0 on success.
+ *      errnum with any errno values encountered, ENOERR on success.
  *  Args:
  *      pathname: Absolute or relative pathname to check with lstat().
  *      statbuf: [Out] Pointer to a stat struct to update with the results of the call to stat().
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 SKID_INTERNAL int call_lstat(const char *pathname, struct stat *statbuf, int *errnum);
 
 /*
  *  Description:
  *      Calls stat(pathname) and updates statbuf.  Standardizes basic error handling.  Updates
- *        errnum with any errno values encountered, 0 on success.
+ *        errnum with any errno values encountered, ENOERR on success.
  *  Args:
  *      pathname: Absolute or relative pathname to check with stat().
  *      statbuf: [Out] Pointer to a stat struct to update with the results of the call to stat().
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 SKID_INTERNAL int call_stat(const char *pathname, struct stat *statbuf, int *errnum);
 
@@ -65,9 +65,9 @@ SKID_INTERNAL int call_stat(const char *pathname, struct stat *statbuf, int *err
  *  Args:
  *      filename: Must be non-NULL and also can't be empty.
  *      statbuf: Must be a non-NULL pointer.
- *      errnum: Must be a non-NULL pointer.  Set to 0 on success.
+ *      errnum: Must be a non-NULL pointer.  Set to ENOERR on success.
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 SKID_INTERNAL int validate_call_input(const char *pathname, struct stat *statbuf, int *errnum);
 
@@ -77,9 +77,9 @@ SKID_INTERNAL int validate_call_input(const char *pathname, struct stat *statbuf
  *      errnum is the cause of the problem.
  *  Args:
  *      pathname: Must be non-NULL and also can't be empty.
- *      errnum: Must be a non-NULL pointer.  Set to 0 on success.
+ *      errnum: Must be a non-NULL pointer.  Set to ENOERR on success.
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 SKID_INTERNAL int validate_sfmr_input(const char *pathname, int *errnum);
 
@@ -89,7 +89,7 @@ SKID_INTERNAL int validate_sfmr_input(const char *pathname, int *errnum);
  *  Args:
  *      pathname: Must be non-NULL and also can't be empty.
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 SKID_INTERNAL int validate_sfmr_pathname(const char *pathname);
 
@@ -101,7 +101,7 @@ SKID_INTERNAL int validate_sfmr_pathname(const char *pathname);
  *      seconds: Non-NULL pointer.
  *      nseconds: Non-NULL pointer.
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 SKID_INTERNAL int validate_timestamp(const char *pathname, time_t *seconds, long *nseconds);
 

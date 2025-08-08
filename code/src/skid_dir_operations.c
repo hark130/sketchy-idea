@@ -69,7 +69,7 @@ SKID_INTERNAL bool is_dirent_a_dir(struct dirent *direntp);
  *  Args:
  *      dirname: A directory, relative or absolute, to join path to.
  *      path: A path, relative or absolute, to join to dirname.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      A heap-allocated copy of dirname/path on success.  NULL on failure (see errnum for details).
@@ -85,7 +85,7 @@ SKID_INTERNAL char *join_dir_path(const char *dirname, const char *path, int *er
  *      content_arr: [Optional] Starting array of strings (which represent pathnames).  If NULL,
  *          this function will create the first array.
  *      capacity: [In/Out] Current capacity of content_arr.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      A larger string array on success, content_arr on failure.  Ensure errnum is checked for
@@ -106,7 +106,7 @@ SKID_INTERNAL char **realloc_dir_contents(char **content_arr, size_t *capacity, 
  *          updated if the content array has to be reallocated.
  *      dirname: Absolute or relative directory to read the contents of (must exist).
  *      recurse: If true, also include all sub-dirs and their files in the array.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      A NULL-terminated array of string pointers.  Each string pointer represents one path
@@ -132,7 +132,7 @@ SKID_INTERNAL char **recurse_dir_contents(char **content_arr, size_t *capacity, 
  *          just the d_name will be stored.
  *      direntp: [Optional] A pointer to a dirent struct to store in content_arr.  This function
  *          will ignore NULL direntp pointers.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      A NULL-terminated array of string pointers.  Each string pointer represents one path.
@@ -164,7 +164,7 @@ SKID_INTERNAL bool validate_direntp(struct dirent *direntp);
  *      See recurse_dir_contents().
  *
  *  Returns:
- *      An errno value indicating the results of validation.  0 on successful validation.
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 SKID_INTERNAL int validate_rdc_args(char **content_arr, size_t *capacity, const char *dirname,
                                     bool recurse, int *errnum);
