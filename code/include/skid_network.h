@@ -35,7 +35,7 @@
  *          initialize it to contain the size (in bytes) of the structure pointed to by addr.
  *          On return it will contain the actual size of the peer address.  If addr is NULL,
  *          this value should also be NULL.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      On success, a file descriptor for the accepted socket (a non-negative integer).
@@ -72,7 +72,7 @@ int bind_struct(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
  *      addrlen: [Optional/Out] Passed directly to recvfrom() without validation.
  *      buff: [Out] Pointer to buffer to read into.
  *      buff_size: The size of buf in bytes.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      The number of bytes read by recvfrom() on success, -1 on failure (sets errno value in
@@ -203,7 +203,7 @@ int listen_socket(int sockfd, int backlog);
  *
  *  Args:
  *      sockfd: Socket file descriptor to fetch information about.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      On success, the size of sockfd's send buffer.
@@ -230,7 +230,7 @@ int get_socket_opt_sndbuf(int sockfd, int *errnum);
  *          family, in which case protocol can be specified as 0.  However, it is possible that
  *          many protocols may exist, in which case a particular protocol must be specified in
  *          this manner.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      On success, a file descriptor for the new socket is returned.  On error, SKID_BAD_FD is
@@ -249,7 +249,7 @@ int open_socket(int domain, int type, int protocol, int *errnum);
  *      protocol: The struct addrinfo.ai_protocol the socket was bound to.
  *          This function currently supports: SOCK_STREAM, SOCK_DGRAM, SOCK_DCCP.
  *          See socket(2) for details.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      Pointer to the heap-allocated buffer, on success.  NULL on error and errnum is set with
@@ -266,7 +266,7 @@ char *receive_socket(int sockfd, int flags, int protocol, int *errnum);
  *      sockfd: A file descriptor that refers to a socket to receive from.
  *      flags: A bit-wise OR of zero or more flags, as defined in recv(2):
  *          MSG_CMSG_CLOEXEC, MSG_DONTWAIT, MSG_ERRQUEUE, MSG_OOB, MSG_PEEK, MSG_TRUNC, MSG_WAITALL.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      Pointer to the heap-allocated buffer, on success.  NULL on error (check errnum for details).
@@ -295,7 +295,7 @@ char *recv_socket(int sockfd, int flags, int *errnum);
  *          incoming connection.  Not validated.  Passed directly to recvfrom().
  *      addrlen: [Optional/Out] A pointer to the storage location for the actual size of the
  *          source address.  Not validated.  Passed directly to recvfrom().
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      Pointer to the heap-allocated buffer, on success.  NULL on error (check errnum for details).
@@ -311,7 +311,7 @@ char *recv_from_socket(int sockfd, int flags, struct sockaddr *src_addr, socklen
  *
  *  Args:
  *      proto_alias: The alias to search for.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      The matching protocol number on success.  -1 on failure and errnum is set appropriately.
@@ -328,7 +328,7 @@ int resolve_alias(const char *proto_alias, int *errnum);
  *  Args:
  *      protocol: A protocol number expected to be found in the protocols database.
  *          See: protocols(5).
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      Pointer to the heap-allocated buffer, on success.  NULL on error (check errnum for details).

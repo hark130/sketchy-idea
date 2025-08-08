@@ -30,7 +30,7 @@
  *        mode: Specifies the mode for the new directory.
  *
  *    Returns:
- *        0, on success.  On failure, an errno value.
+ *        ENOERR, on success.  On failure, an errno value.
  */
 int create_dir(const char *dirname, mode_t mode);
 
@@ -42,7 +42,7 @@ int create_dir(const char *dirname, mode_t mode);
  *        dirname: Absolute or relative directory to delete.
  *
  *    Returns:
- *        0, on success.  On failure, an errno value.
+ *        ENOERR, on success.  On failure, an errno value.
  */
 int delete_dir(const char *dirname);
 
@@ -51,14 +51,11 @@ int delete_dir(const char *dirname);
  *        Remove a directory, dirname, by recursively deleting all files and directories contained
  *        within.
  *
- *    Notes:
- *        TO DO: DON'T DO NOW...
- *
  *    Args:
  *        dirname: Absolute or relative directory to destroy.
  *
  *    Returns:
- *        0, on success.  On failure, an errno value.
+ *        ENOERR, on success.  On failure, an errno value.
  */
 int destroy_dir(const char *dirname);
 
@@ -70,7 +67,7 @@ int destroy_dir(const char *dirname);
  *        dir_contents: The address of the variable storing a read_dir_contents()'s return value.
  *
  *    Returns:
- *        0 on success, errno on error.
+ *        ENOERR on success, errno on error.
  */
 int free_skid_dir_contents(char ***dir_contents);
 
@@ -85,7 +82,7 @@ int free_skid_dir_contents(char ***dir_contents);
  *    Args:
  *        dirname: Absolute or relative directory to read the contents of (must exist).
  *        recurse: If true, also include all sub-dirs and their files in the array.
- *        errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *        errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *        capacity: [Out] The total number of available indices, 0 or otherwise, in the return value.
  *
  *    Returns:

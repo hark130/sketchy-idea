@@ -22,7 +22,7 @@
  *      more_mode: The additional permission flags to add to pathname's mode.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int add_mode(const char *pathname, mode_t more_mode);
 
@@ -41,7 +41,7 @@ int add_mode(const char *pathname, mode_t more_mode);
  *      less_mode: The permission flags to remove from pathname's mode.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int remove_mode(const char *pathname, mode_t less_mode);
 
@@ -59,7 +59,7 @@ int remove_mode(const char *pathname, mode_t less_mode);
  *      nseconds: The nanoseconds to set the atime to.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int set_atime(const char *pathname, bool follow_sym, time_t seconds, long nseconds);
 
@@ -75,7 +75,7 @@ int set_atime(const char *pathname, bool follow_sym, time_t seconds, long nsecon
  *          do not follow symbolic links if false.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int set_atime_now(const char *pathname, bool follow_sym);
 
@@ -101,7 +101,7 @@ int set_atime_now(const char *pathname, bool follow_sym);
  *          do not follow symbolic links if false.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int set_group_id(const char *pathname, gid_t new_group, bool follow_sym);
 
@@ -125,7 +125,7 @@ int set_group_id(const char *pathname, gid_t new_group, bool follow_sym);
  *      new_mode: The new mode for pathname.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int set_mode(const char *pathname, mode_t new_mode);
 
@@ -143,7 +143,7 @@ int set_mode(const char *pathname, mode_t new_mode);
  *      nseconds: The nanoseconds to set the mtime to.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int set_mtime(const char *pathname, bool follow_sym, time_t seconds, long nseconds);
 
@@ -159,7 +159,7 @@ int set_mtime(const char *pathname, bool follow_sym, time_t seconds, long nsecon
  *          do not follow symbolic links if false.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int set_mtime_now(const char *pathname, bool follow_sym);
 
@@ -182,7 +182,7 @@ int set_mtime_now(const char *pathname, bool follow_sym);
  *          do not follow symbolic links if false.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int set_owner_id(const char *pathname, uid_t new_owner, bool follow_sym);
 
@@ -209,7 +209,7 @@ int set_owner_id(const char *pathname, uid_t new_owner, bool follow_sym);
  *          do not follow symbolic links if false.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int set_ownership(const char *pathname, uid_t new_owner, gid_t new_group, bool follow_sym);
 
@@ -227,7 +227,7 @@ int set_ownership(const char *pathname, uid_t new_owner, gid_t new_group, bool f
  *      nseconds: The nanoseconds to set the mtime to.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int set_times(const char *pathname, bool follow_sym, time_t seconds, long nseconds);
 
@@ -243,7 +243,7 @@ int set_times(const char *pathname, bool follow_sym, time_t seconds, long nsecon
  *          do not follow symbolic links if false.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int set_times_now(const char *pathname, bool follow_sym);
 

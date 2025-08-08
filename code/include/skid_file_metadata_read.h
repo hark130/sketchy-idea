@@ -19,7 +19,7 @@
  *      time_val: The time value to format.
  *
  *  Returns:
- *      0 on success.  Returns errno value or -1 on failure.
+ *      ENOERR on success.  Returns errno value or -1 on failure.
  */
 int format_time(char *output, size_t output_size, time_t time_val);
 
@@ -35,7 +35,7 @@ int format_time(char *output, size_t output_size, time_t time_val);
  *      time_val: The time value to format.
  *
  *  Returns:
- *      0 on success.  Returns errno value or -1 on failure.
+ *      ENOERR on success.  Returns errno value or -1 on failure.
  */
 int format_time_terse(char *output, size_t output_size, time_t time_val);
 
@@ -47,7 +47,7 @@ int format_time_terse(char *output, size_t output_size, time_t time_val);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to fetch the access time for.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *      follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
@@ -65,7 +65,7 @@ time_t get_access_time(const char *pathname, int *errnum, bool follow_sym);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to fetch the access time nanoseconds for.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *      follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
@@ -86,7 +86,7 @@ long get_access_time_nsecs(const char *pathname, int *errnum, bool follow_sym);
  *      follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
- *      0 on success.  Errno value on failure.
+ *      ENOERR on success.  Errno value on failure.
  */
 int get_access_timestamp(const char *pathname, time_t *seconds, long *nseconds, bool follow_sym);
 
@@ -98,7 +98,7 @@ int get_access_timestamp(const char *pathname, time_t *seconds, long *nseconds, 
  *      
  *  Args:
  *      filename: Absolute or relative filename to check.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *      
  *  Returns:
  *      On success, the st_blksize value for filename.  On failure, this function
@@ -115,7 +115,7 @@ blkcnt_t get_block_count(const char *filename, int *errnum);
  *
  *  Args:
  *      filename: Absolute or relative filename to check.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *      
  *  Returns:
  *      On success, the st_blksize value for filename.  On failure, this function
@@ -130,7 +130,7 @@ blksize_t get_block_size(const char *filename, int *errnum);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to fetch the status change time for.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *      follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
@@ -148,7 +148,7 @@ time_t get_change_time(const char *pathname, int *errnum, bool follow_sym);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to fetch the change time nanoseconds for.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *      follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
@@ -169,7 +169,7 @@ long get_change_time_nsecs(const char *pathname, int *errnum, bool follow_sym);
  *      follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
- *      0 on success.  Errno value on failure.
+ *      ENOERR on success.  Errno value on failure.
  */
 int get_change_timestamp(const char *pathname, time_t *seconds, long *nseconds, bool follow_sym);
 
@@ -183,7 +183,7 @@ int get_change_timestamp(const char *pathname, time_t *seconds, long *nseconds, 
  *      
  *  Args:
  *      pathname: Absolute or relative pathname to fetch its container's device ID for.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *      
  *  Returns:
  *      Returns the st_rdev value on success.  Error conditions are indicated by non-zero values
@@ -201,7 +201,7 @@ dev_t get_container_device_id(const char *pathname, int *errnum);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to fetch device ID for.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      Returns the st_dev value on success.  Error conditions are indicated by non-zero values
@@ -219,7 +219,7 @@ dev_t get_file_device_id(const char *pathname, int *errnum);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to check.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *      
  *  Returns:
  *      Just the file permission bits from pathname's mode on success.  Returns 0 on failure
@@ -236,7 +236,7 @@ mode_t get_file_perms(const char *pathname, int *errnum);
  *
  *  Args:
  *      filename: Absolute or relative filename to check.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      On success, a value comparable to any of the file type mask values:
@@ -254,7 +254,7 @@ mode_t get_file_type(const char *filename, int *errnum);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to the group's ID for.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *      follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
@@ -272,7 +272,7 @@ gid_t get_group(const char *pathname, int *errnum, bool follow_sym);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to count the hard links of.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      Number of hard links to pathname on success.  Error conditions are indicated by non-zero
@@ -287,7 +287,7 @@ nlink_t get_hard_link_num(const char *pathname, int *errnum);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to fetch the modification time for.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *      follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
@@ -305,7 +305,7 @@ time_t get_mod_time(const char *pathname, int *errnum, bool follow_sym);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to fetch the modification time nanoseconds for.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *      follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
@@ -326,7 +326,7 @@ long get_mod_time_nsecs(const char *pathname, int *errnum, bool follow_sym);
  *      follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
- *      0 on success.  Errno value on failure.
+ *      ENOERR on success.  Errno value on failure.
  */
 int get_mod_timestamp(const char *pathname, time_t *seconds, long *nseconds, bool follow_sym);
 
@@ -339,7 +339,7 @@ int get_mod_timestamp(const char *pathname, time_t *seconds, long *nseconds, boo
  *
  *  Args:
  *      pathname: Absolute or relative pathname to the owner's user ID for.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *      follow_sym: If false, uses lstat() for symlinks.
  *
  *  Returns:
@@ -357,7 +357,7 @@ uid_t get_owner(const char *pathname, int *errnum, bool follow_sym);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to read the inode number of.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      Pathname's inode number on success.  Error conditions are indicated by non-zero values
@@ -374,7 +374,7 @@ ino_t get_serial_num(const char *pathname, int *errnum);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to the fetch the size of.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      Pathname's size, in bytes, on success.  Error conditions are indicated by non-zero values
@@ -391,7 +391,7 @@ off_t get_size(const char *pathname, int *errnum);
  *
  *  Args:
  *      filename: Absolute or relative filename to check.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      True if filename is a block device.  False otherwise.  Also, returns False if an error
@@ -407,7 +407,7 @@ bool is_block_device(const char *filename, int *errnum);
  *
  *  Args:
  *      filename: Absolute or relative filename to check.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      True if filename is a character device.  False otherwise.  Also, returns False if an error
@@ -423,7 +423,7 @@ bool is_character_device(const char *filename, int *errnum);
  *
  *  Args:
  *      pathname: Absolute or relative pathname to check.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      True if pathname is a directory.  False otherwise.  Also, returns False if an error
@@ -439,7 +439,7 @@ bool is_directory(const char *pathname, int *errnum);
  *
  *  Args:
  *      filename: Absolute or relative filename to check.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      True if filename is a named pipe.  False otherwise.  Also, returns False if an error
@@ -457,8 +457,8 @@ bool is_named_pipe(const char *filename, int *errnum);
  *
  *	Returns:
  *		If pathname exists, true.  Returns false if pathname does not exist or on error.
- *		Check errnum to determine error status: ENOERR on success (regardless of pathname's existence),
- *		errno value on error.
+ *		Check errnum to determine error status: ENOERR on success (regardless of pathname's
+ *		existence), errno value on error.
  */
 bool is_path(const char *pathname, int *errnum);
 
@@ -471,7 +471,7 @@ bool is_path(const char *pathname, int *errnum);
  *
  *  Args:
  *      filename: Absolute or relative filename to check.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      True if filename is a regular file.  False otherwise.  Also, returns False if an error
@@ -487,7 +487,7 @@ bool is_regular_file(const char *filename, int *errnum);
  *
  *  Args:
  *      filename: Absolute or relative filename to check.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      True if filename is a socket.  False otherwise.  Also, returns False if an error
@@ -503,7 +503,7 @@ bool is_socket(const char *filename, int *errnum);
  *
  *  Args:
  *      filename: Absolute or relative filename to check.
- *      errnum: [Out] Stores the first errno value encountered here.  Set to 0 on success.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
  *      True if filename is a symbolic link.  False otherwise.  Also, returns False if an error

@@ -16,7 +16,7 @@
  *      hard_link: The pathname, relative or absolute, to the source's hard link.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int create_hard_link(const char *source, const char *hard_link);
 
@@ -40,7 +40,7 @@ int create_hard_link(const char *source, const char *hard_link);
  *		sym_link: The pathname, relative or absolute, to the symbolic link that points at dest.
  *
  *  Returns:
- *      0, on success.  On failure, an errno value.
+ *      ENOERR, on success.  On failure, an errno value.
  */
 int create_sym_link(const char *dest, const char *sym_link);
 
