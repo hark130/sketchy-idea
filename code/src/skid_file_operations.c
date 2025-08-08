@@ -44,10 +44,10 @@ SKID_INTERNAL int close_stream(FILE **stream);
  *      Is filename an actual file?  Any invalid input or errno values are treated as a "no".
  *
  *  Args:
- *    filename: Absolute or relative pathname to check.
+ *      filename: Absolute or relative pathname to check.
  *
  *  Returns:
- *    True if filename exists as a file.  False otherwise.
+ *      True if filename exists as a file.  False otherwise.
  */
 SKID_INTERNAL bool is_file(const char *filename);
 
@@ -69,13 +69,13 @@ SKID_INTERNAL int read_stream(FILE *stream, char *contents, size_t buff_size);
 
 /*
  *  Description:
- *    Validates the pathname arguments on behalf of this library.
+ *      Validates the pathname arguments on behalf of this library.
  *
  *  Args:
- *    pathname: A non-NULL pointer to a non-empty string.
+ *      pathname: A non-NULL pointer to a non-empty string.
  *
  *  Returns:
- *    An errno value indicating the results of validation.  ENOERR on successful validation.
+ *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
 SKID_INTERNAL int validate_sfo_pathname(const char *pathname);
 
@@ -126,7 +126,7 @@ int append_to_file(const char *filename, const char *entry, bool create)
             }
             else if (ENOERR == result)
             {
-                result = ENOENT;  // The file didn't exist, no errors found, but we're not to create it.
+                result = ENOENT;  // File didn't exist, no errs found, but we're not to create it.
             }
         }
     }

@@ -30,7 +30,8 @@ MODULE_UNLOAD();  // Print the module name being unloaded using the gcc destruct
  *  Returns:
  *      An errno value indicating the results of validation.  ENOERR on successful validation.
  */
-SKID_INTERNAL int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum, bool follow_sym);
+SKID_INTERNAL int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum,
+                              bool follow_sym);
 
 /*
  *  Description:
@@ -48,7 +49,7 @@ SKID_INTERNAL int call_lstat(const char *pathname, struct stat *statbuf, int *er
 /*
  *  Description:
  *      Calls stat(pathname) and updates statbuf.  Standardizes basic error handling.  Updates
- *        errnum with any errno values encountered, ENOERR on success.
+ *      errnum with any errno values encountered, ENOERR on success.
  *  Args:
  *      pathname: Absolute or relative pathname to check with stat().
  *      statbuf: [Out] Pointer to a stat struct to update with the results of the call to stat().
@@ -884,7 +885,8 @@ bool is_sym_link(const char *filename, int *errnum)
 /**************************************************************************************************/
 
 
-SKID_INTERNAL int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum, bool follow_sym)
+SKID_INTERNAL int call_a_stat(const char *pathname, struct stat *statbuf, int *errnum,
+                              bool follow_sym)
 {
     // LOCAL VARIABLES
     int result = validate_call_input(pathname, statbuf, errnum);  // Errno value

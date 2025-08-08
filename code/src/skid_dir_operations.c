@@ -247,8 +247,12 @@ int delete_dir(const char *dirname)
 int destroy_dir(const char *dirname)
 {
     // From readdir(3)
-    // Only  the fields d_name and (as an XSI extension) d_ino are specified in POSIX.1.  Other than Linux, the d_type field is available mainly only on BSD systems.  The remaining fields are available on many, but not all systems.  Under glibc, programs can check for
-    // the availability of the fields not defined in POSIX.1 by testing whether the macros _DIRENT_HAVE_D_NAMLEN, _DIRENT_HAVE_D_RECLEN, _DIRENT_HAVE_D_OFF, or _DIRENT_HAVE_D_TYPE are defined.
+    // Only  the fields d_name and (as an XSI extension) d_ino are specified in POSIX.1.
+    // Other than Linux, the d_type field is available mainly only on BSD systems.
+    // The remaining fields are available on many, but not all systems.  Under glibc, programs
+    // can check for the availability of the fields not defined in POSIX.1 by testing whether
+    // the macros _DIRENT_HAVE_D_NAMLEN, _DIRENT_HAVE_D_RECLEN, _DIRENT_HAVE_D_OFF, or
+    // _DIRENT_HAVE_D_TYPE are defined.
 
     // LOCAL VARIABLES
     int result = ENOERR;         // Results of execution

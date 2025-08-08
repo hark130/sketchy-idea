@@ -209,47 +209,47 @@ SKID_INTERNAL int recv_socket_dynamic(int sockfd, int flags, char **output_buf,
 
 /*
  *  Description:
- *  A "lite" wrapper around the module's call to sendto(), standardizing error response.
- *  This function does not validate input.  It does, however, attempt to recursively
- *  complete partial sends (bytes successfully sent are less than len).
+ *      A "lite" wrapper around the module's call to sendto(), standardizing error response.
+ *      This function does not validate input.  It does, however, attempt to recursively
+ *      complete partial sends (bytes successfully sent are less than len).
  *
  *  Args:
- *    sockfd: Specifies the socket file descriptor.
- *    buf: Points to a buffer containing the message to be sent.
- *    len: Specifies the size of the message in bytes.
- *    flags: Specifies the type of message transmission.
- *    dest_addr: Points to a sockaddr structure containing the destination address.
- *        The length and format of the address depend on the address family of the socket.
- *    addrlen: Specifies the length of the sockaddr structure pointed to by the dest_addr arg.
- *    errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
+ *      sockfd: Specifies the socket file descriptor.
+ *      buf: Points to a buffer containing the message to be sent.
+ *      len: Specifies the size of the message in bytes.
+ *      flags: Specifies the type of message transmission.
+ *      dest_addr: Points to a sockaddr structure containing the destination address.
+ *          The length and format of the address depend on the address family of the socket.
+ *      addrlen: Specifies the length of the sockaddr structure pointed to by the dest_addr arg.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
- *    Upon successful completion, send_to() shall return the number of bytes sent.
- *    Partial sends, number of bytes sent < len, are treated as successful.
- *    Otherwise, -1 shall be returned and errnum set to indicate the error.
+ *      Upon successful completion, send_to() shall return the number of bytes sent.
+ *      Partial sends, number of bytes sent < len, are treated as successful.
+ *      Otherwise, -1 shall be returned and errnum set to indicate the error.
  */
 SKID_INTERNAL ssize_t send_to(int sockfd, const void *buf, size_t len, int flags,
                               const struct sockaddr *dest_addr, socklen_t addrlen, int *errnum);
 
 /*
  *  Description:
- *    Chunks buf into get_socket_opt_sndbuf() segments and passes them to send_to().
- *    This function barely validates input: non-NULL buf and valid len.
+ *      Chunks buf into get_socket_opt_sndbuf() segments and passes them to send_to().
+ *      This function barely validates input: non-NULL buf and valid len.
  *
  *  Args:
- *    sockfd: Specifies the socket file descriptor.
- *    buf: Points to a buffer containing the message to be sent.
- *    len: Specifies the size of the message in bytes.
- *    flags: Specifies the type of message transmission.
- *    dest_addr: Points to a sockaddr structure containing the destination address.
- *        The length and format of the address depend on the address family of the socket.
- *    addrlen: Specifies the length of the sockaddr structure pointed to by the dest_addr arg.
- *    errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
+ *      sockfd: Specifies the socket file descriptor.
+ *      buf: Points to a buffer containing the message to be sent.
+ *      len: Specifies the size of the message in bytes.
+ *      flags: Specifies the type of message transmission.
+ *      dest_addr: Points to a sockaddr structure containing the destination address.
+ *          The length and format of the address depend on the address family of the socket.
+ *      addrlen: Specifies the length of the sockaddr structure pointed to by the dest_addr arg.
+ *      errnum: [Out] Stores the first errno value encountered here.  Set to ENOERR on success.
  *
  *  Returns:
- *    Upon successful completion, send_to() shall return the number of bytes sent.
- *    Partial sends, number of bytes sent < len, are treated as successful.
- *    Otherwise, -1 shall be returned and errnum set to indicate the error.
+ *      Upon successful completion, send_to() shall return the number of bytes sent.
+ *      Partial sends, number of bytes sent < len, are treated as successful.
+ *      Otherwise, -1 shall be returned and errnum set to indicate the error.
  */
 SKID_INTERNAL ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int flags,
                                     const struct sockaddr *dest_addr, socklen_t addrlen,
@@ -257,16 +257,16 @@ SKID_INTERNAL ssize_t send_to_chunk(int sockfd, const void *buf, size_t len, int
 
 /*
  *  Description:
- *    Validate common In/Out args on behalf of the library.
+ *      Validate common In/Out args on behalf of the library.
  *
  *  Args:
- *    output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
- *        a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
- *        output_size will be updated.
- *    output_size: [In/Out] Pointer to the size of output_buf.
+ *      output_buf: [In/Out] Pointer to the working heap-allocated buffer.  If this pointer holds
+ *          a NULL pointer, heap memory will be allocated, the pointer will be stored here, and
+ *          output_size will be updated.
+ *      output_size: [In/Out] Pointer to the size of output_buf.
  *
  *  Returns:
- *    ENOERR on success, errno on failed validation.
+ *      ENOERR on success, errno on failed validation.
  */
 SKID_INTERNAL int validate_sn_args(char **output_buf, size_t *output_size);
 
